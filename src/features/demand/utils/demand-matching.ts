@@ -90,13 +90,23 @@ export function matchFactory(demand: Demand, factory: Factory, today: string): F
   };
 }
 
+const byRank = (a: FactoryMatch, b: FactoryMatch) =>
+  (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity) ||
+  Number(b.timeFits) - Number(a.timeFits) ||
+  (a.estimatedDays ?? Infinity) - (b.estimatedDays ?? Infinity);
+
 /** Suggested first (distance → time fit → faster capacity), then excluded ones */
 export function rankFactories(demand: Demand, factories: Factory[], today = new Date().toISOString().slice(0, 10)) {
   const all = factories.map((f) => matchFactory(demand, f, today));
-  const byRank = (a: FactoryMatch, b: FactoryMatch) =>
-    (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity) ||
-    Number(b.timeFits) - Number(a.timeFits) ||
-    (a.estimatedDays ?? Infinity) - (b.estimatedDays ?? Infinity);
+  return {
+    suggested: all.filter((m) => m.reasons.length === 0).sort(byRank),
+    excluded: all.filter((m) => m.reasons.length > 0),
+  };
+}
+
+/** Reverse direction: open demands a factory can serve, same rules and ranking */
+export function rankDemands(factory: Factory, demands: Demand[], today = new Date().toISOString().slice(0, 10)) {
+  const all = demands.map((d) => ({ demand: d, ...matchFactory(d, factory, today) }));
   return {
     suggested: all.filter((m) => m.reasons.length === 0).sort(byRank),
     excluded: all.filter((m) => m.reasons.length > 0),
