@@ -1,1 +1,1 @@
-export type AuthProvider = "authentik";
+export type AuthProvider = string;

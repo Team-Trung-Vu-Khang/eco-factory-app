@@ -1,4 +1,4 @@
-import { http } from "@/lib/axios";
+import { apiClient } from "@/lib/axios";
 import type { Example } from "../types";
 import type { ExampleFormValues } from "../schemas/example-schema";
 
@@ -9,8 +9,8 @@ export const exampleKeys = {
 };
 
 export const exampleApi = {
-  list: () => http.get<Example[]>("/examples").then((r) => r.data),
-  get: (id: string) => http.get<Example>(`/examples/${id}`).then((r) => r.data),
+  list: () => apiClient.get<Example[]>("/examples").then((r) => r.data),
+  get: (id: string) => apiClient.get<Example>(`/examples/${id}`).then((r) => r.data),
   create: (body: ExampleFormValues) =>
-    http.post<Example>("/examples", body).then((r) => r.data),
+    apiClient.post<Example>("/examples", body).then((r) => r.data),
 };

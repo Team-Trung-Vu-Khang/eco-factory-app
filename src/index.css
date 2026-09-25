@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @import "@Team-Trung-Vu-Khang/eco-shared-ui/index.css";
-@import "reactflow/dist/style.css";
 
 @layer base {
   .rich-text-content ul {

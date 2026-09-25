@@ -9,8 +9,3 @@ export interface Paginated<T> {
   page: number;
   pageSize: number;
 }
-
-export interface ApiError {
-  message: string;
-  status?: number;
-}
