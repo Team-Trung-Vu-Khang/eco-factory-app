@@ -20,10 +20,10 @@ const ProductPage = lazy(() => import("./pages/product/ProductPage"));
 const ProductCreatePage = lazy(() => import("./pages/product/ProductCreatePage"));
 const ProductDetailPage = lazy(() => import("./pages/product/ProductDetailPage"));
 const ProductEditPage = lazy(() => import("./pages/product/ProductEditPage"));
+const DemandTypePage = lazy(() => import("./pages/demand-type/DemandTypePage"));
 
 // TODO: replace each placeholder with its real page
 const PLACEHOLDER_ROUTES: { path: string; title: string }[] = [
-  { path: ROUTES.demandTypes, title: "Loại nhu cầu" },
   { path: ROUTES.demandSuggestions, title: "Gợi ý nhà máy phù hợp" },
   { path: ROUTES.demandMatching, title: "Tìm nhu cầu phù hợp" },
   { path: ROUTES.demands, title: "Danh sách nhu cầu" },
@@ -53,6 +53,8 @@ export default function AppRouter() {
       <Route path={ROUTES.productCreate} component={ProductCreatePage} />
       <Route path={ROUTES.productEdit(":id")} component={ProductEditPage} />
       <Route path={ROUTES.productDetail(":id")} component={ProductDetailPage} />
+
+      <Route path={ROUTES.demandTypes} component={DemandTypePage} />
 
       {PLACEHOLDER_ROUTES.map(({ path, title }) => (
         <Route key={path} path={path}>
