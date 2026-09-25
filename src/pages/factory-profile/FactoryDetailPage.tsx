@@ -9,7 +9,7 @@ import { FactoryInfoSections } from "./components/detail/FactoryInfoSections";
 import { FactorySummaryCard } from "./components/detail/FactorySummaryCard";
 import { MachineListSection } from "./components/detail/MachineListSection";
 import { PhotoGallerySection } from "./components/detail/PhotoGallerySection";
-import { FactoryNotFound, FactoryPageSkeleton } from "./components/FactoryPageState";
+import { DetailPageSkeleton, NotFoundState } from "@/components/common/PageState";
 
 export default function FactoryDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -36,9 +36,9 @@ export default function FactoryDetailPage() {
       }
     >
       {isLoading ? (
-        <FactoryPageSkeleton />
+        <DetailPageSkeleton />
       ) : isError || !factory ? (
-        <FactoryNotFound onBack={goBack} />
+        <NotFoundState message="Không tìm thấy nhà máy hoặc đã bị xóa." onBack={goBack} />
       ) : (
         <div className="space-y-6">
           <FactorySummaryCard factory={factory} />

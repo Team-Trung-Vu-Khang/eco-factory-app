@@ -8,7 +8,7 @@ import {
   getWardName,
   type Factory,
 } from "@/features/factory";
-import { InfoGrid } from "./InfoGrid";
+import { InfoGrid } from "@/components/common/InfoGrid";
 
 const join = (items: string[]) => items.join(", ");
 

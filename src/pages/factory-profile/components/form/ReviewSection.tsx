@@ -11,7 +11,7 @@ import {
   type OrganizationType,
   type ProcessingService,
 } from "@/features/factory";
-import { InfoGrid } from "../detail/InfoGrid";
+import { InfoGrid } from "@/components/common/InfoGrid";
 import { CompletionBar } from "../CompletionBar";
 import { KpiStatusBadge } from "../KpiStatusBadge";
 import { useFactoryFormContext } from "./useFactoryFormContext";

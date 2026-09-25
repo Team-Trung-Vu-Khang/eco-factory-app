@@ -13,6 +13,7 @@ export function useStepValidity<T extends FieldValues>(
   stepFields: string[][],
 ): boolean[] {
   const values = useWatch({ control });
+  const fieldsKey = JSON.stringify(stepFields);
 
   return useMemo(() => {
     const result = schema.safeParse(values);
@@ -22,5 +23,6 @@ export function useStepValidity<T extends FieldValues>(
     return stepFields.map((fields) =>
       !paths.some((path) => fields.some((f) => path === f || path.startsWith(`${f}.`))),
     );
-  }, [values, schema, stepFields]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by content
+  }, [values, schema, fieldsKey]);
 }

@@ -9,8 +9,8 @@ import {
   useUpdateFactory,
   type FactoryFormValues,
 } from "@/features/factory";
-import { FactoryNotFound, FactoryPageSkeleton } from "./components/FactoryPageState";
-import { FactoryForm } from "./components/form/FactoryForm";
+import { DetailPageSkeleton, NotFoundState } from "@/components/common/PageState";
+import { FactoryStepperForm } from "./components/form/FactoryStepperForm";
 
 export default function FactoryEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,11 +37,11 @@ export default function FactoryEditPage() {
       actions={<BackButton to={ROUTES.profileDetail(id)} />}
     >
       {isLoading ? (
-        <FactoryPageSkeleton />
+        <DetailPageSkeleton />
       ) : isError || !factory ? (
-        <FactoryNotFound onBack={() => navigate(ROUTES.profile)} />
+        <NotFoundState message="Không tìm thấy nhà máy hoặc đã bị xóa." onBack={() => navigate(ROUTES.profile)} />
       ) : (
-        <FactoryForm
+        <FactoryStepperForm
           key={factory.id}
           defaultValues={toFactoryFormValues(factory)}
           submitLabel="Lưu thay đổi"

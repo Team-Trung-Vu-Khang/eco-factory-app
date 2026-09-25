@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { SchemaStep } from "@/components/form";
 import type { FactoryFormValues } from "@/features/factory";
 import { ActivitySection } from "./ActivitySection";
 import { BasicInfoSection } from "./BasicInfoSection";
@@ -9,18 +9,7 @@ import { MachinesSection } from "./MachinesSection";
 import { RepresentativeSection } from "./RepresentativeSection";
 import { ReviewSection } from "./ReviewSection";
 
-type FieldKey = keyof FactoryFormValues;
-
-export interface FactoryStep {
-  id: string;
-  title: string;
-  description?: string;
-  /** Top-level fields that must be valid before "Tiếp tục" is enabled */
-  fields: FieldKey[];
-  content: ReactNode;
-}
-
-export const FACTORY_STEPS: FactoryStep[] = [
+export const FACTORY_STEPS: SchemaStep<FactoryFormValues>[] = [
   {
     id: "general",
     title: "Thông tin chung",

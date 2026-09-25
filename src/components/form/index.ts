@@ -5,3 +5,6 @@ export { ImageDropzone } from "./ImageDropzone";
 export { useUploadStatus, useUploadStatusState } from "./upload-status";
 export { UploadStatusProvider } from "./UploadStatusProvider";
 export { AddressAutocomplete } from "./AddressAutocomplete";
+export { SchemaStepperForm, type SchemaStep } from "./SchemaStepperForm";
+export { PersonnelPickerDialog } from "./PersonnelPickerDialog";
+export { AddressMapField } from "./AddressMapField";
