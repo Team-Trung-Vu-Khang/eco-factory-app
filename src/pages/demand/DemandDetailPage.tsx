@@ -1,5 +1,5 @@
 import { Button } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { Pencil } from "lucide-react";
+import { Pencil, Sparkles } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { BackButton } from "@/components/common/BackButton";
 import { DetailPageSkeleton, NotFoundState } from "@/components/common/PageState";
@@ -21,6 +21,12 @@ export default function DemandDetailPage() {
       actions={
         <>
           <BackButton to={ROUTES.demands} label="Danh sách" />
+          {demand && (
+            <Button variant="outline" onClick={() => navigate(`${ROUTES.demandSuggestions}?demandId=${demand.id}`)}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              Gợi ý nhà máy
+            </Button>
+          )}
           {demand && (
             <Button onClick={() => navigate(ROUTES.demandEdit(demand.id))}>
               <Pencil className="mr-2 h-4 w-4" />
