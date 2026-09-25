@@ -1,6 +1,7 @@
-const SELECTED_WORKSPACE_KEY = "selected_workspace_id";
+/** Same key eco-shared-ui's layout writes when the user picks a workspace */
+export const SELECTED_WORKSPACE_STORAGE_KEY = "admin_selected_workspace";
 
-// TODO: replace with the real workspace feature (store + switcher)
 export function getSelectedWorkspaceIdFromStorage(): string | null {
-  return localStorage.getItem(SELECTED_WORKSPACE_KEY);
+  const value = sessionStorage.getItem(SELECTED_WORKSPACE_STORAGE_KEY);
+  return value || null;
 }

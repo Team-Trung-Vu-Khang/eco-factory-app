@@ -11,7 +11,7 @@ import {
 import dayjs from "dayjs";
 import { MapPin } from "lucide-react";
 import { Link } from "wouter";
-import { PROCESSING_SERVICE_LABELS } from "@/types/factory";
+import { PROCESSING_SERVICE_LABELS } from "@/features/factory/constants";
 import type { DemandStatus, RecentDemand } from "../types";
 
 const STATUS: Record<DemandStatus, { label: string; className: string }> = {

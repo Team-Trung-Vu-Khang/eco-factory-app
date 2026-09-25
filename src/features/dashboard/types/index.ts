@@ -1,4 +1,4 @@
-import type { ProcessingService } from "@/types/factory";
+import type { ProcessingService } from "@/features/factory/constants";
 
 export type DemandStatus =
   | "SENT"
