@@ -11,4 +11,7 @@ export const ROUTES = {
   certificateCreate: `${FACTORY_ROUTES.certificates}/new`,
   certificateDetail: (id: string) => `${FACTORY_ROUTES.certificates}/${id}`,
   certificateEdit: (id: string) => `${FACTORY_ROUTES.certificates}/${id}/edit`,
+  productCreate: `${FACTORY_ROUTES.products}/new`,
+  productDetail: (id: string) => `${FACTORY_ROUTES.products}/${id}`,
+  productEdit: (id: string) => `${FACTORY_ROUTES.products}/${id}/edit`,
 } as const;
