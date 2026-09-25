@@ -14,4 +14,7 @@ export const ROUTES = {
   productCreate: `${FACTORY_ROUTES.products}/new`,
   productDetail: (id: string) => `${FACTORY_ROUTES.products}/${id}`,
   productEdit: (id: string) => `${FACTORY_ROUTES.products}/${id}/edit`,
+  demandCreate: `${FACTORY_ROUTES.demands}/new`,
+  demandDetail: (id: string) => `${FACTORY_ROUTES.demands}/${id}`,
+  demandEdit: (id: string) => `${FACTORY_ROUTES.demands}/${id}/edit`,
 } as const;

@@ -21,12 +21,15 @@ const ProductCreatePage = lazy(() => import("./pages/product/ProductCreatePage")
 const ProductDetailPage = lazy(() => import("./pages/product/ProductDetailPage"));
 const ProductEditPage = lazy(() => import("./pages/product/ProductEditPage"));
 const DemandTypePage = lazy(() => import("./pages/demand-type/DemandTypePage"));
+const DemandPage = lazy(() => import("./pages/demand/DemandPage"));
+const DemandCreatePage = lazy(() => import("./pages/demand/DemandCreatePage"));
+const DemandDetailPage = lazy(() => import("./pages/demand/DemandDetailPage"));
+const DemandEditPage = lazy(() => import("./pages/demand/DemandEditPage"));
 
 // TODO: replace each placeholder with its real page
 const PLACEHOLDER_ROUTES: { path: string; title: string }[] = [
   { path: ROUTES.demandSuggestions, title: "Gợi ý nhà máy phù hợp" },
   { path: ROUTES.demandMatching, title: "Tìm nhu cầu phù hợp" },
-  { path: ROUTES.demands, title: "Danh sách nhu cầu" },
 ];
 
 export default function AppRouter() {
@@ -56,11 +59,18 @@ export default function AppRouter() {
 
       <Route path={ROUTES.demandTypes} component={DemandTypePage} />
 
+      {/* Before demandDetail(":id") — /demands/suggestions etc. would match it otherwise */}
       {PLACEHOLDER_ROUTES.map(({ path, title }) => (
         <Route key={path} path={path}>
           <ComingSoonPage title={title} />
         </Route>
       ))}
+
+      <Route path={ROUTES.demands} component={DemandPage} />
+      <Route path={ROUTES.demandCreate} component={DemandCreatePage} />
+      <Route path={ROUTES.demandEdit(":id")} component={DemandEditPage} />
+      <Route path={ROUTES.demandDetail(":id")} component={DemandDetailPage} />
+
       <Route>
         <Redirect to={ROUTES.dashboard} replace />
       </Route>
