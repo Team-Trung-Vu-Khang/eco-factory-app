@@ -41,9 +41,7 @@ function redirectToLogin() {
 }
 
 export function AuthWrapper({ children }: { children: ReactNode }) {
-  const [isReady] = useState(
-    () => !isCallbackRoute() && !!authApi.getToken(),
-  );
+  const [isReady] = useState(() => !isCallbackRoute() && !!authApi.getToken());
 
   useEffect(() => {
     if (isReady) return;

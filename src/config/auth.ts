@@ -5,7 +5,8 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export const AUTH_PATHS = {
   callback: `${BASE}${env.auth.callbackPath}`,
-  home: `${BASE}/`,
+  home: "/factory",
+  login: "/auth/login",
   refresh: "/auth/refresh",
   postLogoutRedirect: env.auth.postLogoutRedirectUri,
 };

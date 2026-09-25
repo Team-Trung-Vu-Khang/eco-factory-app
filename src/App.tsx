@@ -1,6 +1,6 @@
 import {
-  AdminLayout,
-  MobileAppLayout,
+  FactoryAdminLayout,
+  FactoryMobileLayout,
   RadixToaster,
   TooltipProvider,
   useIsMobile,
@@ -8,14 +8,14 @@ import {
 import { Suspense } from "react";
 import { AppLoadingState } from "@/components/common/AppLoadingState";
 import { AuthWrapper } from "@/features/auth";
+import AppRouter from "./AppRouter";
 
 function App() {
   const isMobile = useIsMobile();
 
-  // TODO: replace with <AppRouter /> once routes are defined
   const content = (
     <Suspense fallback={<AppLoadingState />}>
-      <div className="p-6">Eco Factory</div>
+      <AppRouter />
     </Suspense>
   );
 
@@ -23,11 +23,9 @@ function App() {
     <TooltipProvider>
       <AuthWrapper>
         {isMobile ? (
-          <MobileAppLayout>{content}</MobileAppLayout>
+          <FactoryMobileLayout>{content}</FactoryMobileLayout>
         ) : (
-          <AdminLayout isDev isMevi>
-            {content}
-          </AdminLayout>
+          <FactoryAdminLayout>{content}</FactoryAdminLayout>
         )}
         <RadixToaster />
       </AuthWrapper>
