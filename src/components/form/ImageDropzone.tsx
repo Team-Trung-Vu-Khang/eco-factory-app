@@ -1,10 +1,13 @@
 import { useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { Camera, ImagePlus, Loader2, X } from "lucide-react";
+import { Camera, FileText, ImagePlus, Loader2, X } from "lucide-react";
 import { useRef, useState, type DragEvent } from "react";
 import { uploadFile } from "@/features/storage";
 import { getApiErrorMessage } from "@/lib/api-error";
 
-const ACCEPT = ["image/jpeg", "image/png", "image/webp"];
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const PDF_TYPE = "application/pdf";
+
+const isPdf = (url: string) => /\.pdf($|\?)/i.test(url) || url.startsWith("pdf:");
 const MAX_SIZE_MB = 5;
 
 interface ImageDropzoneProps {
@@ -18,6 +21,8 @@ interface ImageDropzoneProps {
   onUploadingChange?: (uploading: boolean) => void;
   /** "avatar" = compact square box for a single logo/photo */
   variant?: "default" | "avatar";
+  /** Also accept PDF files (certificates, documents) */
+  allowPdf?: boolean;
 }
 
 export function ImageDropzone({
@@ -28,7 +33,10 @@ export function ImageDropzone({
   disabled,
   onUploadingChange,
   variant = "default",
+  allowPdf = false,
 }: ImageDropzoneProps) {
+  const ACCEPT = allowPdf ? [...IMAGE_TYPES, PDF_TYPE] : IMAGE_TYPES;
+  const acceptLabel = allowPdf ? "JPG, PNG, WEBP, PDF" : "JPG, PNG, WEBP";
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -48,7 +56,7 @@ export function ImageDropzone({
     if (invalid.length) {
       toast({
         title: "Ảnh không hợp lệ",
-        description: `Chỉ nhận JPG, PNG, WEBP tối đa ${MAX_SIZE_MB}MB: ${invalid.map((f) => f.name).join(", ")}`,
+        description: `Chỉ nhận ${acceptLabel} tối đa ${MAX_SIZE_MB}MB: ${invalid.map((f) => f.name).join(", ")}`,
         variant: "destructive",
       });
     }
@@ -59,12 +67,12 @@ export function ImageDropzone({
     }
     if (!accepted.length) return;
 
-    const previews = accepted.map((f) => URL.createObjectURL(f));
+    const previews = accepted.map((f) => (f.type === PDF_TYPE ? `pdf:${f.name}` : URL.createObjectURL(f)));
     setPending(previews);
     onUploadingChange?.(true);
 
     const results = await Promise.allSettled(accepted.map((f) => uploadFile(f, folder)));
-    previews.forEach(URL.revokeObjectURL);
+    previews.filter((u) => u.startsWith("blob:")).forEach(URL.revokeObjectURL);
     setPending([]);
     onUploadingChange?.(false);
 
@@ -162,7 +170,21 @@ export function ImageDropzone({
         <div className={single ? "w-32" : "grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6"}>
           {tiles.map(({ url, uploading }, i) => (
             <div key={url} className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-              <img src={url} alt="" className={`h-full w-full object-cover ${uploading ? "opacity-50" : ""}`} />
+              {isPdf(url) ? (
+                <a
+                  href={uploading ? undefined : url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`flex h-full w-full flex-col items-center justify-center gap-1 p-2 text-center ${uploading ? "opacity-50" : "hover:bg-slate-100"}`}
+                >
+                  <FileText className="h-7 w-7 text-rose-500" />
+                  <span className="line-clamp-2 break-all text-[10px] text-slate-600">
+                    {decodeURIComponent(url.replace(/^pdf:/, "").split("/").pop()?.split("?")[0] ?? "PDF")}
+                  </span>
+                </a>
+              ) : (
+                <img src={url} alt="" className={`h-full w-full object-cover ${uploading ? "opacity-50" : ""}`} />
+              )}
               {uploading ? (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <Loader2 className="h-5 w-5 animate-spin text-emerald-700" />
@@ -207,7 +229,7 @@ export function ImageDropzone({
             <span className="font-medium text-emerald-700">Chọn ảnh</span> hoặc kéo thả vào đây
           </p>
           <p className="text-xs text-slate-500">
-            JPG, PNG, WEBP · tối đa {MAX_SIZE_MB}MB{single ? "" : ` · ${value.length}/${maxFiles} ảnh`}
+            {acceptLabel} · tối đa {MAX_SIZE_MB}MB{single ? "" : ` · ${value.length}/${maxFiles} tệp`}
           </p>
         </div>
       )}

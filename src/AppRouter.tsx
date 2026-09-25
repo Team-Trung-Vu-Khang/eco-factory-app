@@ -12,10 +12,13 @@ const WarehousePage = lazy(() => import("./pages/warehouse/WarehousePage"));
 const WarehouseCreatePage = lazy(() => import("./pages/warehouse/WarehouseCreatePage"));
 const WarehouseDetailPage = lazy(() => import("./pages/warehouse/WarehouseDetailPage"));
 const WarehouseEditPage = lazy(() => import("./pages/warehouse/WarehouseEditPage"));
+const CertificatePage = lazy(() => import("./pages/certificate/CertificatePage"));
+const CertificateCreatePage = lazy(() => import("./pages/certificate/CertificateCreatePage"));
+const CertificateDetailPage = lazy(() => import("./pages/certificate/CertificateDetailPage"));
+const CertificateEditPage = lazy(() => import("./pages/certificate/CertificateEditPage"));
 
 // TODO: replace each placeholder with its real page
 const PLACEHOLDER_ROUTES: { path: string; title: string }[] = [
-  { path: ROUTES.certificates, title: "Chứng nhận sản xuất" },
   { path: ROUTES.products, title: "Sản phẩm chế biến" },
   { path: ROUTES.demandTypes, title: "Loại nhu cầu" },
   { path: ROUTES.demandSuggestions, title: "Gợi ý nhà máy phù hợp" },
@@ -37,6 +40,11 @@ export default function AppRouter() {
       <Route path={ROUTES.warehouseCreate} component={WarehouseCreatePage} />
       <Route path={ROUTES.warehouseEdit(":id")} component={WarehouseEditPage} />
       <Route path={ROUTES.warehouseDetail(":id")} component={WarehouseDetailPage} />
+
+      <Route path={ROUTES.certificates} component={CertificatePage} />
+      <Route path={ROUTES.certificateCreate} component={CertificateCreatePage} />
+      <Route path={ROUTES.certificateEdit(":id")} component={CertificateEditPage} />
+      <Route path={ROUTES.certificateDetail(":id")} component={CertificateDetailPage} />
 
       {PLACEHOLDER_ROUTES.map(({ path, title }) => (
         <Route key={path} path={path}>

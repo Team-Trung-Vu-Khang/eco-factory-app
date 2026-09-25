@@ -274,12 +274,14 @@ export function ImageUploadField<T extends FieldValues>({
   folder,
   onUploadingChange,
   variant = "default",
+  allowPdf,
 }: BaseFieldProps<T> & {
   /** 1 = field value is a single URL string, otherwise string[] */
   maxFiles?: number;
   folder?: string;
   onUploadingChange?: (uploading: boolean) => void;
   variant?: "default" | "avatar";
+  allowPdf?: boolean;
 }) {
   const single = maxFiles === 1 || variant === "avatar";
   return (
@@ -297,6 +299,7 @@ export function ImageUploadField<T extends FieldValues>({
                 onChange={(next) => field.onChange(single ? (next[0] ?? "") : next)}
                 maxFiles={single ? 1 : maxFiles}
                 variant={variant}
+                allowPdf={allowPdf}
                 folder={folder}
                 disabled={disabled}
                 onUploadingChange={onUploadingChange}

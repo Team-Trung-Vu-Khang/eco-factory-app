@@ -8,4 +8,7 @@ export const ROUTES = {
   warehouseCreate: `${FACTORY_ROUTES.warehouse}/new`,
   warehouseDetail: (id: string) => `${FACTORY_ROUTES.warehouse}/${id}`,
   warehouseEdit: (id: string) => `${FACTORY_ROUTES.warehouse}/${id}/edit`,
+  certificateCreate: `${FACTORY_ROUTES.certificates}/new`,
+  certificateDetail: (id: string) => `${FACTORY_ROUTES.certificates}/${id}`,
+  certificateEdit: (id: string) => `${FACTORY_ROUTES.certificates}/${id}/edit`,
 } as const;
