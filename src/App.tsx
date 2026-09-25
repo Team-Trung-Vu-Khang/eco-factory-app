@@ -1,35 +1,38 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import {
+  AdminLayout,
+  MobileAppLayout,
+  RadixToaster,
+  TooltipProvider,
+  useIsMobile,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { Suspense } from "react";
+import { AppLoadingState } from "@/components/common/AppLoadingState";
+import { AuthWrapper } from "@/features/auth";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const isMobile = useIsMobile();
+
+  // TODO: replace with <AppRouter /> once routes are defined
+  const content = (
+    <Suspense fallback={<AppLoadingState />}>
+      <div className="p-6">Eco Factory</div>
+    </Suspense>
+  );
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <TooltipProvider>
+      <AuthWrapper>
+        {isMobile ? (
+          <MobileAppLayout>{content}</MobileAppLayout>
+        ) : (
+          <AdminLayout isDev isMevi>
+            {content}
+          </AdminLayout>
+        )}
+        <RadixToaster />
+      </AuthWrapper>
+    </TooltipProvider>
+  );
 }
 
-export default App
+export default App;
