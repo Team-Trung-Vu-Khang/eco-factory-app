@@ -1,4 +1,5 @@
 import { Badge, Button, DataTable, DeleteDialog, type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
 import {
@@ -9,13 +10,14 @@ import {
   type ProcessingServiceFormValues,
   type ProcessingServiceItem,
 } from "@/features/processing-service";
+import { useFactoryOptions } from "@/features/factory";
 import { useCrudPage } from "@/hooks/useCrudPage";
 import { ProcessingServiceFormDialog } from "./components/ProcessingServiceFormDialog";
 
 const columns: Column<ProcessingServiceItem>[] = [
   { key: "name", label: "Dịch vụ", render: (_, s) => <span className="font-medium text-slate-900">{s.name}</span> },
+  { key: "factoryName", label: "Nhà máy", render: (_, s) => <span className="text-sm text-slate-700">{s.factoryName}</span> },
   { key: "description", label: "Mô tả", render: (_, s) => <span className="text-sm text-slate-600">{s.description || "—"}</span> },
-  { key: "factoryCount", label: "Nhà máy cung cấp", render: (_, s) => <span className="text-sm tabular-nums">{s.factoryCount}</span> },
   {
     key: "isActive",
     label: "Trạng thái",
@@ -29,7 +31,8 @@ const columns: Column<ProcessingServiceItem>[] = [
 ];
 
 const toFormValues = (s: ProcessingServiceItem): ProcessingServiceFormValues => ({
-  name: s.name,
+  factoryId: s.factoryId,
+  service: s.service,
   description: s.description ?? "",
   isActive: s.isActive,
 });
@@ -42,12 +45,14 @@ export default function ProcessingServicePage() {
     update: useUpdateProcessingService(),
     remove: useDeleteProcessingService(),
   });
-  const query = useProcessingServices(page.params);
+  const [factoryId, setFactoryId] = useState<string>();
+  const { options: factoryOptions } = useFactoryOptions();
+  const query = useProcessingServices({ ...page.params, factoryId });
 
   return (
     <PageWrapper
       title="Dịch vụ chế biến tại nhà máy"
-      description="Danh mục dịch vụ chế biến nhà máy cung cấp cho nông hộ, HTX, doanh nghiệp"
+      description="Dịch vụ chế biến từng nhà máy cung cấp cho nông hộ, HTX, doanh nghiệp"
       actions={
         <Button onClick={page.openCreate}>
           <Plus className="mr-2 h-4 w-4" />
@@ -60,8 +65,13 @@ export default function ProcessingServicePage() {
         data={query.data?.content ?? []}
         loading={query.isFetching}
         searchable
-        searchPlaceholder="Tìm theo tên dịch vụ..."
+        searchPlaceholder="Tìm theo dịch vụ, nhà máy..."
         onSearch={page.handleSearch}
+        filters={[{ key: "factoryId", label: "Nhà máy", options: factoryOptions }]}
+        onFilterChange={(_key, value) => {
+          setFactoryId(value && value !== "all" ? value : undefined);
+          page.setPage(0);
+        }}
         pageSize={page.size}
         currentIndex={page.page}
         totalElements={query.data?.totalElements}
@@ -76,6 +86,7 @@ export default function ProcessingServicePage() {
         open={page.formOpen}
         onOpenChange={page.setFormOpen}
         initialValues={page.editingValues}
+        defaultFactoryId={factoryId}
         isSubmitting={page.isSubmitting}
         onSubmit={page.handleSubmit}
       />
@@ -85,7 +96,7 @@ export default function ProcessingServicePage() {
         onOpenChange={(open) => !open && page.setDeleting(null)}
         onConfirm={page.handleConfirmDelete}
         loading={page.isDeleting}
-        description={`Xóa dịch vụ "${page.deleting?.name ?? ""}"? Chỉ xóa được khi chưa có nhà máy nào cung cấp.`}
+        description={`Xóa dịch vụ "${page.deleting?.name ?? ""}" của ${page.deleting?.factoryName ?? ""}?`}
       />
     </PageWrapper>
   );

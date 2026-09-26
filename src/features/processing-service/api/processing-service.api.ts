@@ -1,4 +1,4 @@
-import { PROCESSING_SERVICE_LABELS, type PageResponse, type ProcessingService } from "@/features/factory";
+import { PROCESSING_SERVICE_LABELS, factoryApi, type PageResponse, type ProcessingService } from "@/features/factory";
 import type { ProcessingServiceFormValues } from "../schema";
 import type { ProcessingServiceItem, ProcessingServiceListParams } from "../types";
 
@@ -13,27 +13,41 @@ export const processingServiceKeys = {
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
 const now = () => new Date().toISOString();
 
-const DESCRIPTIONS: Partial<Record<ProcessingService, string>> = {
-  PRE_PROCESSING: "Làm sạch, cắt tỉa, sơ chế sau thu hoạch",
-  DRYING: "Sấy nhiệt, sấy lạnh, sấy thăng hoa",
-  STORAGE: "Kho mát / kho lạnh",
-};
-const FACTORY_COUNTS: Partial<Record<ProcessingService, number>> = { DRYING: 3, PACKAGING: 2, PRE_PROCESSING: 2, STORAGE: 1, GRINDING: 1, PRESSING: 1, WASHING: 1 };
+type Stored = Omit<ProcessingServiceItem, "factoryName" | "name">;
 
-let db: ProcessingServiceItem[] = (Object.entries(PROCESSING_SERVICE_LABELS) as [ProcessingService, string][]).map(([id, name]) => ({
-  id,
-  name,
-  description: DESCRIPTIONS[id] ?? "",
-  isActive: true,
-  factoryCount: FACTORY_COUNTS[id] ?? 0,
-  updatedAt: now(),
-}));
+// Seeded lazily from the services declared in each factory profile
+let db: Stored[] | null = null;
+async function load(): Promise<Stored[]> {
+  if (!db) {
+    const { content } = await factoryApi.list({ page: 0, size: 1000 });
+    db = content.flatMap((f) =>
+      f.services.map((service) => ({ id: `${f.id}-${service}`, factoryId: f.id, service, description: "", isActive: true, updatedAt: now() })),
+    );
+  }
+  return db;
+}
+
+async function withNames(items: Stored[]): Promise<ProcessingServiceItem[]> {
+  const { content } = await factoryApi.list({ page: 0, size: 1000 });
+  const names = new Map(content.map((f) => [f.id, f.name]));
+  return items.map((s) => ({ ...s, factoryName: names.get(s.factoryId) ?? "—", name: PROCESSING_SERVICE_LABELS[s.service] }));
+}
+
+const assertUnique = (rows: Stored[], values: ProcessingServiceFormValues, exceptId?: string) => {
+  if (rows.some((s) => s.factoryId === values.factoryId && s.service === values.service && s.id !== exceptId)) {
+    throw new Error("Nhà máy đã có dịch vụ này.");
+  }
+};
 
 export const processingServiceApi = {
   async list(params: ProcessingServiceListParams): Promise<PageResponse<ProcessingServiceItem>> {
     await delay();
     const keyword = params.keyword?.trim().toLowerCase();
-    const filtered = db.filter((s) => !keyword || s.name.toLowerCase().includes(keyword));
+    const filtered = (await withNames(await load())).filter(
+      (s) =>
+        (!params.factoryId || s.factoryId === params.factoryId) &&
+        (!keyword || [s.name, s.factoryName].some((v) => v.toLowerCase().includes(keyword))),
+    );
     const start = params.page * params.size;
     return {
       content: filtered.slice(start, start + params.size),
@@ -44,28 +58,23 @@ export const processingServiceApi = {
     };
   },
 
-  async create(values: ProcessingServiceFormValues): Promise<ProcessingServiceItem> {
+  async create(values: ProcessingServiceFormValues): Promise<void> {
     await delay();
-    const created = { ...values, id: crypto.randomUUID(), factoryCount: 0, updatedAt: now() };
-    db = [...db, created];
-    return created;
+    const rows = await load();
+    assertUnique(rows, values);
+    db = [...rows, { ...values, service: values.service as ProcessingService, id: crypto.randomUUID(), updatedAt: now() }];
   },
 
-  async update(id: string, values: ProcessingServiceFormValues): Promise<ProcessingServiceItem> {
+  async update(id: string, values: ProcessingServiceFormValues): Promise<void> {
     await delay();
-    const prev = db.find((s) => s.id === id);
-    if (!prev) throw new Error("Không tìm thấy dịch vụ.");
-    const updated = { ...prev, ...values, updatedAt: now() };
-    db = db.map((s) => (s.id === id ? updated : s));
-    return updated;
+    const rows = await load();
+    if (!rows.some((s) => s.id === id)) throw new Error("Không tìm thấy dịch vụ.");
+    assertUnique(rows, values, id);
+    db = rows.map((s) => (s.id === id ? { ...s, ...values, service: values.service as ProcessingService, updatedAt: now() } : s));
   },
 
   async remove(id: string): Promise<void> {
     await delay();
-    const found = db.find((s) => s.id === id);
-    if (found && found.factoryCount > 0) {
-      throw new Error(`Đang có ${found.factoryCount} nhà máy cung cấp dịch vụ này. Hãy ngừng hoạt động thay vì xóa.`);
-    }
-    db = db.filter((s) => s.id !== id);
+    db = (await load()).filter((s) => s.id !== id);
   },
 };
