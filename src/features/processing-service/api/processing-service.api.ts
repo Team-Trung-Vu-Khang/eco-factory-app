@@ -21,7 +21,7 @@ async function load(): Promise<Stored[]> {
   if (!db) {
     const { content } = await factoryApi.list({ page: 0, size: 1000 });
     db = content.flatMap((f) =>
-      f.services.map((service) => ({ id: `${f.id}-${service}`, factoryId: f.id, service, description: "", isActive: true, updatedAt: now() })),
+      f.services.map((service) => ({ id: `${f.id}-${service}`, factoryId: f.id, service, description: "", updatedAt: now() })),
     );
   }
   return db;

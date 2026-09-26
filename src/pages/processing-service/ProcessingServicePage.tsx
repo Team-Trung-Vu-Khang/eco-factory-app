@@ -1,4 +1,4 @@
-import { Badge, Button, DataTable, DeleteDialog, type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { Button, DataTable, DeleteDialog, type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
@@ -18,23 +18,12 @@ const columns: Column<ProcessingServiceItem>[] = [
   { key: "name", label: "Dịch vụ", render: (_, s) => <span className="font-medium text-slate-900">{s.name}</span> },
   { key: "factoryName", label: "Nhà máy", render: (_, s) => <span className="text-sm text-slate-700">{s.factoryName}</span> },
   { key: "description", label: "Mô tả", render: (_, s) => <span className="text-sm text-slate-600">{s.description || "—"}</span> },
-  {
-    key: "isActive",
-    label: "Trạng thái",
-    render: (_, s) =>
-      s.isActive ? (
-        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Hoạt động</Badge>
-      ) : (
-        <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">Ngừng hoạt động</Badge>
-      ),
-  },
 ];
 
 const toFormValues = (s: ProcessingServiceItem): ProcessingServiceFormValues => ({
   factoryId: s.factoryId,
   service: s.service,
   description: s.description ?? "",
-  isActive: s.isActive,
 });
 
 export default function ProcessingServicePage() {

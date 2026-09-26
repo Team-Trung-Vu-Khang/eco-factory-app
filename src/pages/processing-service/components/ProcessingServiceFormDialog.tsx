@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { SearchSelectField, SelectField, SwitchField, TextareaField } from "@/components/form";
+import { SearchSelectField, SelectField, TextareaField } from "@/components/form";
 import { PROCESSING_SERVICE_OPTIONS, useFactoryOptions } from "@/features/factory";
 import {
   EMPTY_PROCESSING_SERVICE,
@@ -50,9 +50,6 @@ export function ProcessingServiceFormDialog({ open, onOpenChange, initialValues,
           <SearchSelectField control={control} name="factoryId" label="Nhà máy" required disabled={isEdit} options={factoryOptions} />
           <SelectField control={control} name="service" label="Dịch vụ" required options={PROCESSING_SERVICE_OPTIONS} />
           <TextareaField control={control} name="description" label="Mô tả" rows={2} placeholder="VD: Sấy lạnh chè, dược liệu; nhận tối thiểu 100 kg" />
-          {isEdit && (
-            <SwitchField control={control} name="isActive" label="Đang hoạt động" description="Tắt khi nhà máy tạm ngừng cung cấp dịch vụ này" />
-          )}
         </div>
       </Form>
     </FormDialog>

@@ -9,7 +9,6 @@ export interface ProcessingServiceItem {
   /** Service label, used in toasts / dialogs */
   name: string;
   description?: string;
-  isActive: boolean;
   updatedAt: string;
 }
 
