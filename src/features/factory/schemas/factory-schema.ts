@@ -9,7 +9,7 @@ const optionalNumber = z.number().optional();
 export const machineSchema = z.object({
   id: z.string().optional(),
   name: z.string().trim().min(1, REQUIRED),
-  functions: z.array(z.string()).min(1, "Chọn ít nhất 1 chức năng."),
+  functions: z.array(z.string()).min(1, "Chọn ít nhất 1 dịch vụ."),
   productGroupIds: z.array(z.string()).min(1, "Chọn ít nhất 1 loại nông sản."),
   maxCapacity: z.number({ error: REQUIRED }).positive("Phải lớn hơn 0."),
   capacityUnit: z.string().min(1, REQUIRED),
@@ -51,8 +51,13 @@ export const factorySchema = z
     representative: z.object({
       fullName: z.string().trim().min(1, REQUIRED),
       gender: z.string().min(1, REQUIRED),
-      phone: z.string().trim().regex(PHONE_REGEX, "Số điện thoại không hợp lệ."),
-      email: z.union([z.literal(""), z.email("Email không hợp lệ.")]).optional(),
+      phone: z
+        .string()
+        .trim()
+        .regex(PHONE_REGEX, "Số điện thoại không hợp lệ."),
+      email: z
+        .union([z.literal(""), z.email("Email không hợp lệ.")])
+        .optional(),
     }),
 
     // Địa điểm
@@ -60,12 +65,20 @@ export const factorySchema = z
       provinceCode: z.string().min(1, REQUIRED),
       wardCode: z.string().min(1, REQUIRED),
       address: z.string().trim().min(1, REQUIRED),
-      latitude: optionalNumber.refine((v) => v === undefined || (v >= -90 && v <= 90), "Vĩ độ không hợp lệ."),
-      longitude: optionalNumber.refine((v) => v === undefined || (v >= -180 && v <= 180), "Kinh độ không hợp lệ."),
+      latitude: optionalNumber.refine(
+        (v) => v === undefined || (v >= -90 && v <= 90),
+        "Vĩ độ không hợp lệ.",
+      ),
+      longitude: optionalNumber.refine(
+        (v) => v === undefined || (v >= -180 && v <= 180),
+        "Kinh độ không hợp lệ.",
+      ),
     }),
 
     // Thông tin hoạt động
-    productGroupIds: z.array(z.string()).min(1, "Chọn ít nhất 1 nhóm nông sản."),
+    productGroupIds: z
+      .array(z.string())
+      .min(1, "Chọn ít nhất 1 nhóm nông sản."),
     services: z.array(z.string()).min(1, "Chọn ít nhất 1 dịch vụ."),
     description: z.string().trim().min(1, REQUIRED),
 
@@ -87,7 +100,8 @@ export const factorySchema = z
       ctx.addIssue({
         code: "custom",
         path: ["machines"],
-        message: "Khai báo ít nhất 1 máy / dây chuyền khi có cung cấp cho bên ngoài.",
+        message:
+          "Khai báo ít nhất 1 máy / dây chuyền khi có cung cấp cho bên ngoài.",
       });
     }
   });
@@ -120,7 +134,13 @@ export const EMPTY_FACTORY: FactoryFormValues = {
   taxCode: "",
   foundedYear: undefined,
   representative: { fullName: "", gender: "", phone: "", email: "" },
-  location: { provinceCode: "", wardCode: "", address: "", latitude: undefined, longitude: undefined },
+  location: {
+    provinceCode: "",
+    wardCode: "",
+    address: "",
+    latitude: undefined,
+    longitude: undefined,
+  },
   productGroupIds: [],
   services: [],
   description: "",

@@ -8,14 +8,18 @@ import {
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Suspense } from "react";
 import { AppLoadingState } from "@/components/common/AppLoadingState";
+import { LayoutRoleSwitch } from "@/components/common/LayoutRoleSwitch";
 import { SwitchToMobileAppButton } from "@/components/common/SwitchToMobileAppButton";
 import { AuthWrapper } from "@/features/auth";
+import { useLayoutRole } from "@/hooks/useLayoutRole";
 import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import AppRouter from "./AppRouter";
 
 function App() {
   const isMobile = useIsMobile();
   const mobileUiMode = useMobileUiMode();
+  const isOwner = useLayoutRole() === "owner";
+  const mobileApp = isMobile && !isOwner && mobileUiMode === "app";
 
   const content = (
     <Suspense fallback={<AppLoadingState />}>
@@ -26,13 +30,16 @@ function App() {
   return (
     <TooltipProvider>
       <AuthWrapper>
-        {/* "classic" = full sidebar UI on phones, toggled from the Tài khoản page */}
-        {isMobile && mobileUiMode === "app" ? (
-          <FactoryMobileLayout navItems={FACTORY_MOBILE_NAV_ITEMS}>{content}</FactoryMobileLayout>
+        {/* Factory owners have no mobile UI; farmers on phones pick "app" or "classic" (from the Tài khoản page) */}
+        {mobileApp ? (
+          <FactoryMobileLayout navItems={FACTORY_MOBILE_NAV_ITEMS}>
+            {content}
+          </FactoryMobileLayout>
         ) : (
-          <FactoryAdminLayout>{content}</FactoryAdminLayout>
+          <FactoryAdminLayout isOwnerFactory={isOwner}>{content}</FactoryAdminLayout>
         )}
-        {isMobile && mobileUiMode === "classic" && <SwitchToMobileAppButton />}
+        {!mobileApp && <LayoutRoleSwitch />}
+        {isMobile && !isOwner && mobileUiMode === "classic" && <SwitchToMobileAppButton />}
         <RadixToaster />
       </AuthWrapper>
     </TooltipProvider>
