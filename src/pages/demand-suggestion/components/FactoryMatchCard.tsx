@@ -47,7 +47,7 @@ export function FactoryMatchCard({ match: m, rank }: { match: FactoryMatch; rank
               <li key={mc.id} className="flex flex-wrap justify-between gap-x-4 text-slate-700">
                 <span>{mc.name}</span>
                 <span className="text-slate-500 tabular-nums">
-                  rảnh {fmt.format(mc.availableCapacity)} {CAPACITY_UNIT_LABELS[mc.capacityUnit]}
+                  rảnh {fmt.format(mc.availableCapacity)} {CAPACITY_UNIT_LABELS[mc.availableUnit ?? mc.capacityUnit]}
                 </span>
               </li>
             ))}

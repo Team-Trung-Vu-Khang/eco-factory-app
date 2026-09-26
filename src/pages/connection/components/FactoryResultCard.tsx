@@ -59,7 +59,7 @@ export function FactoryResultCard({ result, pendingScheduleIds, onRegister }: Fa
                   <CalendarRange className="h-3.5 w-3.5" />
                   {date(m.scheduleFrom)} – {date(m.scheduleTo)} · nhận tối đa{" "}
                   <span className="font-medium text-emerald-700">
-                    {fmt.format(m.availableCapacity)} {CAPACITY_UNIT_LABELS[m.capacityUnit]}
+                    {fmt.format(m.availableCapacity)} {CAPACITY_UNIT_LABELS[m.availableUnit ?? m.capacityUnit]}
                   </span>
                 </p>
               </div>

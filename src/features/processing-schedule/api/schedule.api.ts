@@ -66,7 +66,8 @@ export const scheduleApi = {
     const machine = (await machineIndex()).get(values.machineId);
     if (!machine) throw new Error("Không tìm thấy máy / dây chuyền.");
     if (machine.status !== "ACTIVE") throw new Error("Máy đang không hoạt động, không thể đăng lịch.");
-    if (values.maxCapacity > machine.maxCapacity) {
+    // Only comparable when both use the same unit
+    if (values.capacityUnit === machine.capacityUnit && values.maxCapacity > machine.maxCapacity) {
       throw new Error("Công suất nhận không được vượt công suất tối đa của máy.");
     }
     const clash = scheduleStore
@@ -76,7 +77,7 @@ export const scheduleApi = {
 
     const created: ProcessingSchedule = {
       ...values,
-      capacityUnit: machine.capacityUnit,
+      capacityUnit: values.capacityUnit as ProcessingSchedule["capacityUnit"],
       status: "OPEN",
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),

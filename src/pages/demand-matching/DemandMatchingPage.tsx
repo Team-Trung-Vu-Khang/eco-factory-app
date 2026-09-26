@@ -64,7 +64,7 @@ export default function DemandMatchingPage() {
                       <li key={m.id} className="flex flex-wrap justify-between gap-x-4 text-slate-700">
                         <span>{m.name}</span>
                         <span className="text-slate-500 tabular-nums">
-                          rảnh {fmt.format(m.availableCapacity)} {CAPACITY_UNIT_LABELS[m.capacityUnit]}
+                          rảnh {fmt.format(m.availableCapacity)} {CAPACITY_UNIT_LABELS[m.availableUnit ?? m.capacityUnit]}
                         </span>
                       </li>
                     ))}

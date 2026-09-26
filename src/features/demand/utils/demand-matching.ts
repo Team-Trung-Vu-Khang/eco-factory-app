@@ -67,7 +67,7 @@ export function matchFactory(demand: Demand, factory: Factory, today: string): F
 
   const qtyFactor = QUANTITY_KG[demand.quantityUnit];
   const perDay = machines.reduce<number | undefined>((sum, m) => {
-    const f = CAPACITY_KG_PER_DAY[m.capacityUnit];
+    const f = CAPACITY_KG_PER_DAY[m.availableUnit ?? m.capacityUnit];
     return sum === undefined || f === undefined ? undefined : sum + m.availableCapacity * f;
   }, machines.length ? 0 : undefined);
 

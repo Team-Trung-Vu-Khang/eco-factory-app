@@ -59,7 +59,7 @@ export const machineColumns: Column<MachineRow>[] = [
     render: (_, m) =>
       m.availableCapacity > 0 ? (
         <span className="whitespace-nowrap text-sm tabular-nums text-emerald-700">
-          {fmt.format(m.availableCapacity)} {CAPACITY_UNIT_LABELS[m.capacityUnit]} · {date(m.availableFrom)}–{date(m.availableTo)}
+          {fmt.format(m.availableCapacity)} {CAPACITY_UNIT_LABELS[m.availableUnit ?? m.capacityUnit]} · {date(m.availableFrom)}–{date(m.availableTo)}
         </span>
       ) : m.status === "ACTIVE" ? (
         <Button asChild variant="outline" size="sm" className="h-7">

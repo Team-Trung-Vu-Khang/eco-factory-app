@@ -36,7 +36,7 @@ export function ScheduleForm({ machineId, isSubmitting, onSubmit }: ScheduleForm
     }
   }, [machineId, allMachines, form, setValue]);
 
-  // Schedule capacity always uses the machine's unit
+  // Default the unit to the machine's; the user can still change it
   useEffect(() => {
     if (machine) setValue("capacityUnit", machine.capacityUnit, { shouldValidate: form.formState.isSubmitted });
   }, [machine, setValue, form]);
@@ -68,11 +68,10 @@ export function ScheduleForm({ machineId, isSubmitting, onSubmit }: ScheduleForm
               unitName="capacityUnit"
               label="Công suất tối đa nhận"
               required
-              unitDisabled
               description={
                 machine
                   ? `Công suất tối đa của máy: ${fmt.format(machine.maxCapacity)} ${CAPACITY_UNIT_LABELS[machine.capacityUnit]}`
-                  : "Đơn vị theo máy đã chọn"
+                  : undefined
               }
             />
             <TextareaField control={control} name="note" label="Ghi chú" rows={2} placeholder="VD: Ưu tiên chè búp tươi trong ngày" />

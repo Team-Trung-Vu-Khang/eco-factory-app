@@ -19,6 +19,8 @@ export interface Machine {
   certificateIds?: string[];
   // Derived from the machine's active "Lịch nhận chế biến" (read-only)
   availableCapacity: number;
+  /** Unit of availableCapacity — the schedule may use a different unit than the machine */
+  availableUnit?: CapacityUnit;
   availableFrom?: string;
   availableTo?: string;
 }

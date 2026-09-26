@@ -38,7 +38,7 @@ export function CapacityField<T extends FieldValues>({
   unitDisabled,
   className,
 }: CapacityFieldProps<T>) {
-  const { field: unit } = useController({ control, name: unitName });
+  const { field: unit, fieldState: unitState } = useController({ control, name: unitName });
 
   return (
     <FormField
@@ -63,7 +63,7 @@ export function CapacityField<T extends FieldValues>({
             <Select value={unit.value || undefined} onValueChange={unit.onChange} disabled={unitDisabled}>
               <SelectTrigger
                 aria-label="Đơn vị công suất"
-                className="w-28 shrink-0 bg-slate-50"
+                className={`w-28 shrink-0 bg-slate-50 ${unitState.error ? "border-destructive" : ""}`}
               >
                 <SelectValue placeholder="Đơn vị" />
               </SelectTrigger>
@@ -78,6 +78,7 @@ export function CapacityField<T extends FieldValues>({
           </div>
           {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
+          {!fieldState.error && unitState.error && <p className="text-sm font-medium text-destructive">{unitState.error.message}</p>}
         </FormItem>
       )}
     />

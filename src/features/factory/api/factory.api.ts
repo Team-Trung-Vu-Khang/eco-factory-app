@@ -41,8 +41,8 @@ let db: Factory[] = SEED_FACTORIES.map((f, i) => toFactory(f, undefined, `f-${i 
 const withAvailability = (m: Machine): Machine => {
   const s = activeScheduleFor(m.id);
   return s
-    ? { ...m, availableCapacity: s.maxCapacity, availableFrom: s.fromDate, availableTo: s.toDate }
-    : { ...m, availableCapacity: 0, availableFrom: undefined, availableTo: undefined };
+    ? { ...m, availableCapacity: s.maxCapacity, availableUnit: s.capacityUnit, availableFrom: s.fromDate, availableTo: s.toDate }
+    : { ...m, availableCapacity: 0, availableUnit: undefined, availableFrom: undefined, availableTo: undefined };
 };
 const fresh = (f: Factory): Factory => ({ ...f, machines: f.machines.map(withAvailability) });
 

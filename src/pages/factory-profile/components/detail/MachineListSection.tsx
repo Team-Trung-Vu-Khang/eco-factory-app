@@ -37,7 +37,7 @@ export function MachineListSection({ factory }: { factory: Factory }) {
                   Công suất tối đa {fmt.format(m.maxCapacity)} {unit}
                   {m.availableCapacity > 0 ? (
                     <>
-                      {" "}· Đang nhận <span className="font-medium text-emerald-700">{fmt.format(m.availableCapacity)} {unit}</span> từ{" "}
+                      {" "}· Đang nhận <span className="font-medium text-emerald-700">{fmt.format(m.availableCapacity)} {CAPACITY_UNIT_LABELS[m.availableUnit ?? m.capacityUnit]}</span> từ{" "}
                       {date(m.availableFrom)} đến {date(m.availableTo)}
                     </>
                   ) : (
