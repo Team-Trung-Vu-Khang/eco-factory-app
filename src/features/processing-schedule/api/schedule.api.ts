@@ -2,7 +2,7 @@ import { factoryApi, type PageResponse } from "@/features/factory";
 import type { ScheduleStatus } from "../constants";
 import type { ScheduleFormValues } from "../schema";
 import type { ProcessingSchedule, ScheduleListParams, ScheduleRow } from "../types";
-import { scheduleStore, today } from "./schedule.store";
+import { isActiveSchedule, scheduleStore, today } from "./schedule.store";
 
 export const scheduleKeys = {
   all: ["processing-schedules"] as const,
@@ -14,11 +14,8 @@ export const scheduleKeys = {
 
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
 
-export const displayStatus = (s: ProcessingSchedule, on = today()): ScheduleStatus => {
-  if (s.status === "CLOSED") return "CLOSED";
-  if (s.toDate < on) return "EXPIRED";
-  return s.fromDate > on ? "UPCOMING" : "OPEN";
-};
+export const displayStatus = (s: ProcessingSchedule, on = today()): ScheduleStatus =>
+  isActiveSchedule(s, on) ? "ACTIVE" : "EXPIRED";
 
 async function machineIndex() {
   const { content } = await factoryApi.listMachines({ page: 0, size: 1000 });
@@ -60,29 +57,34 @@ export const scheduleApi = {
     };
   },
 
-  /** Posts a processing window — the machine becomes available for matching */
-  async create(values: ScheduleFormValues): Promise<ProcessingSchedule> {
+  /** Posts a processing window for each selected machine — all-or-nothing */
+  async create({ machineIds, ...values }: ScheduleFormValues): Promise<ProcessingSchedule[]> {
     await delay();
-    const machine = (await machineIndex()).get(values.machineId);
-    if (!machine) throw new Error("Không tìm thấy máy / dây chuyền.");
-    if (machine.status !== "ACTIVE") throw new Error("Máy đang không hoạt động, không thể đăng lịch.");
-    // Only comparable when both use the same unit
-    if (values.capacityUnit === machine.capacityUnit && values.maxCapacity > machine.maxCapacity) {
-      throw new Error("Công suất nhận không được vượt công suất tối đa của máy.");
+    const machines = await machineIndex();
+    for (const machineId of machineIds) {
+      const machine = machines.get(machineId);
+      if (!machine) throw new Error("Không tìm thấy máy / dây chuyền.");
+      if (machine.status !== "ACTIVE") throw new Error(`"${machine.name}" đang không hoạt động, không thể đăng lịch.`);
+      // Only comparable when both use the same unit
+      if (values.capacityUnit === machine.capacityUnit && values.maxCapacity > machine.maxCapacity) {
+        throw new Error(`Công suất nhận vượt công suất tối đa của "${machine.name}".`);
+      }
+      const clash = scheduleStore
+        .all()
+        .find((s) => s.machineId === machineId && s.status === "OPEN" && s.toDate >= today() && overlaps(s, values));
+      if (clash) throw new Error(`"${machine.name}" đã có lịch đang mở trùng khoảng thời gian này.`);
     }
-    const clash = scheduleStore
-      .all()
-      .find((s) => s.machineId === values.machineId && s.status === "OPEN" && s.toDate >= today() && overlaps(s, values));
-    if (clash) throw new Error("Máy đã có lịch đang mở trùng khoảng thời gian này.");
 
-    const created: ProcessingSchedule = {
+    const createdAt = new Date().toISOString();
+    const created: ProcessingSchedule[] = machineIds.map((machineId) => ({
       ...values,
+      machineId,
       capacityUnit: values.capacityUnit as ProcessingSchedule["capacityUnit"],
       status: "OPEN",
       id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-    };
-    scheduleStore.set([created, ...scheduleStore.all()]);
+      createdAt,
+    }));
+    scheduleStore.set([...created, ...scheduleStore.all()]);
     return created;
   },
 

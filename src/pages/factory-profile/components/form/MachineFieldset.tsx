@@ -6,7 +6,8 @@ import {
   SelectField,
   TextField,
 } from "@/components/form";
-import { MACHINE_STATUS_OPTIONS, PROCESSING_SERVICE_OPTIONS } from "@/features/factory";
+import { MACHINE_STATUS_OPTIONS } from "@/features/factory";
+import { useProcessingServiceOptions } from "@/features/processing-service";
 import { useProductGroupOptions } from "@/features/product-group";
 import { useFactoryFormContext } from "./useFactoryFormContext";
 
@@ -18,6 +19,7 @@ interface MachineFieldsetProps {
 export function MachineFieldset({ index, onRemove }: MachineFieldsetProps) {
   const { control } = useFactoryFormContext();
   const productGroupOptions = useProductGroupOptions();
+  const serviceOptions = useProcessingServiceOptions();
   const base = `machines.${index}` as const;
 
   return (
@@ -35,8 +37,8 @@ export function MachineFieldset({ index, onRemove }: MachineFieldsetProps) {
         <SelectField control={control} name={`${base}.status`} label="Tình trạng" required options={MACHINE_STATUS_OPTIONS} />
         <CapacityField control={control} valueName={`${base}.maxCapacity`} unitName={`${base}.capacityUnit`} label="Công suất tối đa" required />
 
-        <MultiSelectField control={control} name={`${base}.functions`} label="Chức năng" required options={PROCESSING_SERVICE_OPTIONS} className="sm:col-span-2" />
-        <MultiSelectField control={control} name={`${base}.productGroupIds`} label="Loại nông sản phù hợp" required options={productGroupOptions} className="sm:col-span-2" />
+        <MultiSelectField control={control} name={`${base}.functions`} label="Dịch vụ" required options={serviceOptions} className="sm:col-span-2" />
+        <MultiSelectField control={control} name={`${base}.productGroupIds`} label="Nhóm nông sản/sản phẩm" required options={productGroupOptions} className="sm:col-span-2" />
       </div>
     </fieldset>
   );

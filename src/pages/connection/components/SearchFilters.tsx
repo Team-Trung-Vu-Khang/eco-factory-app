@@ -2,11 +2,13 @@ import { Button, Form } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Crosshair, Loader2, Search, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { FormSection, MultiSelectField, SearchSelectField, SelectField } from "@/components/form";
+import { CapacityField, FormSection, MultiSelectField, SearchSelectField, SelectField, TextareaField } from "@/components/form";
 import { LocationPickerMap } from "@/components/map/LocationPickerMap";
-import { RADIUS_OPTIONS, type FactorySearchParams } from "@/features/connection";
+import { RADIUS_OPTIONS, SEARCH_QUANTITY_UNIT_OPTIONS, type FactorySearchParams, type SearchQuantityUnit } from "@/features/connection";
 import { CROP_OPTIONS } from "@/features/crop";
-import { PROCESSING_SERVICE_OPTIONS, PROVINCES } from "@/features/factory";
+import { MATERIAL_CONDITION_OPTIONS, type MaterialCondition } from "@/features/demand/constants";
+import { CERTIFICATION_TYPE_OPTIONS, PROVINCES } from "@/features/factory";
+import { useProcessingServiceOptions } from "@/features/processing-service";
 
 interface FilterValues {
   latitude?: number;
@@ -16,14 +18,33 @@ interface FilterValues {
   wardCode: string;
   functions: string[];
   cropIds: string[];
+  materialCondition: MaterialCondition | "";
+  quantity?: number;
+  quantityUnit: SearchQuantityUnit;
+  packagingRequirements: string;
+  technicalRequirements: string;
+  requiredCertifications: string[];
 }
 
-const EMPTY: FilterValues = { radiusKm: "50", provinceCode: "", wardCode: "", functions: [], cropIds: [] };
+const EMPTY: FilterValues = {
+  radiusKm: "50",
+  provinceCode: "",
+  wardCode: "",
+  functions: [],
+  cropIds: [],
+  materialCondition: "",
+  quantity: undefined,
+  quantityUnit: "KG",
+  packagingRequirements: "",
+  technicalRequirements: "",
+  requiredCertifications: [],
+};
 const PROVINCE_OPTIONS = PROVINCES.map((p) => ({ value: p.code, label: p.name }));
 
 export function SearchFilters({ loading, onSearch }: { loading?: boolean; onSearch: (params: FactorySearchParams) => void }) {
   const form = useForm<FilterValues>({ defaultValues: EMPTY });
   const { control, setValue } = form;
+  const serviceOptions = useProcessingServiceOptions();
   const [latitude, longitude, provinceCode] = useWatch({ control, name: ["latitude", "longitude", "provinceCode"] });
   const [locating, setLocating] = useState(false);
   const hasPoint = latitude !== undefined && longitude !== undefined;
@@ -64,6 +85,12 @@ export function SearchFilters({ loading, onSearch }: { loading?: boolean; onSear
       wardCode: v.wardCode || undefined,
       functions: v.functions,
       cropIds: v.cropIds,
+      quantity: v.quantity,
+      quantityUnit: v.quantity ? v.quantityUnit : undefined,
+      requiredCertifications: v.requiredCertifications,
+      materialCondition: v.materialCondition || undefined,
+      packagingRequirements: v.packagingRequirements.trim() || undefined,
+      technicalRequirements: v.technicalRequirements.trim() || undefined,
     }),
   );
 
@@ -71,7 +98,7 @@ export function SearchFilters({ loading, onSearch }: { loading?: boolean; onSear
     <Form {...form}>
       <form onSubmit={submit} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
         <FormSection
-          title="Địa lý"
+          title="Địa chỉ"
           description="Chọn vị trí trên bản đồ, khoảng cách tính tới địa chỉ nhà máy"
           actions={
             <div className="flex gap-1">
@@ -119,17 +146,39 @@ export function SearchFilters({ loading, onSearch }: { loading?: boolean; onSear
           </div>
         </FormSection>
 
-        <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-          <MultiSelectField control={control} name="functions" label="Chức năng" options={PROCESSING_SERVICE_OPTIONS} placeholder="Tất cả chức năng" />
-          <MultiSelectField
-            control={control}
-            name="cropIds"
-            label="Cây trồng"
-            options={CROP_OPTIONS}
-            placeholder="Tất cả cây trồng"
-            description="Hệ thống tìm nhóm nông sản nhà máy đang chế biến tương ứng"
-          />
-        </div>
+        <FormSection title="Nhu cầu chế biến">
+          <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
+            <MultiSelectField control={control} name="functions" label="Dịch vụ" options={serviceOptions} placeholder="Tất cả dịch vụ" />
+            <MultiSelectField
+              control={control}
+              name="cropIds"
+              label="Nguyên liệu"
+              options={CROP_OPTIONS}
+              placeholder="VD: Xoài, Sầu riêng..."
+              description="Hệ thống tìm nhóm nông sản nhà máy đang chế biến tương ứng"
+            />
+            <SelectField control={control} name="materialCondition" label="Tình trạng nguyên liệu" options={MATERIAL_CONDITION_OPTIONS} placeholder="Chọn tình trạng" />
+            <CapacityField
+              control={control}
+              valueName="quantity"
+              unitName="quantityUnit"
+              label="Sản lượng"
+              unitOptions={SEARCH_QUANTITY_UNIT_OPTIONS}
+              description="Chỉ hiện máy có công suất đủ xử lý trong thời gian nhận chế biến"
+            />
+            <MultiSelectField
+              control={control}
+              name="requiredCertifications"
+              label="Yêu cầu chứng nhận của cơ sở"
+              options={CERTIFICATION_TYPE_OPTIONS}
+              placeholder="Không yêu cầu"
+              description="Nhà máy phải có đủ các chứng nhận còn hiệu lực"
+              className="md:col-span-2"
+            />
+            <TextareaField control={control} name="packagingRequirements" label="Yêu cầu đóng gói" rows={2} placeholder="VD: Túi hút chân không 500g" />
+            <TextareaField control={control} name="technicalRequirements" label="Yêu cầu kỹ thuật đặc biệt" rows={2} placeholder="VD: Sấy lạnh dưới 40°C" />
+          </div>
+        </FormSection>
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={() => form.reset(EMPTY)}>

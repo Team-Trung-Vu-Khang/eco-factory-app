@@ -10,7 +10,7 @@ export interface ProcessingSchedule {
   maxCapacity: number;
   capacityUnit: CapacityUnit;
   note?: string;
-  /** Stored status; EXPIRED is derived on read (OPEN + toDate in the past) */
+  /** Stored status; display status is derived on read — CLOSED or toDate in the past = EXPIRED */
   status: "OPEN" | "CLOSED";
   /** CONNECTED = admin confirmed a successful connection (spec: đóng tin để không matching nữa) */
   closedReason?: "MANUAL" | "CONNECTED";

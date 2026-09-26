@@ -3,7 +3,9 @@ import { factoryApi, type PageResponse } from "@/features/factory";
 import { scheduleApi } from "@/features/processing-schedule";
 import { activeScheduleFor } from "@/features/processing-schedule/api/schedule.store";
 import { productGroupApi } from "@/features/product-group";
+import { getCertificateValidity } from "@/features/certificate/utils/certificate-validity";
 import { distanceKm } from "@/lib/distance";
+import type { CapacityUnit, Factory } from "@/features/factory";
 import type {
   ConnectionListParams,
   ConnectionRequest,
@@ -33,6 +35,23 @@ let db: ConnectionRequest[] = [
   { id: "cn-4", farmerId: "u-3", farmerName: "Hoàng Văn Đức", farmerPhone: "0977000111", factoryId: "f-4", factoryName: "Công ty CP Thực phẩm Tam Điệp", machineId: "m-4", machineName: "Máy chiết rót đóng chai", scheduleId: "s-3", cropIds: ["PINEAPPLE"], status: "FAILED", resultNote: "Sản lượng chưa đủ tối thiểu", createdAt: at(-8), resolvedAt: at(-5) },
 ];
 
+// Rough kg/day for comparing a requested quantity; BATCH / OTHER can't be compared
+const KG_PER_DAY: Partial<Record<CapacityUnit, number>> = { KG_PER_HOUR: 8, KG_PER_DAY: 1, TON_PER_DAY: 1000 };
+
+/** Can the schedule process `quantity` kg between now (or its start) and its end date? */
+const coversQuantity = (maxCapacity: number, unit: CapacityUnit, fromDate: string, toDate: string, quantity: number) => {
+  const factor = KG_PER_DAY[unit];
+  if (!factor) return true;
+  const start = dayjs(fromDate).isAfter(dayjs(), "day") ? dayjs(fromDate) : dayjs();
+  const days = dayjs(toDate).diff(start.startOf("day"), "day") + 1;
+  return maxCapacity * factor * Math.max(days, 0) >= quantity;
+};
+
+const hasCertifications = (factory: Factory, required: string[]) =>
+  required.every((type) =>
+    factory.certifications.some((c) => c.type === type && getCertificateValidity(c.expiryDate).validity !== "EXPIRED"),
+  );
+
 export const connectionApi = {
   async search(params: FactorySearchParams): Promise<FactorySearchResult[]> {
     await delay();
@@ -47,6 +66,7 @@ export const connectionApi = {
         const { location } = factory;
         if (params.provinceCode && location.provinceCode !== params.provinceCode) return null;
         if (params.wardCode && location.wardCode !== params.wardCode) return null;
+        if (!hasCertifications(factory, params.requiredCertifications)) return null;
         const distance = distanceKm(origin, location);
         if (useRadius && (distance === undefined || distance > params.radiusKm!)) return null;
 
@@ -56,6 +76,7 @@ export const connectionApi = {
           if (!schedule || m.status !== "ACTIVE") return [];
           if (params.functions.length && !m.functions.some((f) => params.functions.includes(f))) return [];
           if (params.cropIds.length && !m.productGroupIds.some((g) => groupIds.has(g))) return [];
+          if (params.quantity && !coversQuantity(schedule.maxCapacity, schedule.capacityUnit, schedule.fromDate, schedule.toDate, params.quantity)) return [];
           return [
             {
               ...m,
@@ -95,7 +116,7 @@ export const connectionApi = {
   },
 
   /** "Đăng ký chờ kết nối" */
-  async register({ farmer, factory, machine, cropIds, quantity, note }: RegisterConnectionInput): Promise<ConnectionRequest> {
+  async register({ farmer, factory, machine, cropIds, quantity, requirements, note }: RegisterConnectionInput): Promise<ConnectionRequest> {
     await delay();
     if (db.some((c) => c.farmerId === farmer.id && c.scheduleId === machine.scheduleId && c.status === "PENDING")) {
       throw new Error("Bạn đã đăng ký lịch này và đang chờ kết nối.");
@@ -113,6 +134,7 @@ export const connectionApi = {
       cropIds,
       quantity,
       capacityUnit: machine.capacityUnit,
+      requirements,
       note,
       status: "PENDING",
       createdAt: new Date().toISOString(),

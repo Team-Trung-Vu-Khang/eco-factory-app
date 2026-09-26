@@ -14,10 +14,8 @@ export default function ProcessingSchedulePage() {
 
   const create = useCreateSchedule();
   const close = useCloseSchedule();
-  // Upcoming + currently open posts
-  const open = useSchedules({ page: 0, size: 100, status: "OPEN" });
-  const upcoming = useSchedules({ page: 0, size: 100, status: "UPCOMING" });
-  const active = [...(upcoming.data?.content ?? []), ...(open.data?.content ?? [])];
+  const activeQuery = useSchedules({ page: 0, size: 100, status: "ACTIVE" });
+  const active = activeQuery.data?.content ?? [];
   const columns: Column<ScheduleRow>[] = [
     ...scheduleColumns,
     {
@@ -34,7 +32,7 @@ export default function ProcessingSchedulePage() {
   const handleSubmit = async (values: ScheduleFormValues) => {
     try {
       await create.mutateAsync(values);
-      toast({ title: "Đã đăng tin", description: "Máy đã sẵn sàng nhận chế biến trong khoảng thời gian này." });
+      toast({ title: "Đã đăng tin", description: `${values.machineIds.length} máy / dây chuyền đã sẵn sàng nhận chế biến trong khoảng thời gian này.` });
       return true;
     } catch (error) {
       toast({ title: "Không thể đăng tin", description: (error as Error).message, variant: "destructive" });
@@ -52,7 +50,7 @@ export default function ProcessingSchedulePage() {
           <DataTable
             columns={columns}
             data={active}
-            loading={open.isFetching || upcoming.isFetching}
+            loading={activeQuery.isFetching}
             searchable={false}
             columnToggleable={false}
             downloadable={false}

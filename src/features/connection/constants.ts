@@ -16,4 +16,13 @@ export const CONNECTION_STATUS_OPTIONS = (Object.entries(CONNECTION_STATUS_LABEL
   ([value, label]) => ({ value, label }),
 );
 
+/** Search quantity units — litres are treated ≈ kg when comparing to machine capacity */
+export type SearchQuantityUnit = "KG" | "LITER";
+
+export const SEARCH_QUANTITY_UNIT_LABELS: Record<SearchQuantityUnit, string> = { KG: "kg", LITER: "lít" };
+
+export const SEARCH_QUANTITY_UNIT_OPTIONS = (Object.entries(SEARCH_QUANTITY_UNIT_LABELS) as [SearchQuantityUnit, string][]).map(
+  ([value, label]) => ({ value, label }),
+);
+
 export const RADIUS_OPTIONS = [10, 20, 50, 100, 200].map((km) => ({ value: String(km), label: `Trong ${km} km` }));

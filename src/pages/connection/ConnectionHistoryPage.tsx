@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { Check, X } from "lucide-react";
 import { useState } from "react";
 import PageWrapper from "@/components/common/PageWrapper";
-import { CONNECTION_STATUS_OPTIONS, useConnections, useResolveConnection, type ConnectionRequest } from "@/features/connection";
+import { CONNECTION_STATUS_OPTIONS, SEARCH_QUANTITY_UNIT_LABELS, useConnections, useResolveConnection, type ConnectionRequest } from "@/features/connection";
 import { getCropName } from "@/features/crop";
 import { CAPACITY_UNIT_LABELS } from "@/features/factory";
 import { useCurrentFarmer, useIsFarmer } from "@/features/viewer";
@@ -32,7 +32,12 @@ const baseColumns: Column<ConnectionRequest>[] = [
         {c.cropIds.map(getCropName).join(", ") || "—"}
         {c.quantity !== undefined && (
           <p className="text-xs tabular-nums text-slate-500">
-            {fmt.format(c.quantity)} {c.capacityUnit ? CAPACITY_UNIT_LABELS[c.capacityUnit] : ""}
+            {fmt.format(c.quantity)}{" "}
+            {c.requirements?.quantityUnit
+              ? SEARCH_QUANTITY_UNIT_LABELS[c.requirements.quantityUnit]
+              : c.capacityUnit
+                ? CAPACITY_UNIT_LABELS[c.capacityUnit]
+                : ""}
           </p>
         )}
       </div>

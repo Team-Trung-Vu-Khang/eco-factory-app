@@ -31,6 +31,8 @@ export const CROPS: Crop[] = [
   { id: "ORANGE", name: "Cam", groupId: "FRUIT_TREE" },
   { id: "PLUM", name: "Mận", groupId: "FRUIT_TREE" },
   { id: "LONGAN", name: "Nhãn", groupId: "FRUIT_TREE" },
+  { id: "MANGO", name: "Xoài", groupId: "FRUIT_TREE" },
+  { id: "DURIAN", name: "Sầu riêng", groupId: "FRUIT_TREE" },
   { id: "GINSENG", name: "Sâm", groupId: "MEDICINAL_PLANT" },
   { id: "ARTICHOKE", name: "Atiso", groupId: "MEDICINAL_PLANT" },
   { id: "RICE", name: "Lúa", groupId: "FOOD_CROP" },

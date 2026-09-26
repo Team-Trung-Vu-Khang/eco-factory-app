@@ -32,7 +32,21 @@ export default function ConnectionSearchPage() {
     const result = results.find((r) => r.factory.id === registering?.factoryId);
     if (!registering || !result) return;
     try {
-      await register.mutateAsync({ farmer, factory: result.factory, machine: registering, cropIds: values.cropIds, quantity: values.quantity, note: values.note });
+      await register.mutateAsync({
+        farmer,
+        factory: result.factory,
+        machine: registering,
+        cropIds: values.cropIds,
+        quantity: values.quantity,
+        requirements: {
+          quantityUnit: values.quantityUnit,
+          requiredCertifications: params?.requiredCertifications ?? [],
+          materialCondition: params?.materialCondition,
+          packagingRequirements: params?.packagingRequirements,
+          technicalRequirements: params?.technicalRequirements,
+        },
+        note: values.note,
+      });
       toast({ title: "Đã đăng ký", description: "Yêu cầu đang chờ kết nối." });
       setRegistering(null);
     } catch (error) {
@@ -41,7 +55,7 @@ export default function ConnectionSearchPage() {
   };
 
   return (
-    <PageWrapper title="Tìm kiếm nhà máy" description="Tìm nhà máy đang nhận chế biến phù hợp với vị trí, chức năng và cây trồng" overflow="visible">
+    <PageWrapper title="Tìm kiếm nhà máy" description="Tìm nhà máy đang nhận chế biến phù hợp với vị trí, dịch vụ, nguyên liệu, sản lượng và chứng nhận" overflow="visible">
       <div className="space-y-6">
         <SearchFilters loading={search.isFetching} onSearch={setParams} />
 
@@ -78,6 +92,8 @@ export default function ConnectionSearchPage() {
       <RegisterDialog
         machine={registering}
         defaultCropIds={params?.cropIds ?? []}
+        defaultQuantity={params?.quantity}
+        defaultQuantityUnit={params?.quantityUnit}
         isSubmitting={register.isPending}
         onOpenChange={(open) => !open && setRegistering(null)}
         onSubmit={handleRegister}

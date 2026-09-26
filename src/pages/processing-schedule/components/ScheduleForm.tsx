@@ -3,7 +3,7 @@ import { Button, Form } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Loader2, Send } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { CapacityField, FormSection, SearchSelectField, TextareaField, TextField } from "@/components/form";
+import { CapacityField, FormSection, MultiSelectField, SearchSelectField, TextareaField, TextField } from "@/components/form";
 import { CAPACITY_UNIT_LABELS, useFactoryOptions, useMachines } from "@/features/factory";
 import { EMPTY_SCHEDULE, scheduleSchema, type ScheduleFormValues } from "@/features/processing-schedule";
 
@@ -19,27 +19,35 @@ interface ScheduleFormProps {
 export function ScheduleForm({ machineId, isSubmitting, onSubmit }: ScheduleFormProps) {
   const form = useForm<ScheduleFormValues>({ resolver: zodResolver(scheduleSchema), defaultValues: EMPTY_SCHEDULE, mode: "onTouched" });
   const { control, setValue } = form;
-  const [factoryId, selectedMachineId] = useWatch({ control, name: ["factoryId", "machineId"] });
+  const [factoryId, selectedMachineIds] = useWatch({ control, name: ["factoryId", "machineIds"] });
 
   const { options: factoryOptions } = useFactoryOptions();
   const { data: machines } = useMachines({ page: 0, size: 1000, status: "ACTIVE" });
   const allMachines = useMemo(() => machines?.content ?? [], [machines]);
   const machineOptions = allMachines.filter((m) => m.factoryId === factoryId).map((m) => ({ value: m.id, label: m.name }));
-  const machine = allMachines.find((m) => m.id === selectedMachineId);
+  const selectedMachines = useMemo(() => allMachines.filter((m) => selectedMachineIds?.includes(m.id)), [allMachines, selectedMachineIds]);
+  const firstMachine = selectedMachines[0];
 
   // Deep link: ?machineId= selects the machine and its factory
   useEffect(() => {
     const target = allMachines.find((m) => m.id === machineId);
-    if (target && !form.getValues("machineId")) {
+    if (target && !form.getValues("machineIds").length) {
       setValue("factoryId", target.factoryId);
-      setValue("machineId", target.id);
+      setValue("machineIds", [target.id]);
     }
   }, [machineId, allMachines, form, setValue]);
 
-  // Default the unit to the machine's; the user can still change it
+  // Changing factory drops machines from the previous one
   useEffect(() => {
-    if (machine) setValue("capacityUnit", machine.capacityUnit, { shouldValidate: form.formState.isSubmitted });
-  }, [machine, setValue, form]);
+    const ids = form.getValues("machineIds");
+    const kept = ids.filter((id) => allMachines.some((m) => m.id === id && m.factoryId === factoryId));
+    if (kept.length !== ids.length) setValue("machineIds", kept);
+  }, [factoryId, allMachines, form, setValue]);
+
+  // Default the unit to the first machine's; the user can still change it
+  useEffect(() => {
+    if (firstMachine) setValue("capacityUnit", firstMachine.capacityUnit, { shouldValidate: form.formState.isSubmitted });
+  }, [firstMachine, setValue, form]);
 
   const submit = form.handleSubmit(async (values) => {
     if (await onSubmit(values)) form.reset({ ...EMPTY_SCHEDULE, factoryId: values.factoryId });
@@ -51,9 +59,9 @@ export function ScheduleForm({ machineId, isSubmitting, onSubmit }: ScheduleForm
         <FormSection title="Đăng tin nhận chế biến" description="Máy chỉ xuất hiện trong tìm kiếm của nông hộ khi có lịch đang mở">
           <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
             <SearchSelectField control={control} name="factoryId" label="Nhà máy" required options={factoryOptions} />
-            <SearchSelectField
+            <MultiSelectField
               control={control}
-              name="machineId"
+              name="machineIds"
               label="Máy / dây chuyền"
               required
               disabled={!factoryId}
@@ -69,8 +77,10 @@ export function ScheduleForm({ machineId, isSubmitting, onSubmit }: ScheduleForm
               label="Công suất tối đa nhận"
               required
               description={
-                machine
-                  ? `Công suất tối đa của máy: ${fmt.format(machine.maxCapacity)} ${CAPACITY_UNIT_LABELS[machine.capacityUnit]}`
+                selectedMachines.length
+                  ? `Áp dụng cho từng máy. Công suất tối đa: ${selectedMachines
+                      .map((m) => `${m.name} ${fmt.format(m.maxCapacity)} ${CAPACITY_UNIT_LABELS[m.capacityUnit]}`)
+                      .join("; ")}`
                   : undefined
               }
             />

@@ -24,6 +24,8 @@ interface CapacityFieldProps<T extends FieldValues> {
   description?: ReactNode;
   /** Lock the unit, e.g. a schedule must use its machine's unit */
   unitDisabled?: boolean;
+  /** Defaults to machine capacity units */
+  unitOptions?: { value: string; label: string }[];
   className?: string;
 }
 
@@ -36,6 +38,7 @@ export function CapacityField<T extends FieldValues>({
   required,
   description,
   unitDisabled,
+  unitOptions = CAPACITY_UNIT_OPTIONS,
   className,
 }: CapacityFieldProps<T>) {
   const { field: unit, fieldState: unitState } = useController({ control, name: unitName });
@@ -68,7 +71,7 @@ export function CapacityField<T extends FieldValues>({
                 <SelectValue placeholder="Đơn vị" />
               </SelectTrigger>
               <SelectContent>
-                {CAPACITY_UNIT_OPTIONS.map((o) => (
+                {unitOptions.map((o) => (
                   <SelectItem key={o.value} value={o.value}>
                     {o.label}
                   </SelectItem>

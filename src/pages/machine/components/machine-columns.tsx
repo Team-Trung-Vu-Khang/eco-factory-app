@@ -28,7 +28,7 @@ export const machineColumns: Column<MachineRow>[] = [
   },
   {
     key: "functions",
-    label: "Chức năng",
+    label: "Dịch vụ",
     render: (_, m) => (
       <div className="flex flex-wrap gap-1">
         {m.functions.map((f) => (
@@ -85,5 +85,5 @@ export const machineColumns: Column<MachineRow>[] = [
 
 export const machineFilters = [
   { key: "status", label: "Tình trạng", options: MACHINE_STATUS_OPTIONS },
-  { key: "function", label: "Chức năng", options: PROCESSING_SERVICE_OPTIONS },
+  { key: "function", label: "Dịch vụ", options: PROCESSING_SERVICE_OPTIONS },
 ];

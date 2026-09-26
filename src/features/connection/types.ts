@@ -1,5 +1,6 @@
 import type { CapacityUnit, Factory, MachineRow } from "@/features/factory";
-import type { ConnectionStatus } from "./constants";
+import type { MaterialCondition } from "@/features/demand/constants";
+import type { ConnectionStatus, SearchQuantityUnit } from "./constants";
 
 export interface FactorySearchParams {
   /** Farmer's chosen location; distance is measured to the factory address */
@@ -8,9 +9,26 @@ export interface FactorySearchParams {
   radiusKm?: number;
   provinceCode?: string;
   wardCode?: string;
+  /** Matching: machine must offer at least one of these services */
   functions: string[];
+  /** Matching: raw material = crops, resolved to product groups */
   cropIds: string[];
+  /** Matching: schedule capacity over its remaining window must cover this */
+  quantity?: number;
+  quantityUnit?: SearchQuantityUnit;
+  /** Matching: factory must hold every one of these (unexpired) */
+  requiredCertifications: string[];
+  /** Info only — passed on to the factory when registering */
+  materialCondition?: MaterialCondition;
+  packagingRequirements?: string;
+  technicalRequirements?: string;
 }
+
+/** Farmer's needs carried from the search into the connection request */
+export type ConnectionRequirements = Pick<
+  FactorySearchParams,
+  "quantityUnit" | "requiredCertifications" | "materialCondition" | "packagingRequirements" | "technicalRequirements"
+>;
 
 export interface MatchedMachine extends MachineRow {
   scheduleId: string;
@@ -37,6 +55,7 @@ export interface ConnectionRequest {
   cropIds: string[];
   quantity?: number;
   capacityUnit?: CapacityUnit;
+  requirements?: ConnectionRequirements;
   note?: string;
   status: ConnectionStatus;
   /** Admin note when resolving */
@@ -60,5 +79,6 @@ export interface RegisterConnectionInput {
   machine: MatchedMachine;
   cropIds: string[];
   quantity?: number;
+  requirements?: ConnectionRequirements;
   note?: string;
 }
