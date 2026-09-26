@@ -1,5 +1,4 @@
 import {
-  FACTORY_FARMER_MOBILE_NAV_ITEMS,
   FACTORY_MOBILE_NAV_ITEMS,
   FactoryAdminLayout,
   FactoryMobileLayout,
@@ -9,13 +8,14 @@ import {
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Suspense } from "react";
 import { AppLoadingState } from "@/components/common/AppLoadingState";
+import { SwitchToMobileAppButton } from "@/components/common/SwitchToMobileAppButton";
 import { AuthWrapper } from "@/features/auth";
-import { ViewModeSwitch, useViewMode } from "@/features/viewer";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import AppRouter from "./AppRouter";
 
 function App() {
   const isMobile = useIsMobile();
-  const { isFarmer } = useViewMode();
+  const mobileUiMode = useMobileUiMode();
 
   const content = (
     <Suspense fallback={<AppLoadingState />}>
@@ -26,16 +26,13 @@ function App() {
   return (
     <TooltipProvider>
       <AuthWrapper>
-        {isMobile ? (
-          <FactoryMobileLayout
-            navItems={isFarmer ? FACTORY_FARMER_MOBILE_NAV_ITEMS : FACTORY_MOBILE_NAV_ITEMS}
-            headerActions={<ViewModeSwitch />}
-          >
-            {content}
-          </FactoryMobileLayout>
+        {/* "classic" = full sidebar UI on phones, toggled from the Tài khoản page */}
+        {isMobile && mobileUiMode === "app" ? (
+          <FactoryMobileLayout navItems={FACTORY_MOBILE_NAV_ITEMS}>{content}</FactoryMobileLayout>
         ) : (
           <FactoryAdminLayout>{content}</FactoryAdminLayout>
         )}
+        {isMobile && mobileUiMode === "classic" && <SwitchToMobileAppButton />}
         <RadixToaster />
       </AuthWrapper>
     </TooltipProvider>

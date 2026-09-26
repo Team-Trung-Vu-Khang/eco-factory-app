@@ -6,7 +6,7 @@ import PageWrapper from "@/components/common/PageWrapper";
 import { CONNECTION_STATUS_OPTIONS, useConnections, useResolveConnection, type ConnectionRequest } from "@/features/connection";
 import { getCropName } from "@/features/crop";
 import { CAPACITY_UNIT_LABELS } from "@/features/factory";
-import { useCurrentFarmer, useViewMode } from "@/features/viewer";
+import { useCurrentFarmer, useIsFarmer } from "@/features/viewer";
 import { ConnectionStatusBadge } from "./components/ConnectionStatusBadge";
 import { ResolveDialog } from "./components/ResolveDialog";
 
@@ -69,7 +69,7 @@ const farmerColumn: Column<ConnectionRequest> = {
 
 export default function ConnectionHistoryPage() {
   const { toast } = useToast();
-  const { isFarmer } = useViewMode();
+  const isFarmer = useIsFarmer();
   const farmer = useCurrentFarmer();
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);

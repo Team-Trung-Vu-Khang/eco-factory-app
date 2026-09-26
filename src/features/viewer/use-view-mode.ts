@@ -1,11 +1,13 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { authApi } from "@/features/auth";
-import { ViewModeContext } from "./view-mode-context";
 
-export function useViewMode() {
-  const ctx = useContext(ViewModeContext);
-  if (!ctx) throw new Error("useViewMode must be used inside ViewModeProvider");
-  return { ...ctx, isFarmer: ctx.mode === "FARMER" };
+/**
+ * Farmer (nông hộ) sees only their own connections; everyone else sees all.
+ * TODO: derive from the user's roles once the BE exposes them — until then
+ * every user gets the factory / admin view.
+ */
+export function useIsFarmer() {
+  return false;
 }
 
 /** Best-effort read of the SSO access token's claims */

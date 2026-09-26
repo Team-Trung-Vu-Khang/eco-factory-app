@@ -26,6 +26,7 @@ const DemandPage = lazy(() => import("./pages/demand/DemandPage"));
 const DemandCreatePage = lazy(() => import("./pages/demand/DemandCreatePage"));
 const DemandDetailPage = lazy(() => import("./pages/demand/DemandDetailPage"));
 const DemandEditPage = lazy(() => import("./pages/demand/DemandEditPage"));
+const AccountPage = lazy(() => import("./pages/account/AccountPage"));
 const ProductGroupPage = lazy(() => import("./pages/product-group/ProductGroupPage"));
 const ProcessingServicePage = lazy(() => import("./pages/processing-service/ProcessingServicePage"));
 const MachinePage = lazy(() => import("./pages/machine/MachinePage"));
@@ -59,6 +60,8 @@ export default function AppRouter() {
       <Route path={ROUTES.productCreate} component={ProductCreatePage} />
       <Route path={ROUTES.productEdit(":id")} component={ProductEditPage} />
       <Route path={ROUTES.productDetail(":id")} component={ProductDetailPage} />
+
+      <Route path={ROUTES.account} component={AccountPage} />
 
       <Route path={ROUTES.productGroups} component={ProductGroupPage} />
       <Route path={ROUTES.processingServices} component={ProcessingServicePage} />
