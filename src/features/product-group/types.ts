@@ -1,8 +1,10 @@
 export interface ProductGroup {
   id: string;
+  /** Crop group name — see features/crop */
   name: string;
-  /** "group:<cropGroupId>" | "crop:<cropId>" — see features/crop */
-  cropRefs: string[];
+  cropGroupId: string;
+  /** Crops within the group; empty = the whole group */
+  cropIds: string[];
   description?: string;
   updatedAt: string;
 }

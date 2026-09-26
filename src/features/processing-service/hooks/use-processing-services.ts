@@ -11,6 +11,11 @@ export function useProcessingServices(params: ProcessingServiceListParams) {
   });
 }
 
+export function useProcessingServiceOptions() {
+  const { data } = useQuery({ queryKey: [...processingServiceKeys.all, "all"], queryFn: processingServiceApi.all });
+  return (data ?? []).map((s) => ({ value: s.id, label: s.name }));
+}
+
 function useInvalidate() {
   const qc = useQueryClient();
   return () => qc.invalidateQueries({ queryKey: processingServiceKeys.all });

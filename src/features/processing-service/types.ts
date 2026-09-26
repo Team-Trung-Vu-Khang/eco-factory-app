@@ -1,14 +1,11 @@
-import type { ProcessingService } from "@/features/factory";
-
-/** A processing service offered at one factory */
+/** A processing service in the shared catalog; factories pick from it */
 export interface ProcessingServiceItem {
+  /** Also the value stored in factory.services */
   id: string;
-  factoryId: string;
-  factoryName: string;
-  service: ProcessingService;
-  /** Service label, used in toasts / dialogs */
   name: string;
   description?: string;
+  /** Names of factories offering this service */
+  factoryNames: string[];
   updatedAt: string;
 }
 
@@ -16,5 +13,4 @@ export interface ProcessingServiceListParams {
   page: number;
   size: number;
   keyword?: string;
-  factoryId?: string;
 }

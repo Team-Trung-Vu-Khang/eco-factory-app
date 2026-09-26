@@ -1,13 +1,10 @@
 import { z } from "zod";
 
-const REQUIRED = "Trường này là bắt buộc.";
-
 export const processingServiceSchema = z.object({
-  factoryId: z.string().min(1, REQUIRED),
-  service: z.string().min(1, REQUIRED),
+  name: z.string().trim().min(1, "Trường này là bắt buộc."),
   description: z.string().trim().optional(),
 });
 
 export type ProcessingServiceFormValues = z.infer<typeof processingServiceSchema>;
 
-export const EMPTY_PROCESSING_SERVICE: ProcessingServiceFormValues = { factoryId: "", service: "", description: "" };
+export const EMPTY_PROCESSING_SERVICE: ProcessingServiceFormValues = { name: "", description: "" };

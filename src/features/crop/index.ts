@@ -40,30 +40,11 @@ export const CROPS: Crop[] = [
   { id: "CARDAMOM", name: "Thảo quả", groupId: "SPICE_PLANT" },
 ];
 
-/** A product group links to crop groups and/or single crops: "group:<id>" | "crop:<id>" */
-export type CropRef = `group:${string}` | `crop:${string}`;
-
-export const groupRef = (id: string) => `group:${id}` as CropRef;
-export const cropRef = (id: string) => `crop:${id}` as CropRef;
-
-const cropGroupName = (id: string) => CROP_GROUPS.find((g) => g.id === id)?.name ?? id;
+export const cropGroupName = (id: string) => CROP_GROUPS.find((g) => g.id === id)?.name ?? id;
 export const getCropName = (id: string) => CROPS.find((c) => c.id === id)?.name ?? id;
 
-export const getCropRefLabel = (ref: string) => {
-  const [kind, id] = ref.split(":");
-  return kind === "group" ? `Nhóm: ${cropGroupName(id)}` : getCropName(id);
-};
+export const CROP_GROUP_OPTIONS = CROP_GROUPS.map((g) => ({ value: g.id, label: g.name }));
 
-/** Crop groups first, then crops labelled with their group */
-export const CROP_REF_OPTIONS = [
-  ...CROP_GROUPS.map((g) => ({ value: groupRef(g.id), label: `Nhóm: ${g.name}` })),
-  ...CROPS.map((c) => ({ value: cropRef(c.id), label: `${c.name} (${cropGroupName(c.groupId)})` })),
-];
+export const cropOptionsInGroup = (groupId: string) => CROPS.filter((c) => c.groupId === groupId).map((c) => ({ value: c.id, label: c.name }));
 
 export const CROP_OPTIONS = CROPS.map((c) => ({ value: c.id, label: `${c.name} (${cropGroupName(c.groupId)})` }));
-
-/** Does a set of refs cover this crop, directly or through its group? */
-export const refsCoverCrop = (refs: string[], cropId: string) => {
-  const crop = CROPS.find((c) => c.id === cropId);
-  return refs.includes(cropRef(cropId)) || (!!crop && refs.includes(groupRef(crop.groupId)));
-};

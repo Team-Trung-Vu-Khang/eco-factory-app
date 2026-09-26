@@ -1,7 +1,7 @@
 import { Badge, Button, DataTable, DeleteDialog, type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
-import { getCropRefLabel } from "@/features/crop";
+import { getCropName } from "@/features/crop";
 import {
   useCreateProductGroup,
   useDeleteProductGroup,
@@ -16,22 +16,29 @@ import { ProductGroupFormDialog } from "./components/ProductGroupFormDialog";
 const columns: Column<ProductGroup>[] = [
   { key: "name", label: "Tên nhóm", render: (_, g) => <span className="font-medium text-slate-900">{g.name}</span> },
   {
-    key: "cropRefs",
+    key: "cropIds",
     label: "Cây trồng liên kết",
-    render: (_, g) => (
-      <div className="flex flex-wrap gap-1">
-        {g.cropRefs.map((ref) => (
-          <Badge key={ref} variant={ref.startsWith("group:") ? "default" : "secondary"} className="font-normal">
-            {getCropRefLabel(ref)}
-          </Badge>
-        ))}
-      </div>
-    ),
+    render: (_, g) =>
+      g.cropIds.length ? (
+        <div className="flex flex-wrap gap-1">
+          {g.cropIds.map((id) => (
+            <Badge key={id} variant="secondary" className="font-normal">
+              {getCropName(id)}
+            </Badge>
+          ))}
+        </div>
+      ) : (
+        <Badge className="font-normal">Tất cả cây trồng trong nhóm</Badge>
+      ),
   },
   { key: "description", label: "Mô tả", render: (_, g) => <span className="text-sm text-slate-600">{g.description || "—"}</span> },
 ];
 
-const toFormValues = (g: ProductGroup): ProductGroupFormValues => ({ name: g.name, cropRefs: g.cropRefs, description: g.description ?? "" });
+const toFormValues = (g: ProductGroup): ProductGroupFormValues => ({
+  cropGroupId: g.cropGroupId,
+  cropIds: g.cropIds,
+  description: g.description ?? "",
+});
 
 export default function ProductGroupPage() {
   const page = useCrudPage({

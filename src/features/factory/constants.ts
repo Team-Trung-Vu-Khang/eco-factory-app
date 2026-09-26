@@ -33,19 +33,11 @@ export const GENDER_LABELS: Record<Gender, string> = {
   OTHER: "Khác",
 };
 
-export type ProcessingService =
-  | "PRE_PROCESSING"
-  | "WASHING"
-  | "SORTING"
-  | "DRYING"
-  | "GRINDING"
-  | "PRESSING"
-  | "FERMENTING"
-  | "STORAGE"
-  | "PACKAGING"
-  | "OTHER";
+/** Id of a service in the shared processing-service catalog */
+export type ProcessingService = string;
 
-export const PROCESSING_SERVICE_LABELS: Record<ProcessingService, string> = {
+export const PROCESSING_SERVICE_LABELS: Record<string, string> = {
+  // Seed for the processing-service catalog
   PRE_PROCESSING: "Sơ chế",
   WASHING: "Rửa",
   SORTING: "Phân loại",
@@ -93,13 +85,13 @@ export const CERTIFICATION_TYPE_LABELS: Record<CertificationType, string> = {
 
 // TODO: load from master-data API (shared with MEVI Farms)
 export const PRODUCT_GROUP_LABELS: Record<string, string> = {
-  TEA: "Chè",
-  VEGETABLE: "Rau củ",
-  FRUIT: "Trái cây",
-  HERB: "Dược liệu",
-  GRAIN: "Ngũ cốc",
-  COFFEE: "Cà phê",
-  SPICE: "Gia vị",
+  TEA: "Cây chè",
+  VEGETABLE: "Rau màu",
+  FRUIT: "Cây ăn quả",
+  HERB: "Cây dược liệu",
+  GRAIN: "Cây lương thực",
+  COFFEE: "Cây công nghiệp",
+  SPICE: "Cây gia vị",
 };
 
 // TODO: load from administrative-unit API (2 levels: province → ward)
