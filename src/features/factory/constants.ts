@@ -52,17 +52,17 @@ export const PROCESSING_SERVICE_LABELS: Record<string, string> = {
 
 export type CapacityUnit =
   | "KG_PER_HOUR"
+  | "LIT_PER_HOUR"
   | "KG_PER_DAY"
-  | "TON_PER_DAY"
-  | "BATCH_PER_DAY"
-  | "OTHER";
+  | "LIT_PER_DAY"
+  | "TON_PER_DAY";
 
 export const CAPACITY_UNIT_LABELS: Record<CapacityUnit, string> = {
   KG_PER_HOUR: "kg/giờ",
+  LIT_PER_HOUR: "lit/giờ",
   KG_PER_DAY: "kg/ngày",
+  LIT_PER_DAY: "lit/ngày",
   TON_PER_DAY: "tấn/ngày",
-  BATCH_PER_DAY: "mẻ/ngày",
-  OTHER: "Khác",
 };
 
 export type MachineStatus = "ACTIVE" | "MAINTENANCE" | "PAUSED";
@@ -73,7 +73,12 @@ export const MACHINE_STATUS_LABELS: Record<MachineStatus, string> = {
   PAUSED: "Tạm dừng",
 };
 
-export type CertificationType = "FOOD_SAFETY" | "HACCP" | "ISO" | "GMP" | "OTHER";
+export type CertificationType =
+  | "FOOD_SAFETY"
+  | "HACCP"
+  | "ISO"
+  | "GMP"
+  | "OTHER";
 
 export const CERTIFICATION_TYPE_LABELS: Record<CertificationType, string> = {
   FOOD_SAFETY: "ATTP",
@@ -95,13 +100,62 @@ export const PRODUCT_GROUP_LABELS: Record<string, string> = {
 };
 
 // TODO: load from administrative-unit API (2 levels: province → ward)
-export const PROVINCES: { code: string; name: string; wards: { code: string; name: string }[] }[] = [
-  { code: "HN", name: "Hà Nội", wards: [{ code: "HN-BD", name: "Phường Ba Đình" }, { code: "HN-HK", name: "Phường Hoàn Kiếm" }, { code: "HN-CN", name: "Phường Cửa Nam" }, { code: "HN-SS", name: "Xã Sóc Sơn" }] },
-  { code: "TQ", name: "Tuyên Quang", wards: [{ code: "TQ-HG", name: "Phường Hà Giang 1" }, { code: "TQ-VX", name: "Xã Vị Xuyên" }] },
-  { code: "PT", name: "Phú Thọ", wards: [{ code: "PT-VT", name: "Phường Việt Trì" }, { code: "PT-DH", name: "Xã Đoan Hùng" }, { code: "PT-HB", name: "Phường Hòa Bình" }] },
-  { code: "LC", name: "Lào Cai", wards: [{ code: "LC-LC", name: "Phường Lào Cai" }, { code: "LC-SP", name: "Phường Sa Pa" }] },
-  { code: "NB", name: "Ninh Bình", wards: [{ code: "NB-HL", name: "Phường Hoa Lư" }, { code: "NB-TD", name: "Xã Tam Điệp" }] },
-  { code: "LD", name: "Lâm Đồng", wards: [{ code: "LD-DL", name: "Phường Đà Lạt" }, { code: "LD-BL", name: "Phường Bảo Lộc" }] },
+export const PROVINCES: {
+  code: string;
+  name: string;
+  wards: { code: string; name: string }[];
+}[] = [
+  {
+    code: "HN",
+    name: "Hà Nội",
+    wards: [
+      { code: "HN-BD", name: "Phường Ba Đình" },
+      { code: "HN-HK", name: "Phường Hoàn Kiếm" },
+      { code: "HN-CN", name: "Phường Cửa Nam" },
+      { code: "HN-SS", name: "Xã Sóc Sơn" },
+    ],
+  },
+  {
+    code: "TQ",
+    name: "Tuyên Quang",
+    wards: [
+      { code: "TQ-HG", name: "Phường Hà Giang 1" },
+      { code: "TQ-VX", name: "Xã Vị Xuyên" },
+    ],
+  },
+  {
+    code: "PT",
+    name: "Phú Thọ",
+    wards: [
+      { code: "PT-VT", name: "Phường Việt Trì" },
+      { code: "PT-DH", name: "Xã Đoan Hùng" },
+      { code: "PT-HB", name: "Phường Hòa Bình" },
+    ],
+  },
+  {
+    code: "LC",
+    name: "Lào Cai",
+    wards: [
+      { code: "LC-LC", name: "Phường Lào Cai" },
+      { code: "LC-SP", name: "Phường Sa Pa" },
+    ],
+  },
+  {
+    code: "NB",
+    name: "Ninh Bình",
+    wards: [
+      { code: "NB-HL", name: "Phường Hoa Lư" },
+      { code: "NB-TD", name: "Xã Tam Điệp" },
+    ],
+  },
+  {
+    code: "LD",
+    name: "Lâm Đồng",
+    wards: [
+      { code: "LD-DL", name: "Phường Đà Lạt" },
+      { code: "LD-BL", name: "Phường Bảo Lộc" },
+    ],
+  },
 ];
 
 // TODO: load from master-data API
@@ -123,8 +177,9 @@ export const getProvinceName = (code: string) =>
   PROVINCES.find((p) => p.code === code)?.name ?? code;
 
 export const getWardName = (provinceCode: string, wardCode: string) =>
-  PROVINCES.find((p) => p.code === provinceCode)?.wards.find((w) => w.code === wardCode)
-    ?.name ?? wardCode;
+  PROVINCES.find((p) => p.code === provinceCode)?.wards.find(
+    (w) => w.code === wardCode,
+  )?.name ?? wardCode;
 
 export const ORGANIZATION_TYPE_OPTIONS = toOptions(ORGANIZATION_TYPE_LABELS);
 export const GENDER_OPTIONS = toOptions(GENDER_LABELS);
@@ -133,4 +188,6 @@ export const CAPACITY_UNIT_OPTIONS = toOptions(CAPACITY_UNIT_LABELS);
 export const MACHINE_STATUS_OPTIONS = toOptions(MACHINE_STATUS_LABELS);
 export const CERTIFICATION_TYPE_OPTIONS = toOptions(CERTIFICATION_TYPE_LABELS);
 export const PRODUCT_GROUP_OPTIONS = toOptions(PRODUCT_GROUP_LABELS);
-export const CERTIFICATION_ISSUER_OPTIONS = toOptions(CERTIFICATION_ISSUER_LABELS);
+export const CERTIFICATION_ISSUER_OPTIONS = toOptions(
+  CERTIFICATION_ISSUER_LABELS,
+);

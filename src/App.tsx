@@ -20,7 +20,8 @@ import AppRouter from "./AppRouter";
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 
-const isPublicPath = (path: string) => path.startsWith(AUTH_PATHS.loginPage) || path.startsWith(AUTH_PATHS.register);
+const isPublicPath = (path: string) =>
+  path.startsWith(AUTH_PATHS.loginPage) || path.startsWith(AUTH_PATHS.register);
 
 /** Login / register — no layout, no auth guard; signed-in users go home */
 function PublicPages() {
@@ -66,10 +67,14 @@ function App() {
             {content}
           </FactoryMobileLayout>
         ) : (
-          <FactoryAdminLayout isOwnerFactory={isOwner}>{content}</FactoryAdminLayout>
+          <FactoryAdminLayout isOwnerFactory={isOwner}>
+            {content}
+          </FactoryAdminLayout>
         )}
         {!mobileApp && <LayoutRoleSwitch />}
-        {isMobile && !isOwner && mobileUiMode === "classic" && <SwitchToMobileAppButton />}
+        {isMobile && !isOwner && mobileUiMode === "classic" && (
+          <SwitchToMobileAppButton />
+        )}
         <RadixToaster />
       </AuthWrapper>
     </TooltipProvider>

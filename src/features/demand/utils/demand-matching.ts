@@ -24,7 +24,7 @@ const inScope = (scope: SearchScope, from: string, to: string) => {
 // Lots / batches have no fixed weight (spec §6 q6) → capacity check is skipped for them
 const QUANTITY_KG: Partial<Record<QuantityUnit, number>> = { KG: 1, TON: 1000 };
 // Assumes an 8-hour working day
-const CAPACITY_KG_PER_DAY: Partial<Record<CapacityUnit, number>> = { KG_PER_HOUR: 8, KG_PER_DAY: 1, TON_PER_DAY: 1000 };
+const CAPACITY_KG_PER_DAY: Partial<Record<CapacityUnit, number>> = { KG_PER_HOUR: 8, LIT_PER_HOUR: 8, KG_PER_DAY: 1, LIT_PER_DAY: 1, TON_PER_DAY: 1000 };
 
 /** Machine free window overlaps the needed window; open-ended bounds count as available */
 const overlaps = (m: Machine, from: string, to?: string) =>

@@ -36,7 +36,7 @@ let db: ConnectionRequest[] = [
 ];
 
 // Rough kg/day for comparing a requested quantity; BATCH / OTHER can't be compared
-const KG_PER_DAY: Partial<Record<CapacityUnit, number>> = { KG_PER_HOUR: 8, KG_PER_DAY: 1, TON_PER_DAY: 1000 };
+const KG_PER_DAY: Partial<Record<CapacityUnit, number>> = { KG_PER_HOUR: 8, LIT_PER_HOUR: 8, KG_PER_DAY: 1, LIT_PER_DAY: 1, TON_PER_DAY: 1000 };
 
 /** Can the schedule process `quantity` kg between now (or its start) and its end date? */
 const coversQuantity = (maxCapacity: number, unit: CapacityUnit, fromDate: string, toDate: string, quantity: number) => {
