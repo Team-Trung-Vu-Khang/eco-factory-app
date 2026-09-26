@@ -33,6 +33,6 @@ export const authApi = {
 
   logout: () => {
     authStorage.clearToken();
-    window.location.replace(AUTH_PATHS.postLogoutRedirect);
+    window.location.replace(AUTH_PATHS.postLogoutRedirect || AUTH_PATHS.loginPage);
   },
 };

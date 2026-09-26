@@ -45,7 +45,7 @@ export function TextField<T extends FieldValues>({
   className,
   type = "text",
   placeholder,
-}: BaseFieldProps<T> & { type?: "text" | "email" | "tel" | "date" | "url"; placeholder?: string }) {
+}: BaseFieldProps<T> & { type?: "text" | "email" | "tel" | "date" | "url" | "password"; placeholder?: string }) {
   return (
     <FormField
       control={control}

@@ -8,12 +8,14 @@ const isSafeRedirect = (path: string | null): path is string =>
   path.startsWith("/") &&
   !path.startsWith("//") &&
   path !== "/" &&
-  !path.startsWith(AUTH_PATHS.callback);
+  !path.startsWith(AUTH_PATHS.callback) &&
+  !path.startsWith(AUTH_PATHS.loginPage) &&
+  !path.startsWith(AUTH_PATHS.register);
 
 function handleCallback() {
   const token = authApi.getCallbackToken();
   if (!token) {
-    authApi.startLogin(authApi.getDefaultProvider());
+    window.location.replace(AUTH_PATHS.loginPage);
     return;
   }
 
@@ -37,7 +39,7 @@ function redirectToLogin() {
   if (isSafeRedirect(currentPath)) {
     sessionStorage.setItem(AUTH_STORAGE_KEYS.redirectPath, currentPath);
   }
-  authApi.startLogin(authApi.getDefaultProvider());
+  window.location.replace(AUTH_PATHS.loginPage);
 }
 
 export function AuthWrapper({ children }: { children: ReactNode }) {
