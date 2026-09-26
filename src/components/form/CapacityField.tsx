@@ -47,17 +47,13 @@ export function CapacityField<T extends FieldValues>({
       render={({ field, fieldState }) => (
         <FormItem className={className}>
           <FormLabel required={required}>{label}</FormLabel>
-          <div
-            className={`flex rounded-md border bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1 ${
-              fieldState.error ? "border-destructive" : "border-input"
-            }`}
-          >
+          <div className="flex gap-2">
             <Input
               type="number"
               inputMode="decimal"
               step="any"
               aria-invalid={!!fieldState.error}
-              className="min-w-0 flex-1 rounded-r-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              className={`min-w-0 flex-1 ${fieldState.error ? "border-destructive" : ""}`}
               name={field.name}
               ref={field.ref}
               onBlur={field.onBlur}
@@ -67,7 +63,7 @@ export function CapacityField<T extends FieldValues>({
             <Select value={unit.value || undefined} onValueChange={unit.onChange} disabled={unitDisabled}>
               <SelectTrigger
                 aria-label="Đơn vị công suất"
-                className="w-32 shrink-0 rounded-l-none border-0 border-l border-input bg-slate-50 shadow-none focus:ring-0 focus:ring-offset-0"
+                className="w-28 shrink-0 bg-slate-50"
               >
                 <SelectValue placeholder="Đơn vị" />
               </SelectTrigger>
