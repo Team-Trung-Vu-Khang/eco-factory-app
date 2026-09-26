@@ -26,6 +26,13 @@ const DemandPage = lazy(() => import("./pages/demand/DemandPage"));
 const DemandCreatePage = lazy(() => import("./pages/demand/DemandCreatePage"));
 const DemandDetailPage = lazy(() => import("./pages/demand/DemandDetailPage"));
 const DemandEditPage = lazy(() => import("./pages/demand/DemandEditPage"));
+const ProductGroupPage = lazy(() => import("./pages/product-group/ProductGroupPage"));
+const ProcessingServicePage = lazy(() => import("./pages/processing-service/ProcessingServicePage"));
+const MachinePage = lazy(() => import("./pages/machine/MachinePage"));
+const ProcessingSchedulePage = lazy(() => import("./pages/processing-schedule/ProcessingSchedulePage"));
+const ScheduleHistoryPage = lazy(() => import("./pages/processing-schedule/ScheduleHistoryPage"));
+const ConnectionSearchPage = lazy(() => import("./pages/connection/ConnectionSearchPage"));
+const ConnectionHistoryPage = lazy(() => import("./pages/connection/ConnectionHistoryPage"));
 
 
 export default function AppRouter() {
@@ -52,6 +59,15 @@ export default function AppRouter() {
       <Route path={ROUTES.productCreate} component={ProductCreatePage} />
       <Route path={ROUTES.productEdit(":id")} component={ProductEditPage} />
       <Route path={ROUTES.productDetail(":id")} component={ProductDetailPage} />
+
+      <Route path={ROUTES.productGroups} component={ProductGroupPage} />
+      <Route path={ROUTES.processingServices} component={ProcessingServicePage} />
+      <Route path={ROUTES.machines} component={MachinePage} />
+      <Route path={ROUTES.processingSchedules} component={ProcessingSchedulePage} />
+      <Route path={ROUTES.processingScheduleHistory} component={ScheduleHistoryPage} />
+
+      <Route path={ROUTES.connectionSearch} component={ConnectionSearchPage} />
+      <Route path={ROUTES.connectionHistory} component={ConnectionHistoryPage} />
 
       <Route path={ROUTES.demandTypes} component={DemandTypePage} />
 

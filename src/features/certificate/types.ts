@@ -9,7 +9,7 @@ export interface Certificate {
   issuer: string;
   issuedDate: string;
   expiryDate?: string;
-  productGroupIds: string[];
+  factoryId: string;
   scopeDescription?: string;
   files: string[];
   note?: string;
@@ -25,6 +25,7 @@ export interface CertificateListParams {
   keyword?: string;
   type?: string;
   validity?: string;
+  factoryId?: string;
 }
 
 export interface CertificateSummary {

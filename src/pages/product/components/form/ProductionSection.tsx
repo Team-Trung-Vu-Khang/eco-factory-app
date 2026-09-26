@@ -8,7 +8,7 @@ import {
   TextField,
 } from "@/components/form";
 import { OUTPUT_UNIT_OPTIONS } from "@/features/product";
-import { useCertificateOptions } from "../../hooks/useCertificateOptions";
+import { useCertificateOptions } from "@/features/certificate";
 import { useProductFormContext } from "./useProductFormContext";
 
 export function ProductionSection() {

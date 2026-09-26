@@ -14,10 +14,13 @@ export interface Machine {
   productGroupIds: string[];
   maxCapacity: number;
   capacityUnit: CapacityUnit;
+  status: MachineStatus;
+  /** Factory certificates that apply to this machine / line */
+  certificateIds?: string[];
+  // Derived from the machine's active "Lịch nhận chế biến" (read-only)
   availableCapacity: number;
   availableFrom?: string;
   availableTo?: string;
-  status: MachineStatus;
 }
 
 export interface Certification {
@@ -84,4 +87,18 @@ export interface PageResponse<T> {
   totalPages: number;
   page: number;
   size: number;
+}
+
+export interface MachineRow extends Machine {
+  factoryId: string;
+  factoryName: string;
+}
+
+export interface MachineListParams {
+  page: number;
+  size: number;
+  keyword?: string;
+  factoryId?: string;
+  status?: string;
+  function?: string;
 }

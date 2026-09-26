@@ -5,8 +5,8 @@ import { getCertificateValidity, type CertificateFormValues } from "@/features/c
 import {
   CERTIFICATION_ISSUER_LABELS,
   CERTIFICATION_TYPE_LABELS,
-  PRODUCT_GROUP_LABELS,
   type CertificationType,
+  useFactoryOptions,
 } from "@/features/factory";
 import { ValidityBadge } from "./ValidityBadge";
 
@@ -15,6 +15,7 @@ const date = (d?: string) => (d ? dayjs(d).format("DD/MM/YYYY") : undefined);
 /** Read-only view, shared by the review step and the detail page */
 export function CertificateInfo({ values: c }: { values: CertificateFormValues }) {
   const { validity, daysToExpiry } = getCertificateValidity(c.expiryDate);
+  const { nameOf } = useFactoryOptions();
 
   return (
     <div className="grid gap-x-10 gap-y-8 lg:grid-cols-2">
@@ -35,7 +36,7 @@ export function CertificateInfo({ values: c }: { values: CertificateFormValues }
       <FormSection title="Phạm vi áp dụng">
         <InfoGrid
           items={[
-            { label: "Nhóm sản phẩm", value: c.productGroupIds.map((id) => PRODUCT_GROUP_LABELS[id] ?? id).join(", "), wide: true },
+            { label: "Nhà máy", value: nameOf(c.factoryId), wide: true },
             { label: "Mô tả phạm vi", value: c.scopeDescription, wide: true },
             { label: "Ghi chú", value: c.note, wide: true },
           ]}

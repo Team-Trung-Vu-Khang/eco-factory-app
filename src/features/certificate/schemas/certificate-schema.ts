@@ -10,7 +10,8 @@ export const certificateSchema = z
     issuer: z.string().min(1, REQUIRED),
     issuedDate: z.string().min(1, REQUIRED),
     expiryDate: z.string().optional(),
-    productGroupIds: z.array(z.string()).min(1, "Chọn ít nhất 1 nhóm sản phẩm."),
+    // Certificates belong to a factory, not to a growing area / crop
+    factoryId: z.string().min(1, REQUIRED),
     scopeDescription: z.string().trim().optional(),
     files: z.array(z.string()).min(1, "Tải lên ít nhất 1 ảnh / file chứng nhận."),
     note: z.string().optional(),
@@ -30,7 +31,7 @@ export const EMPTY_CERTIFICATE: CertificateFormValues = {
   issuer: "",
   issuedDate: "",
   expiryDate: "",
-  productGroupIds: [],
+  factoryId: "",
   scopeDescription: "",
   files: [],
   note: "",

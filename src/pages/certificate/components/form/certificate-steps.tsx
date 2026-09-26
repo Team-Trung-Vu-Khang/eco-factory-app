@@ -16,8 +16,8 @@ export const CERTIFICATE_STEPS: SchemaStep<CertificateFormValues>[] = [
   {
     id: "scope",
     title: "Phạm vi",
-    description: "Sản phẩm được chứng nhận",
-    fields: ["productGroupIds", "scopeDescription"],
+    description: "Nhà máy được chứng nhận",
+    fields: ["factoryId", "scopeDescription"],
     content: <ScopeSection />,
   },
   {

@@ -5,35 +5,17 @@ const PHONE_REGEX = /^(0|\+84)\d{9,10}$/;
 
 const optionalNumber = z.number().optional();
 
-export const machineSchema = z
-  .object({
-    id: z.string().optional(),
-    name: z.string().trim().min(1, REQUIRED),
-    functions: z.array(z.string()).min(1, "Chọn ít nhất 1 chức năng."),
-    productGroupIds: z.array(z.string()).min(1, "Chọn ít nhất 1 loại nông sản."),
-    maxCapacity: z.number({ error: REQUIRED }).positive("Phải lớn hơn 0."),
-    capacityUnit: z.string().min(1, REQUIRED),
-    availableCapacity: z.number({ error: REQUIRED }).min(0, "Không được âm."),
-    availableFrom: z.string().optional(),
-    availableTo: z.string().optional(),
-    status: z.string().min(1, REQUIRED),
-  })
-  .superRefine((m, ctx) => {
-    if (m.availableCapacity > m.maxCapacity) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["availableCapacity"],
-        message: "Không được lớn hơn công suất tối đa.",
-      });
-    }
-    if (m.availableFrom && m.availableTo && m.availableTo < m.availableFrom) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["availableTo"],
-        message: "Ngày kết thúc phải sau ngày bắt đầu.",
-      });
-    }
-  });
+// Processing windows are posted separately as "Lịch nhận chế biến" (processing-schedule)
+export const machineSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().trim().min(1, REQUIRED),
+  functions: z.array(z.string()).min(1, "Chọn ít nhất 1 chức năng."),
+  productGroupIds: z.array(z.string()).min(1, "Chọn ít nhất 1 loại nông sản."),
+  maxCapacity: z.number({ error: REQUIRED }).positive("Phải lớn hơn 0."),
+  capacityUnit: z.string().min(1, REQUIRED),
+  status: z.string().min(1, REQUIRED),
+  certificateIds: z.array(z.string()).optional(),
+});
 
 export const certificationSchema = z
   .object({
@@ -120,10 +102,8 @@ export const EMPTY_MACHINE: MachineFormValues = {
   productGroupIds: [],
   maxCapacity: undefined as unknown as number,
   capacityUnit: "KG_PER_DAY",
-  availableCapacity: undefined as unknown as number,
-  availableFrom: "",
-  availableTo: "",
   status: "ACTIVE",
+  certificateIds: [],
 };
 
 export const EMPTY_CERTIFICATION: CertificationFormValues = {

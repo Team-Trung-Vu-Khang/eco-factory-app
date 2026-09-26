@@ -16,9 +16,14 @@ export function toFactoryFormValues(f?: Factory): FactoryFormValues {
     description: f.description,
     offersExternalCapacity: f.offersExternalCapacity,
     machines: f.machines.map((m) => ({
-      ...m,
-      availableFrom: m.availableFrom ?? "",
-      availableTo: m.availableTo ?? "",
+      id: m.id,
+      name: m.name,
+      functions: m.functions,
+      productGroupIds: m.productGroupIds,
+      maxCapacity: m.maxCapacity,
+      capacityUnit: m.capacityUnit,
+      status: m.status,
+      certificateIds: m.certificateIds ?? [],
     })),
     hasCertification: f.hasCertification,
     certifications: f.certifications.map((c) => ({

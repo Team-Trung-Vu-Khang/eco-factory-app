@@ -34,9 +34,15 @@ export function MachineListSection({ factory }: { factory: Factory }) {
                   {m.productGroupIds.map((id) => PRODUCT_GROUP_LABELS[id] ?? id).join(", ")}
                 </p>
                 <p className="mt-1 text-sm tabular-nums text-slate-600">
-                  Khả dụng <span className="font-medium text-emerald-700">{fmt.format(m.availableCapacity)}</span> /{" "}
-                  {fmt.format(m.maxCapacity)} {unit}
-                  {(m.availableFrom || m.availableTo) && ` · Nhận từ ${date(m.availableFrom)} đến ${date(m.availableTo)}`}
+                  Công suất tối đa {fmt.format(m.maxCapacity)} {unit}
+                  {m.availableCapacity > 0 ? (
+                    <>
+                      {" "}· Đang nhận <span className="font-medium text-emerald-700">{fmt.format(m.availableCapacity)} {unit}</span> từ{" "}
+                      {date(m.availableFrom)} đến {date(m.availableTo)}
+                    </>
+                  ) : (
+                    " · Chưa đăng lịch nhận chế biến"
+                  )}
                 </p>
               </li>
             );

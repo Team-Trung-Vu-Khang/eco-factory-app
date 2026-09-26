@@ -11,7 +11,7 @@ export const toCertificateFormValues = (c?: Certificate): CertificateFormValues 
         issuer: c.issuer,
         issuedDate: c.issuedDate,
         expiryDate: c.expiryDate ?? "",
-        productGroupIds: c.productGroupIds,
+        factoryId: c.factoryId,
         scopeDescription: c.scopeDescription ?? "",
         files: c.files,
         note: c.note ?? "",

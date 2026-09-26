@@ -13,7 +13,7 @@ export const SEED_FACTORIES: FactoryFormValues[] = [
     description: "Chế biến chè Shan tuyết theo tiêu chuẩn hữu cơ, có xưởng sấy và đóng gói.",
     offersExternalCapacity: true,
     machines: [
-      { id: "m-1", name: "Máy sấy chè", functions: ["DRYING"], productGroupIds: ["TEA"], maxCapacity: 800, capacityUnit: "KG_PER_DAY", availableCapacity: 300, availableFrom: "", availableTo: "", status: "ACTIVE" },
+      { id: "m-1", name: "Máy sấy chè", functions: ["DRYING"], productGroupIds: ["TEA"], maxCapacity: 800, capacityUnit: "KG_PER_DAY", status: "ACTIVE" },
     ],
     hasCertification: true,
     certifications: [{ id: "c-1", type: "FOOD_SAFETY", number: "ATTP-2024-001", issuedDate: "2024-03-01", expiryDate: "2027-03-01", issuer: "DARD" }],
@@ -54,7 +54,7 @@ export const SEED_FACTORIES: FactoryFormValues[] = [
     description: "Sấy, nghiền dược liệu và gừng.",
     offersExternalCapacity: true,
     machines: [
-      { id: "m-2", name: "Máy nghiền bột", functions: ["GRINDING"], productGroupIds: ["HERB", "SPICE"], maxCapacity: 50, capacityUnit: "KG_PER_HOUR", availableCapacity: 0, availableFrom: "", availableTo: "", status: "MAINTENANCE" },
+      { id: "m-2", name: "Máy nghiền bột", functions: ["GRINDING"], productGroupIds: ["HERB", "SPICE"], maxCapacity: 50, capacityUnit: "KG_PER_HOUR", status: "MAINTENANCE" },
     ],
     hasCertification: false,
     certifications: [],
@@ -74,8 +74,8 @@ export const SEED_FACTORIES: FactoryFormValues[] = [
     description: "Dây chuyền ép nước trái cây và chiết chai, kho mát 200 m².",
     offersExternalCapacity: true,
     machines: [
-      { id: "m-3", name: "Dây chuyền ép dứa", functions: ["WASHING", "PRESSING"], productGroupIds: ["FRUIT"], maxCapacity: 2, capacityUnit: "TON_PER_DAY", availableCapacity: 1, availableFrom: "2026-09-01", availableTo: "2026-12-31", status: "ACTIVE" },
-      { id: "m-4", name: "Máy chiết rót đóng chai", functions: ["PACKAGING"], productGroupIds: ["FRUIT", "VEGETABLE"], maxCapacity: 500, capacityUnit: "KG_PER_HOUR", availableCapacity: 200, availableFrom: "", availableTo: "", status: "ACTIVE" },
+      { id: "m-3", name: "Dây chuyền ép dứa", functions: ["WASHING", "PRESSING"], productGroupIds: ["FRUIT"], maxCapacity: 2, capacityUnit: "TON_PER_DAY", status: "ACTIVE" },
+      { id: "m-4", name: "Máy chiết rót đóng chai", functions: ["PACKAGING"], productGroupIds: ["FRUIT", "VEGETABLE"], maxCapacity: 500, capacityUnit: "KG_PER_HOUR", status: "ACTIVE" },
     ],
     hasCertification: true,
     certifications: [{ id: "c-2", type: "HACCP", number: "HACCP-VN-2024-0156", issuedDate: "2024-05-10", expiryDate: "2027-05-10", issuer: "QUACERT" }],
@@ -95,7 +95,7 @@ export const SEED_FACTORIES: FactoryFormValues[] = [
     description: "Cho thuê kho lạnh 0–5°C, phân loại quả trước khi nhập kho.",
     offersExternalCapacity: true,
     machines: [
-      { id: "m-5", name: "Kho lạnh số 1", functions: ["STORAGE"], productGroupIds: ["FRUIT", "VEGETABLE"], maxCapacity: 20, capacityUnit: "TON_PER_DAY", availableCapacity: 8, availableFrom: "", availableTo: "", status: "ACTIVE" },
+      { id: "m-5", name: "Kho lạnh số 1", functions: ["STORAGE"], productGroupIds: ["FRUIT", "VEGETABLE"], maxCapacity: 20, capacityUnit: "TON_PER_DAY", status: "ACTIVE" },
     ],
     hasCertification: false,
     certifications: [],
@@ -115,7 +115,7 @@ export const SEED_FACTORIES: FactoryFormValues[] = [
     description: "Sấy lạnh chè, dược liệu quy mô nhỏ.",
     offersExternalCapacity: true,
     machines: [
-      { id: "m-6", name: "Máy sấy lạnh", functions: ["DRYING"], productGroupIds: ["TEA", "HERB"], maxCapacity: 300, capacityUnit: "KG_PER_DAY", availableCapacity: 150, availableFrom: "2026-11-01", availableTo: "2027-01-31", status: "ACTIVE" },
+      { id: "m-6", name: "Máy sấy lạnh", functions: ["DRYING"], productGroupIds: ["TEA", "HERB"], maxCapacity: 300, capacityUnit: "KG_PER_DAY", status: "ACTIVE" },
     ],
     hasCertification: true,
     certifications: [{ id: "c-3", type: "FOOD_SAFETY", number: "ATTP-2022-088", issuedDate: "2022-01-01", expiryDate: "2025-01-01", issuer: "DOH" }],

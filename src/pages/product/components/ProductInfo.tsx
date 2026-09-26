@@ -13,7 +13,7 @@ import {
   type ShelfLifeUnit,
   type WeightUnit,
 } from "@/features/product";
-import { useCertificateOptions } from "../hooks/useCertificateOptions";
+import { useCertificateOptions } from "@/features/certificate";
 
 const fmt = new Intl.NumberFormat("vi-VN");
 

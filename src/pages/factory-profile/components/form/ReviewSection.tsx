@@ -24,7 +24,7 @@ export function ReviewSection() {
   const hasGps = values.location.latitude !== undefined && values.location.longitude !== undefined;
 
   const hints = [
-    !status.hasAvailableCapacity && "Khai báo máy đang hoạt động có công suất cho bên ngoài > 0 để được tính vào chỉ số 300 cơ sở.",
+    !status.hasAvailableCapacity && "Khai báo ít nhất 1 máy đang hoạt động để được tính vào chỉ số 300 cơ sở, sau đó đăng lịch nhận chế biến.",
     !hasGps && "Thêm toạ độ để hiển thị trên bản đồ và tính khoảng cách.",
     !values.avatarUrl && "Thêm ảnh đại diện để hồ sơ đáng tin cậy hơn.",
   ].filter(Boolean) as string[];

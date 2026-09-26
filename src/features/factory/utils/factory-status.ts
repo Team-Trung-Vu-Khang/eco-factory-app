@@ -28,9 +28,11 @@ export function computeFactoryStatus(f: FactoryFormValues) {
 
   const isProfileComplete = required.every(Boolean);
   const completionPercent = Math.round((all.filter(Boolean).length / all.length) * 100);
+  // Open capacity windows are posted later as schedules, so the profile only
+  // needs an active machine with declared capacity
   const hasAvailableCapacity =
     f.offersExternalCapacity &&
-    f.machines.some((m) => m.status === "ACTIVE" && m.availableCapacity > 0);
+    f.machines.some((m) => m.status === "ACTIVE" && m.maxCapacity > 0);
 
   return {
     completionPercent,

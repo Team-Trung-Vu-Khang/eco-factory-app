@@ -8,3 +8,4 @@ export { AddressAutocomplete } from "./AddressAutocomplete";
 export { SchemaStepperForm, type SchemaStep } from "./SchemaStepperForm";
 export { PersonnelPickerDialog } from "./PersonnelPickerDialog";
 export { AddressMapField } from "./AddressMapField";
+export { CapacityField } from "./CapacityField";

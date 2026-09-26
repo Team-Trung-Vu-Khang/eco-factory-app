@@ -1,6 +1,7 @@
 import type { CapacityUnit, Factory, Machine } from "@/features/factory";
 import type { QuantityUnit, SearchScope } from "../constants";
 import type { Demand } from "../types";
+import { distanceKm } from "@/lib/distance";
 
 // TODO: matching belongs to the backend (spec §5); this mirrors it for the mock API
 
@@ -18,16 +19,6 @@ const inScope = (scope: SearchScope, from: string, to: string) => {
   if (scope === "SAME_PROVINCE") return from === to;
   if (scope === "NEIGHBOR_PROVINCES") return from === to || (NEIGHBORS[from] ?? []).includes(to);
   return true;
-};
-
-/** Great-circle distance in km, undefined when either side has no GPS */
-const distanceKm = (a: { latitude?: number; longitude?: number }, b: { latitude?: number; longitude?: number }) => {
-  if (a.latitude == null || a.longitude == null || b.latitude == null || b.longitude == null) return undefined;
-  const rad = (d: number) => (d * Math.PI) / 180;
-  const dLat = rad(b.latitude - a.latitude);
-  const dLng = rad(b.longitude - a.longitude);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLng / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.sqrt(h));
 };
 
 // Lots / batches have no fixed weight (spec §6 q6) → capacity check is skipped for them

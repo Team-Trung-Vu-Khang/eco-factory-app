@@ -15,7 +15,7 @@ export function MachinesSection() {
   return (
     <FormSection
       title="Máy móc & công suất"
-      description="Công suất khả dụng là căn cứ để gợi ý nhà máy cho người có nhu cầu"
+      description="Khai báo máy & công suất tối đa. Lịch nhận chế biến được đăng riêng theo từng đợt sau khi tạo nhà máy."
     >
       <div className="space-y-4">
         <SwitchField

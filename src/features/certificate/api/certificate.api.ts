@@ -26,7 +26,8 @@ function toCertificate(values: CertificateFormValues, id: string = crypto.random
   };
 }
 
-let db: Certificate[] = SEED_CERTIFICATES.map((c) => toCertificate(c));
+// Stable seed ids so machines can reference them
+let db: Certificate[] = SEED_CERTIFICATES.map((c, i) => toCertificate(c, `cert-${i + 1}`));
 
 // Validity depends on "today" → recompute on read
 const fresh = (c: Certificate): Certificate => ({ ...c, ...getCertificateValidity(c.expiryDate) });
@@ -41,7 +42,8 @@ export const certificateApi = {
         (c) =>
           (!keyword || [c.number, c.standardName ?? ""].some((v) => v.toLowerCase().includes(keyword))) &&
           (!params.type || c.type === params.type) &&
-          (!params.validity || c.validity === params.validity),
+          (!params.validity || c.validity === params.validity) &&
+          (!params.factoryId || c.factoryId === params.factoryId),
       );
     const start = params.page * params.size;
     return {
