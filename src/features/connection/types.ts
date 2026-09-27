@@ -39,6 +39,13 @@ export interface MatchedMachine extends MachineRow {
   scheduleId: string;
   scheduleFrom: string;
   scheduleTo: string;
+  /** Schedule's own capacity (Công suất tối đa of the posting) */
+  scheduleCapacity: number;
+  scheduleUnit: CapacityUnit;
+  /** Ngày đăng */
+  schedulePostedAt: string;
+  /** Connection requests on this schedule */
+  connectionCount: number;
 }
 
 export interface FactorySearchResult {

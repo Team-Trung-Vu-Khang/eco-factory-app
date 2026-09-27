@@ -6,7 +6,7 @@ import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
 import { useConnectFactories, useFactorySearch, type FactorySearchParams } from "@/features/connection";
 import { useCurrentFarmer, useIsFactoryAdmin } from "@/features/viewer";
-import { FactoryResultCard } from "./components/FactoryResultCard";
+import { FactoryResultTable } from "./components/FactoryResultTable";
 import { SearchFilters } from "./components/SearchFilters";
 
 export default function ConnectionSearchPage() {
@@ -42,7 +42,7 @@ export default function ConnectionSearchPage() {
       title={isAdmin ? "Tìm kiếm nhà máy" : "Kết nối nhà máy"}
       description={
         isAdmin
-          ? "Tìm nhà máy theo vị trí, dịch vụ, nhóm nông sản và chứng nhận"
+          ? "Tìm nhà máy theo khu vực, dịch vụ, nhóm nông sản và chứng nhận"
           : "Nhập nhu cầu chế biến rồi bấm Kết nối nhà máy — hoặc xem trước các nhà máy đang nhận chế biến phù hợp"
       }
       overflow="visible"
@@ -76,7 +76,7 @@ export default function ConnectionSearchPage() {
                 Chưa có nhà máy đang nhận chế biến phù hợp. Thử mở rộng phạm vi hoặc bỏ bớt điều kiện.
               </div>
             ) : (
-              results.map((r) => <FactoryResultCard key={r.factory.id} result={r} />)
+              <FactoryResultTable results={results} />
             )}
           </section>
         )}

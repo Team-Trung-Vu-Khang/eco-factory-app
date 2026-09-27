@@ -65,9 +65,7 @@ function App() {
           {mobileApp ? (
             <FactoryMobileLayout>{content}</FactoryMobileLayout>
           ) : (
-            <FactoryAdminLayout isOwnerFactory={isOwner}>
-              {content}
-            </FactoryAdminLayout>
+            <FactoryAdminLayout>{content}</FactoryAdminLayout>
           )}
         </FactoryMemberHomeGate>
         <LayoutRoleSwitch />
