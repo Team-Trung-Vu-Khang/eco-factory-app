@@ -1,16 +1,16 @@
 import { Eye, Gauge, Handshake, Inbox } from "lucide-react";
 import { StatCard, type DashboardStats as Stats } from "@/features/dashboard";
 
-const GRID = "grid grid-cols-1 gap-4 [&>*]:min-w-0";
+const GRID = "grid gap-2 sm:gap-4! [&>*]:min-w-0";
 
 export function DashboardStats({ stats }: { stats: Stats }) {
   const { overview, latestPost } = stats;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6!">
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-slate-900">Tổng quan</h2>
-        <div className={`${GRID} sm:grid-cols-3`}>
+        <div className={`${GRID} grid-cols-3`}>
           <StatCard
             icon={Eye}
             label="Tổng lượt xem thông tin"
@@ -42,7 +42,7 @@ export function DashboardStats({ stats }: { stats: Stats }) {
           )}
         </h2>
         {latestPost ? (
-          <div className={`${GRID} sm:grid-cols-2 xl:grid-cols-4`}>
+          <div className={`${GRID} grid-cols-2 xl:grid-cols-4!`}>
             <StatCard
               icon={Gauge}
               label="Công suất khả dụng"

@@ -8,6 +8,7 @@ import {
 import { Suspense, lazy } from "react";
 import { Redirect, Route, Switch, useLocation } from "wouter";
 import { AppLoadingState } from "@/components/common/AppLoadingState";
+import { FactoryMemberHomeGate } from "@/components/common/FactoryMemberHomeGate";
 import { LayoutRoleSwitch } from "@/components/common/LayoutRoleSwitch";
 import { AUTH_PATHS } from "@/config/auth";
 import { AuthWrapper, authApi } from "@/features/auth";
@@ -59,14 +60,16 @@ function App() {
   return (
     <TooltipProvider>
       <AuthWrapper>
-        {/* Phones pick mobile / web UI from the floating menu */}
-        {mobileApp ? (
-          <FactoryMobileLayout>{content}</FactoryMobileLayout>
-        ) : (
-          <FactoryAdminLayout isOwnerFactory={isOwner}>
-            {content}
-          </FactoryAdminLayout>
-        )}
+        <FactoryMemberHomeGate>
+          {/* Phones pick mobile / web UI from the floating menu */}
+          {mobileApp ? (
+            <FactoryMobileLayout>{content}</FactoryMobileLayout>
+          ) : (
+            <FactoryAdminLayout isOwnerFactory={isOwner}>
+              {content}
+            </FactoryAdminLayout>
+          )}
+        </FactoryMemberHomeGate>
         <LayoutRoleSwitch />
         <RadixToaster />
       </AuthWrapper>
