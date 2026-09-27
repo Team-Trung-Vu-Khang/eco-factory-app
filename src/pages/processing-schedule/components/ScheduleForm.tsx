@@ -31,7 +31,8 @@ const unique = (ids: string[]) => [...new Set(ids)];
 function ReadonlyTags({ label, ids, options }: { label: string; ids: string[]; options: { value: string; label: string }[] }) {
   const nameOf = (id: string) => options.find((o) => o.value === id)?.label ?? id;
   return (
-    <div className="space-y-2">
+    // Phones: hidden until a machine is picked — the placeholder only adds height
+    <div className={`space-y-2 ${ids.length ? "" : "hidden! sm:block!"}`}>
       <p className="text-sm font-medium text-slate-700">{label}</p>
       <div className="flex min-h-9 flex-wrap items-center gap-1">
         {ids.length ? (
@@ -126,7 +127,7 @@ export function ScheduleForm({
     <Form {...form}>
       <form
         onSubmit={submit}
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5"
+        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
       >
         <FormSection
           title="Đăng tin nhận chế biến"
@@ -153,20 +154,8 @@ export function ScheduleForm({
             />
             <ReadonlyTags label="Dịch vụ" ids={serviceIds} options={serviceOptions} />
             <ReadonlyTags label="Nhóm nông sản/sản phẩm" ids={productGroupIds} options={productGroupOptions} />
-            <TextField
-              control={control}
-              name="fromDate"
-              label="Từ ngày"
-              type="date"
-              required
-            />
-            <TextField
-              control={control}
-              name="toDate"
-              label="Đến ngày"
-              type="date"
-              required
-            />
+            <TextField control={control} name="fromDate" label="Từ ngày" type="date" required />
+            <TextField control={control} name="toDate" label="Đến ngày" type="date" required />
             <CapacityField
               control={control}
               valueName="maxCapacity"
@@ -194,7 +183,7 @@ export function ScheduleForm({
           </div>
         </FormSection>
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto!">
             {isSubmitting ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
