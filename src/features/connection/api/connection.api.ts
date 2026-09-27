@@ -36,7 +36,7 @@ let db: ConnectionRequest[] = [
 ];
 
 // Rough kg/day for comparing a requested quantity; BATCH / OTHER can't be compared
-const KG_PER_DAY: Partial<Record<CapacityUnit, number>> = { KG_PER_HOUR: 8, LIT_PER_HOUR: 8, KG_PER_DAY: 1, LIT_PER_DAY: 1, TON_PER_DAY: 1000 };
+const KG_PER_DAY: Partial<Record<CapacityUnit, number>> = { KG_PER_HOUR: 8, LIT_PER_HOUR: 8, KG_PER_DAY: 1, LIT_PER_DAY: 1, TON_PER_DAY: 1000, KG_PER_MONTH: 1 / 30, TON_PER_MONTH: 1000 / 30 };
 
 /** Can the schedule process `quantity` kg between now (or its start) and its end date? */
 const coversQuantity = (maxCapacity: number, unit: CapacityUnit, fromDate: string, toDate: string, quantity: number) => {
@@ -86,7 +86,7 @@ export const connectionApi = {
           if (params.cropIds.length && !m.productGroupIds.some((g) => groupIds.has(g))) return [];
           if (params.productGroupIds?.length && !m.productGroupIds.some((g) => params.productGroupIds!.includes(g))) return [];
           if (params.minCapacity && params.capacityUnit && !meetsCapacity(m.maxCapacity, m.capacityUnit, params.minCapacity, params.capacityUnit)) return [];
-          if (params.quantity && !coversQuantity(schedule.maxCapacity, schedule.capacityUnit, schedule.fromDate, schedule.toDate, params.quantity)) return [];
+          if (params.quantity && !coversQuantity(schedule.maxCapacity, schedule.capacityUnit, schedule.fromDate, schedule.toDate, params.quantity * (params.quantityUnit === "TON" ? 1000 : 1))) return [];
           return [
             {
               ...m,

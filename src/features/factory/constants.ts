@@ -61,7 +61,9 @@ export type CapacityUnit =
   | "LIT_PER_HOUR"
   | "KG_PER_DAY"
   | "LIT_PER_DAY"
-  | "TON_PER_DAY";
+  | "TON_PER_DAY"
+  | "KG_PER_MONTH"
+  | "TON_PER_MONTH";
 
 export const CAPACITY_UNIT_LABELS: Record<CapacityUnit, string> = {
   KG_PER_HOUR: "kg/giờ",
@@ -69,6 +71,8 @@ export const CAPACITY_UNIT_LABELS: Record<CapacityUnit, string> = {
   KG_PER_DAY: "kg/ngày",
   LIT_PER_DAY: "lit/ngày",
   TON_PER_DAY: "tấn/ngày",
+  KG_PER_MONTH: "kg/tháng",
+  TON_PER_MONTH: "tấn/tháng",
 };
 
 export type MachineStatus = "ACTIVE" | "MAINTENANCE" | "PAUSED";

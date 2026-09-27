@@ -63,7 +63,7 @@ export default function MachinePage() {
   return (
     <PageWrapper
       title="Máy & Dây chuyền"
-      description="Dịch vụ, công suất, chứng nhận và lịch nhận chế biến của từng máy"
+      description="Dịch vụ, công suất và lịch nhận chế biến của từng máy"
       actions={
         <Button
           onClick={() => {

@@ -46,11 +46,6 @@ export const machineColumns: Column<MachineRow>[] = [
     ),
   },
   {
-    key: "certificateIds",
-    label: "Chứng nhận",
-    render: (_, m) => <span className="text-sm tabular-nums text-slate-600">{m.certificateIds?.length || "—"}</span>,
-  },
-  {
     key: "availableCapacity",
     label: "Lịch nhận chế biến",
     render: (_, m) =>

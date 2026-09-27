@@ -3,7 +3,6 @@ import { Form, FormDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { CapacityField, MultiSelectField, SelectField, TextField } from "@/components/form";
-import { useCertificateOptions } from "@/features/certificate";
 import { MACHINE_STATUS_OPTIONS, useCurrentFactory } from "@/features/factory";
 import { useProcessingServiceOptions } from "@/features/processing-service";
 import { useProductGroupOptions } from "@/features/product-group";
@@ -30,7 +29,6 @@ export function MachineFormDialog({ open, onOpenChange, initialValues, isSubmitt
   const { factoryId } = useCurrentFactory();
   const productGroupOptions = useProductGroupOptions();
   const serviceOptions = useProcessingServiceOptions();
-  const certificateOptions = useCertificateOptions(factoryId || undefined);
 
   useEffect(() => {
     if (open) form.reset(initialValues ?? { ...EMPTY_MACHINE_DIALOG, factoryId: factoryId ?? "" });
@@ -41,7 +39,7 @@ export function MachineFormDialog({ open, onOpenChange, initialValues, isSubmitt
       open={open}
       onOpenChange={onOpenChange}
       title={isEdit ? "Chỉnh sửa máy / dây chuyền" : "Thêm máy / dây chuyền"}
-      description="Dịch vụ, công suất và chứng nhận của máy"
+      description="Dịch vụ, công suất và nhóm nông sản của máy"
       submitLabel={isEdit ? "Lưu thay đổi" : "Thêm"}
       loading={isSubmitting}
       size="lg"
@@ -62,15 +60,6 @@ export function MachineFormDialog({ open, onOpenChange, initialValues, isSubmitt
           />
           <CapacityField control={control} valueName="maxCapacity" unitName="capacityUnit" label="Công suất tối đa" required />
           <MultiSelectField control={control} name="productGroupIds" label="Nhóm nông sản/sản phẩm" required options={productGroupOptions} />
-          <MultiSelectField
-            control={control}
-            name="certificateIds"
-            label="Chứng nhận"
-            options={certificateOptions}
-            placeholder="Chọn chứng nhận..."
-            description="Chứng nhận của nhà máy áp dụng cho máy / dây chuyền này"
-            className="sm:col-span-2"
-          />
         </div>
       </Form>
     </FormDialog>

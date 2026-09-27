@@ -17,9 +17,9 @@ export const CONNECTION_STATUS_OPTIONS = (Object.entries(CONNECTION_STATUS_LABEL
 );
 
 /** Search quantity units — litres are treated ≈ kg when comparing to machine capacity */
-export type SearchQuantityUnit = "KG" | "LITER";
+export type SearchQuantityUnit = "KG" | "TON";
 
-export const SEARCH_QUANTITY_UNIT_LABELS: Record<SearchQuantityUnit, string> = { KG: "kg", LITER: "lít" };
+export const SEARCH_QUANTITY_UNIT_LABELS: Record<SearchQuantityUnit, string> = { KG: "kg", TON: "tấn" };
 
 export const SEARCH_QUANTITY_UNIT_OPTIONS = (Object.entries(SEARCH_QUANTITY_UNIT_LABELS) as [SearchQuantityUnit, string][]).map(
   ([value, label]) => ({ value, label }),
