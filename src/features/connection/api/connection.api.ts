@@ -101,6 +101,7 @@ export const connectionApi = {
       .filter(
         (c) =>
           (!params.farmerId || c.farmerId === params.farmerId) &&
+          (!params.scheduleId || c.scheduleId === params.scheduleId) &&
           (!params.status || c.status === params.status) &&
           (!keyword || [c.farmerName, c.factoryName, c.machineName, c.farmerPhone].some((v) => v.toLowerCase().includes(keyword))),
       )

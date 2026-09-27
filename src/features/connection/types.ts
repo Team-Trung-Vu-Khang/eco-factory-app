@@ -71,6 +71,8 @@ export interface ConnectionListParams {
   status?: string;
   /** Farmer view: only their own requests */
   farmerId?: string;
+  /** Requests registered against one processing-schedule post */
+  scheduleId?: string;
 }
 
 export interface RegisterConnectionInput {

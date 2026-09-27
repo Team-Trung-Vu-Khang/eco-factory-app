@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Form } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { Badge, Button, Form } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Loader2, Send } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -21,8 +21,32 @@ import {
   scheduleSchema,
   type ScheduleFormValues,
 } from "@/features/processing-schedule";
+import { useProcessingServiceOptions } from "@/features/processing-service";
+import { useProductGroupOptions } from "@/features/product-group";
 
 const fmt = new Intl.NumberFormat("vi-VN");
+
+const unique = (ids: string[]) => [...new Set(ids)];
+
+function ReadonlyTags({ label, ids, options }: { label: string; ids: string[]; options: { value: string; label: string }[] }) {
+  const nameOf = (id: string) => options.find((o) => o.value === id)?.label ?? id;
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium text-slate-700">{label}</p>
+      <div className="flex min-h-9 flex-wrap items-center gap-1">
+        {ids.length ? (
+          ids.map((id) => (
+            <Badge key={id} variant="secondary" className="font-normal">
+              {nameOf(id)}
+            </Badge>
+          ))
+        ) : (
+          <span className="text-sm text-slate-400">Chọn máy để hiển thị</span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface ScheduleFormProps {
   /** Pre-select a machine, e.g. from the machines page */
@@ -62,6 +86,10 @@ export function ScheduleForm({
     [allMachines, selectedMachineIds],
   );
   const firstMachine = selectedMachines[0];
+  const serviceOptions = useProcessingServiceOptions();
+  const productGroupOptions = useProductGroupOptions();
+  const serviceIds = unique(selectedMachines.flatMap((m) => m.functions));
+  const productGroupIds = unique(selectedMachines.flatMap((m) => m.productGroupIds));
 
   // Deep link: ?machineId= selects the machine and its factory
   useEffect(() => {
@@ -123,6 +151,8 @@ export function ScheduleForm({
                 factoryId ? "Chọn máy đang hoạt động..." : "Chọn nhà máy trước"
               }
             />
+            <ReadonlyTags label="Dịch vụ" ids={serviceIds} options={serviceOptions} />
+            <ReadonlyTags label="Nhóm nông sản/sản phẩm" ids={productGroupIds} options={productGroupOptions} />
             <TextField
               control={control}
               name="fromDate"

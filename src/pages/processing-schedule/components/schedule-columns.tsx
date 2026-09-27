@@ -2,6 +2,7 @@ import { type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
 import { CAPACITY_UNIT_LABELS } from "@/features/factory";
 import { SCHEDULE_STATUS_OPTIONS, type ScheduleRow } from "@/features/processing-schedule";
+import { ScheduleConnectionsButton } from "./ScheduleConnectionsButton";
 import { ScheduleStatusBadge } from "./ScheduleStatusBadge";
 
 const fmt = new Intl.NumberFormat("vi-VN");
@@ -41,6 +42,11 @@ export const scheduleColumns: Column<ScheduleRow>[] = [
     key: "createdAt",
     label: "Ngày đăng",
     render: (_, s) => <span className="whitespace-nowrap text-sm tabular-nums text-slate-600">{dayjs(s.createdAt).format("DD/MM/YYYY HH:mm")}</span>,
+  },
+  {
+    key: "connections",
+    label: "Yêu cầu kết nối",
+    render: (_, s) => <ScheduleConnectionsButton schedule={s} />,
   },
   {
     key: "displayStatus",
