@@ -1,11 +1,20 @@
 import { Button, DataTable, DeleteDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
+import { AppLoadingState } from "@/components/common/AppLoadingState";
+import { useFactoryMemberStatus } from "@/features/viewer";
+import MyFactoryProfilePage from "./MyFactoryProfilePage";
 import { factoryColumns } from "./components/list/factory-columns";
 import { factoryFilters } from "./components/list/factory-filters";
 import { useFactoryListPage } from "./hooks/useFactoryListPage";
 
 export default function FactoryListPage() {
+  const isMember = useFactoryMemberStatus();
+  if (isMember === undefined) return <AppLoadingState />;
+  return isMember ? <MyFactoryProfilePage /> : <FactoryList />;
+}
+
+function FactoryList() {
   const page = useFactoryListPage();
 
   return (

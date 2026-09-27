@@ -36,8 +36,20 @@ export function useCreateFactory() {
 export function useUpdateFactory() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, values }: { id: string; values: FactoryFormValues }) =>
-      factoryApi.update(id, values),
+    mutationFn: ({ id, values, submitForReview }: { id: string; values: FactoryFormValues; submitForReview?: boolean }) =>
+      factoryApi.update(id, values, submitForReview),
+    onSuccess: (factory) => {
+      qc.invalidateQueries({ queryKey: factoryKeys.lists() });
+      qc.setQueryData(factoryKeys.detail(factory.id), factory);
+    },
+  });
+}
+
+export function useReviewFactory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status, note }: { id: string; status: "APPROVED" | "REJECTED"; note?: string }) =>
+      factoryApi.review(id, status, note),
     onSuccess: (factory) => {
       qc.invalidateQueries({ queryKey: factoryKeys.lists() });
       qc.setQueryData(factoryKeys.detail(factory.id), factory);

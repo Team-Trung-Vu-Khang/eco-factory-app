@@ -7,44 +7,55 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  useIsMobile,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { Factory, LogOut, Sprout } from "lucide-react";
+import { LogOut, Monitor, Smartphone } from "lucide-react";
 import { authApi } from "@/features/auth";
-import { setLayoutRole, useLayoutRole, type LayoutRole } from "@/hooks/useLayoutRole";
+import { setMobileUiMode, useMobileUiMode, type MobileUiMode } from "@/hooks/useMobileUiMode";
 
-const ROLES: Record<LayoutRole, { label: string; icon: typeof Factory }> = {
-  farmer: { label: "Nông dân", icon: Sprout },
-  owner: { label: "Chủ nhà máy", icon: Factory },
+const MODES: Record<MobileUiMode, { label: string; icon: typeof Monitor }> = {
+  app: { label: "Giao diện mobile", icon: Smartphone },
+  classic: { label: "Giao diện web", icon: Monitor },
 };
 
-/** Floating button: switch farmer / factory-owner layout, or sign out */
+/** Floating button: switch mobile / web UI (phones only), or sign out */
 export function LayoutRoleSwitch() {
-  const role = useLayoutRole();
-  const Current = ROLES[role].icon;
+  const isMobile = useIsMobile();
+  const mode = useMobileUiMode();
+  // Desktop always uses the web UI
+  const current = isMobile ? mode : "classic";
+  const Current = MODES[current].icon;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={`Giao diện: ${ROLES[role].label}`}
-          title={`Giao diện: ${ROLES[role].label}`}
-          className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-white/70 transition hover:scale-105 active:scale-95"
+          aria-label={MODES[current].label}
+          title={MODES[current].label}
+          className={`fixed right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-white/70 transition hover:scale-105 active:scale-95 ${
+            // Sit above the mobile bottom navigation
+            isMobile && mode === "app" ? "bottom-[calc(6.5rem+env(safe-area-inset-bottom))]" : "bottom-[calc(1.25rem+env(safe-area-inset-bottom))]"
+          }`}
         >
           <Current className="h-5 w-5" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" align="end" sideOffset={8} className="w-48">
-        <DropdownMenuLabel className="text-xs font-medium text-slate-500">Giao diện</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={role} onValueChange={(v) => setLayoutRole(v as LayoutRole)}>
-          {(Object.entries(ROLES) as [LayoutRole, (typeof ROLES)[LayoutRole]][]).map(([value, { label, icon: Icon }]) => (
-            <DropdownMenuRadioItem key={value} value={value} className="gap-2">
-              <Icon className="h-4 w-4 text-slate-500" />
-              {label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator />
+      <DropdownMenuContent side="top" align="end" sideOffset={8} className="w-52">
+        {isMobile && (
+          <>
+            <DropdownMenuLabel className="text-xs font-medium text-slate-500">Giao diện</DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={mode} onValueChange={(v) => setMobileUiMode(v as MobileUiMode)}>
+              {(Object.entries(MODES) as [MobileUiMode, (typeof MODES)[MobileUiMode]][]).map(([value, { label, icon: Icon }]) => (
+                <DropdownMenuRadioItem key={value} value={value} className="gap-2">
+                  <Icon className="h-4 w-4 text-slate-500" />
+                  {label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem onSelect={() => authApi.logout()} className="gap-2 text-red-600 focus:bg-red-50 focus:text-red-700">
           <LogOut className="h-4 w-4" />
           Thoát

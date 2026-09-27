@@ -243,7 +243,8 @@ export function SearchFilters({ mode, searching, connecting, onSearch, onConnect
           </div>
         </FormSection>
 
-        <div className="flex justify-end gap-2">
+        {/* Phones: stacked full-width, primary action on top */}
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
           <Button type="button" variant="ghost" onClick={() => form.reset(EMPTY)}>
             Xóa bộ lọc
           </Button>

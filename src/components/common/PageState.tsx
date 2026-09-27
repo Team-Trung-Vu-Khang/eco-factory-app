@@ -10,13 +10,15 @@ export function DetailPageSkeleton() {
   );
 }
 
-export function NotFoundState({ message, onBack }: { message: string; onBack: () => void }) {
+export function NotFoundState({ message, onBack }: { message: string; onBack?: () => void }) {
   return (
     <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-center">
       <p className="text-sm text-slate-600">{message}</p>
-      <Button variant="outline" onClick={onBack}>
-        Quay lại danh sách
-      </Button>
+      {onBack && (
+        <Button variant="outline" onClick={onBack}>
+          Quay lại danh sách
+        </Button>
+      )}
     </div>
   );
 }

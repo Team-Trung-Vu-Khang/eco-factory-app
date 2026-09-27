@@ -2,6 +2,7 @@ import type {
   CapacityUnit,
   CertificationType,
   Gender,
+  FactoryApprovalStatus,
   MachineStatus,
   OrganizationType,
   ProcessingService,
@@ -70,6 +71,9 @@ export interface Factory {
   hasAvailableCapacity: boolean;
   isKpiEligible: boolean;
   kpiEligibleAt: string | null;
+  approvalStatus: FactoryApprovalStatus;
+  /** Admin note when rejecting */
+  reviewNote?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -81,6 +85,7 @@ export interface FactoryListParams {
   organizationType?: string;
   provinceCode?: string;
   kpiStatus?: "ELIGIBLE" | "NOT_ELIGIBLE";
+  approvalStatus?: FactoryApprovalStatus;
 }
 
 export interface PageResponse<T> {

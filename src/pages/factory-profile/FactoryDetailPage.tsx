@@ -4,11 +4,8 @@ import { useLocation, useParams } from "wouter";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
 import { useFactory } from "@/features/factory";
-import { CertificationListSection } from "./components/detail/CertificationListSection";
-import { FactoryInfoSections } from "./components/detail/FactoryInfoSections";
-import { FactorySummaryCard } from "./components/detail/FactorySummaryCard";
-import { MachineListSection } from "./components/detail/MachineListSection";
-import { PhotoGallerySection } from "./components/detail/PhotoGallerySection";
+import { FactoryProfileView } from "./components/detail/FactoryProfileView";
+import { ReviewActions } from "./components/detail/ReviewActions";
 import { DetailPageSkeleton, NotFoundState } from "@/components/common/PageState";
 
 export default function FactoryDetailPage() {
@@ -26,6 +23,7 @@ export default function FactoryDetailPage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Danh sách
           </Button>
+          {factory && <ReviewActions factory={factory} />}
           {factory && (
             <Button onClick={() => navigate(ROUTES.profileEdit(factory.id))}>
               <Pencil className="mr-2 h-4 w-4" />
@@ -40,13 +38,7 @@ export default function FactoryDetailPage() {
       ) : isError || !factory ? (
         <NotFoundState message="Không tìm thấy nhà máy hoặc đã bị xóa." onBack={goBack} />
       ) : (
-        <div className="space-y-6">
-          <FactorySummaryCard factory={factory} />
-          <FactoryInfoSections factory={factory} />
-          <MachineListSection factory={factory} />
-          <CertificationListSection factory={factory} />
-          <PhotoGallerySection factory={factory} />
-        </div>
+        <FactoryProfileView factory={factory} />
       )}
     </PageWrapper>
   );

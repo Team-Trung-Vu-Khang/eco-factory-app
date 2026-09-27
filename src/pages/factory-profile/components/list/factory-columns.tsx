@@ -6,6 +6,7 @@ import {
   getProvinceName,
   type Factory,
 } from "@/features/factory";
+import { ApprovalStatusBadge } from "../ApprovalStatusBadge";
 import { CompletionBar } from "../CompletionBar";
 import { KpiStatusBadge } from "../KpiStatusBadge";
 
@@ -60,6 +61,11 @@ export const factoryColumns: Column<Factory>[] = [
     key: "completionPercent",
     label: "Hoàn thiện",
     render: (_, row) => <CompletionBar percent={row.completionPercent} />,
+  },
+  {
+    key: "approvalStatus",
+    label: "Trạng thái duyệt",
+    render: (_, row) => <ApprovalStatusBadge status={row.approvalStatus} />,
   },
   {
     key: "isKpiEligible",

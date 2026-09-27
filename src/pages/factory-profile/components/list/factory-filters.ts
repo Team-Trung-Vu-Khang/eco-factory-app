@@ -1,4 +1,4 @@
-import { ORGANIZATION_TYPE_OPTIONS, PROVINCES } from "@/features/factory";
+import { FACTORY_APPROVAL_STATUS_OPTIONS, ORGANIZATION_TYPE_OPTIONS, PROVINCES } from "@/features/factory";
 
 export const factoryFilters = [
   { key: "organizationType", label: "Loại hình", options: ORGANIZATION_TYPE_OPTIONS },
@@ -7,6 +7,7 @@ export const factoryFilters = [
     label: "Tỉnh / Thành phố",
     options: PROVINCES.map((p) => ({ value: p.code, label: p.name })),
   },
+  { key: "approvalStatus", label: "Trạng thái duyệt", options: FACTORY_APPROVAL_STATUS_OPTIONS },
   {
     key: "kpiStatus",
     label: "Chỉ số 300 cơ sở",

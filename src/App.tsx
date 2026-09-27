@@ -1,5 +1,4 @@
 import {
-  FACTORY_MOBILE_NAV_ITEMS,
   FactoryAdminLayout,
   FactoryMobileLayout,
   RadixToaster,
@@ -10,7 +9,6 @@ import { Suspense, lazy } from "react";
 import { Redirect, Route, Switch, useLocation } from "wouter";
 import { AppLoadingState } from "@/components/common/AppLoadingState";
 import { LayoutRoleSwitch } from "@/components/common/LayoutRoleSwitch";
-import { SwitchToMobileAppButton } from "@/components/common/SwitchToMobileAppButton";
 import { AUTH_PATHS } from "@/config/auth";
 import { AuthWrapper, authApi } from "@/features/auth";
 import { useLayoutRole } from "@/hooks/useLayoutRole";
@@ -41,7 +39,7 @@ function App() {
   const isMobile = useIsMobile();
   const mobileUiMode = useMobileUiMode();
   const isOwner = useLayoutRole() === "owner";
-  const mobileApp = isMobile && !isOwner && mobileUiMode === "app";
+  const mobileApp = isMobile && mobileUiMode === "app";
 
   const content = (
     <Suspense fallback={<AppLoadingState />}>
@@ -61,20 +59,15 @@ function App() {
   return (
     <TooltipProvider>
       <AuthWrapper>
-        {/* Factory owners have no mobile UI; farmers on phones pick "app" or "classic" (from the Tài khoản page) */}
+        {/* Phones pick mobile / web UI from the floating menu */}
         {mobileApp ? (
-          <FactoryMobileLayout navItems={FACTORY_MOBILE_NAV_ITEMS}>
-            {content}
-          </FactoryMobileLayout>
+          <FactoryMobileLayout>{content}</FactoryMobileLayout>
         ) : (
           <FactoryAdminLayout isOwnerFactory={isOwner}>
             {content}
           </FactoryAdminLayout>
         )}
-        {!mobileApp && <LayoutRoleSwitch />}
-        {isMobile && !isOwner && mobileUiMode === "classic" && (
-          <SwitchToMobileAppButton />
-        )}
+        <LayoutRoleSwitch />
         <RadixToaster />
       </AuthWrapper>
     </TooltipProvider>

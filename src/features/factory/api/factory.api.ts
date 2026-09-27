@@ -1,5 +1,6 @@
 import { activeScheduleFor } from "@/features/processing-schedule/api/schedule.store";
 import type { FactoryFormValues, MachineFormValues } from "../schemas/factory-schema";
+import type { FactoryApprovalStatus } from "../constants";
 import type { Factory, FactoryListParams, Machine, MachineListParams, MachineRow, PageResponse } from "../types";
 import { computeFactoryStatus } from "../utils/factory-status";
 import { SEED_FACTORIES } from "./factory.mock";
@@ -19,7 +20,7 @@ export const factoryKeys = {
 const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
 const newId = () => crypto.randomUUID();
 
-function toFactory(values: FactoryFormValues, prev?: Factory, id?: string): Factory {
+function toFactory(values: FactoryFormValues, prev?: Factory, id?: string, approvalStatus: FactoryApprovalStatus = "APPROVED"): Factory {
   const now = new Date().toISOString();
   const status = computeFactoryStatus(values);
   return {
@@ -28,6 +29,8 @@ function toFactory(values: FactoryFormValues, prev?: Factory, id?: string): Fact
     machines: values.machines.map((m) => ({ ...m, id: m.id ?? newId(), availableCapacity: 0 })) as Factory["machines"],
     certifications: values.certifications.map((c) => ({ ...c, id: c.id ?? newId() })) as Factory["certifications"],
     ...status,
+    approvalStatus,
+    reviewNote: undefined,
     kpiEligibleAt: status.isKpiEligible ? (prev?.kpiEligibleAt ?? now) : (prev?.kpiEligibleAt ?? null),
     createdAt: prev?.createdAt ?? now,
     updatedAt: now,
@@ -63,6 +66,7 @@ export const factoryApi = {
       if (keyword && ![f.name, f.representative.fullName, f.taxCode ?? ""].some((v) => v.toLowerCase().includes(keyword))) return false;
       if (params.organizationType && f.organizationType !== params.organizationType) return false;
       if (params.provinceCode && f.location.provinceCode !== params.provinceCode) return false;
+      if (params.approvalStatus && f.approvalStatus !== params.approvalStatus) return false;
       if (params.kpiStatus && f.isKpiEligible !== (params.kpiStatus === "ELIGIBLE")) return false;
       return true;
     });
@@ -89,11 +93,22 @@ export const factoryApi = {
     return created;
   },
 
-  async update(id: string, values: FactoryFormValues): Promise<Factory> {
+  /** `submitForReview`: factory-member edits go back to "Đang chờ duyệt" */
+  async update(id: string, values: FactoryFormValues, submitForReview = false): Promise<Factory> {
     await delay();
     const prev = db.find((f) => f.id === id);
     if (!prev) return notFound();
-    const updated = toFactory(values, prev);
+    const updated = toFactory(values, prev, undefined, submitForReview ? "PENDING" : "APPROVED");
+    db = db.map((f) => (f.id === id ? updated : f));
+    return fresh(updated);
+  },
+
+  /** Admin approves / rejects a pending profile */
+  async review(id: string, status: "APPROVED" | "REJECTED", note?: string): Promise<Factory> {
+    await delay();
+    const prev = db.find((f) => f.id === id);
+    if (!prev) return notFound();
+    const updated: Factory = { ...prev, approvalStatus: status, reviewNote: note, updatedAt: new Date().toISOString() };
     db = db.map((f) => (f.id === id ? updated : f));
     return fresh(updated);
   },

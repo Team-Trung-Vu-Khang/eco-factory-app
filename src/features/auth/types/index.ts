@@ -14,7 +14,4 @@ export interface CurrentUser {
   fullName: string;
   phoneNumber: string;
   referrer?: ReferrerSummary;
-  /** Same fields eco-shared-ui reads for menu RBAC */
-  roles?: string[];
-  role?: string | string[];
 }

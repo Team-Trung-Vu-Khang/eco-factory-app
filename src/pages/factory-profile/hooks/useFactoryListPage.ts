@@ -9,7 +9,7 @@ import {
   type FactoryListParams,
 } from "@/features/factory";
 
-type Filters = Pick<FactoryListParams, "organizationType" | "provinceCode" | "kpiStatus">;
+type Filters = Pick<FactoryListParams, "organizationType" | "provinceCode" | "kpiStatus" | "approvalStatus">;
 
 export function useFactoryListPage() {
   const [, navigate] = useLocation();

@@ -6,14 +6,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Switch,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { Building2, LogOut, Phone, Smartphone, UserCheck, UserRound } from "lucide-react";
+import { Building2, LogOut, Phone, UserCheck, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 import { authApi, useCurrentUser } from "@/features/auth";
 import { SELECTED_WORKSPACE_STORAGE_KEY, getSelectedWorkspaceIdFromStorage } from "@/features/workspace";
 import { useWorkspaces } from "@/features/workspace/api/workspace.api";
-import { setMobileUiMode, useMobileUiMode } from "@/hooks/useMobileUiMode";
 
 const InfoRow = ({ icon, label, value }: { icon: ReactNode; label: string; value?: string | null }) => (
   <div className="flex items-center gap-3 py-2.5">
@@ -35,7 +33,6 @@ const selectWorkspace = (id: string) => {
 export default function AccountPage() {
   const { data: user } = useCurrentUser();
   const { data: workspaces = [] } = useWorkspaces();
-  const mobileUiMode = useMobileUiMode();
   const selectedWorkspaceId = getSelectedWorkspaceIdFromStorage();
 
   const displayName = user?.fullName || user?.username || "";
@@ -80,23 +77,6 @@ export default function AccountPage() {
           </Select>
         </section>
       )}
-
-      <section className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4">
-        <div className="flex items-start gap-3">
-          <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-          <div>
-            <Label htmlFor="mobile-ui-mode" className="text-sm font-semibold">
-              Giao diện mobile mới
-            </Label>
-            <p className="text-xs text-slate-500">Tắt để dùng giao diện đầy đủ (menu bên trái)</p>
-          </div>
-        </div>
-        <Switch
-          id="mobile-ui-mode"
-          checked={mobileUiMode === "app"}
-          onCheckedChange={(checked) => setMobileUiMode(checked ? "app" : "classic")}
-        />
-      </section>
 
       <Button
         type="button"

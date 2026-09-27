@@ -10,6 +10,8 @@ export const AUTH_PATHS = {
   loginPage: "/factory/login",
   register: "/factory/register",
   login: "/auth/login",
+  /** Roles live here (not in /api/me/profile) — same endpoint eco-shared-ui uses for menu RBAC */
+  me: "/auth/me",
   refresh: "/auth/refresh",
   postLogoutRedirect: env.auth.postLogoutRedirectUri,
 };

@@ -1,16 +1,28 @@
 import { useMemo } from "react";
-import { authApi, useCurrentUser } from "@/features/auth";
+import { authApi, useCurrentRoles } from "@/features/auth";
 
 /** Mirrors eco-shared-ui FACTORY_ADMIN_ROLES */
 const FACTORY_ADMIN_ROLES = ["MEVI_SUPER_ADMIN", "MEVI_ADMIN", "MEVI_FACTORY_ADMIN"];
 
 /** Admin gets the admin search form; every other member gets the member form */
 export function useIsFactoryAdmin() {
-  const { data: user } = useCurrentUser();
-  const roles = user?.roles ?? (user?.role ? [user.role].flat() : []);
-  return roles.some((r) => FACTORY_ADMIN_ROLES.includes(r));
+  return useCurrentRoles().roles.some((r) => FACTORY_ADMIN_ROLES.includes(r));
 }
 
+/** MEVI_FACTORY_MEMBER (chủ nhà máy): manages only their own factory profile */
+export function useIsFactoryMember() {
+  return isMember(useCurrentRoles().roles);
+}
+
+/** `undefined` while roles are loading — avoids flashing the wrong page */
+export function useFactoryMemberStatus(): boolean | undefined {
+  const { roles, isLoading } = useCurrentRoles();
+  return isLoading ? undefined : isMember(roles);
+}
+
+function isMember(roles: string[]) {
+  return roles.includes("MEVI_FACTORY_MEMBER") && !roles.some((r) => FACTORY_ADMIN_ROLES.includes(r));
+}
 
 /**
  * Farmer (nông hộ) sees only their own connections; everyone else sees all.

@@ -52,7 +52,7 @@ export function NeedSection() {
             options={CERTIFICATION_TYPE_OPTIONS}
             description="Chỉ gợi ý cơ sở có chứng nhận còn hạn"
           />
-          <div className="hidden sm:block" />
+          <div className="hidden sm:block!" />
           <TextareaField control={control} name="technicalRequirements" label="Yêu cầu kỹ thuật đặc biệt" rows={3} />
           <TextareaField control={control} name="packagingRequirements" label="Yêu cầu đóng gói" rows={3} />
         </div>

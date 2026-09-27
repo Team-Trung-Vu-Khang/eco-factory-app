@@ -197,3 +197,16 @@ export const PRODUCT_GROUP_OPTIONS = toOptions(PRODUCT_GROUP_LABELS);
 export const CERTIFICATION_ISSUER_OPTIONS = toOptions(
   CERTIFICATION_ISSUER_LABELS,
 );
+
+/** Profile review: factory-member edits wait for admin approval */
+export type FactoryApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export const FACTORY_APPROVAL_STATUS_LABELS: Record<FactoryApprovalStatus, string> = {
+  PENDING: "Đang chờ duyệt",
+  APPROVED: "Đã duyệt",
+  REJECTED: "Bị từ chối",
+};
+
+export const FACTORY_APPROVAL_STATUS_OPTIONS = (Object.entries(FACTORY_APPROVAL_STATUS_LABELS) as [FactoryApprovalStatus, string][]).map(
+  ([value, label]) => ({ value, label }),
+);
