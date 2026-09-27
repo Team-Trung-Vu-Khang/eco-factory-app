@@ -12,7 +12,6 @@ import { FactoryMemberHomeGate } from "@/components/common/FactoryMemberHomeGate
 import { LayoutRoleSwitch } from "@/components/common/LayoutRoleSwitch";
 import { AUTH_PATHS } from "@/config/auth";
 import { AuthWrapper, authApi } from "@/features/auth";
-import { useLayoutRole } from "@/hooks/useLayoutRole";
 import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import AppRouter from "./AppRouter";
 
@@ -39,7 +38,6 @@ function App() {
   const [location] = useLocation();
   const isMobile = useIsMobile();
   const mobileUiMode = useMobileUiMode();
-  const isOwner = useLayoutRole() === "owner";
   const mobileApp = isMobile && mobileUiMode === "app";
 
   const content = (
