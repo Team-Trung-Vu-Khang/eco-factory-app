@@ -47,6 +47,12 @@ export const PROCESSING_SERVICE_LABELS: Record<string, string> = {
   FERMENTING: "Lên men",
   STORAGE: "Bảo quản",
   PACKAGING: "Đóng gói",
+  PEELING: "Bóc vỏ, tách hạt",
+  FREEZING: "Cấp đông",
+  ROASTING: "Rang",
+  EXTRACTING: "Chiết xuất, chưng cất",
+  BOTTLING: "Chiết rót",
+  LABELING: "Dán nhãn, truy xuất nguồn gốc",
   OTHER: "Khác",
 };
 

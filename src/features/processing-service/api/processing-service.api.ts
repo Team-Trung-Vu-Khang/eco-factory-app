@@ -15,8 +15,27 @@ const now = () => new Date().toISOString();
 
 type Stored = Omit<ProcessingServiceItem, "factoryNames">;
 
+const SEED_DESCRIPTIONS: Record<string, string> = {
+  PRE_PROCESSING: "Làm sạch, cắt tỉa, loại bỏ phần hư hỏng để chuẩn bị cho các khâu chế biến tiếp theo",
+  WASHING: "Rửa nông sản bằng nước sạch hoặc dung dịch chuyên dụng, loại bỏ đất cát và dư lượng thuốc BVTV",
+  SORTING: "Phân loại theo kích cỡ, màu sắc, chất lượng để đồng đều sản phẩm và nâng giá trị bán",
+  DRYING: "Sấy lạnh, sấy nhiệt hoặc sấy thăng hoa để giảm độ ẩm, kéo dài thời gian bảo quản",
+  GRINDING: "Nghiền, xay thành bột mịn hoặc dạng hạt theo yêu cầu",
+  PRESSING: "Ép lấy nước hoặc dầu từ trái cây, hạt, củ",
+  FERMENTING: "Lên men tự nhiên hoặc bằng men vi sinh (giấm, rượu, đồ uống, thực phẩm lên men)",
+  STORAGE: "Lưu kho thường hoặc kho lạnh, kiểm soát nhiệt độ và độ ẩm",
+  PACKAGING: "Đóng gói túi, hộp, hút chân không theo quy cách của khách hàng",
+  PEELING: "Bóc vỏ, tách hạt, tách múi bằng máy hoặc thủ công",
+  FREEZING: "Cấp đông nhanh (IQF) hoặc cấp đông khối, giữ độ tươi cho nông sản xuất khẩu",
+  ROASTING: "Rang hạt, rang chè, rang cà phê theo nhiệt độ và thời gian phù hợp",
+  EXTRACTING: "Chiết xuất cao, tinh dầu hoặc hoạt chất từ dược liệu và thảo mộc",
+  BOTTLING: "Chiết rót chất lỏng (nước ép, mật ong, tinh dầu) vào chai, lọ",
+  LABELING: "In, dán nhãn sản phẩm và gắn mã QR truy xuất nguồn gốc",
+  OTHER: "Các dịch vụ chế biến khác, trao đổi chi tiết với nhà máy",
+};
+
 // Ids match the codes factories / machines / demands already reference
-let db: Stored[] = Object.entries(PROCESSING_SERVICE_LABELS).map(([id, name]) => ({ id, name, description: "", updatedAt: now() }));
+let db: Stored[] = Object.entries(PROCESSING_SERVICE_LABELS).map(([id, name]) => ({ id, name, description: SEED_DESCRIPTIONS[id] ?? "", updatedAt: now() }));
 
 // Keep the shared label map in sync so existing screens show new services
 // TODO: drop once PROCESSING_SERVICE_LABELS is loaded from the API

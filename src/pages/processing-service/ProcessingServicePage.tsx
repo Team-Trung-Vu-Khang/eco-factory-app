@@ -1,4 +1,4 @@
-import { Badge, Button, DataTable, DeleteDialog, Tooltip, TooltipContent, TooltipTrigger, type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { Button, DataTable, DeleteDialog, type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
 import {
@@ -14,32 +14,6 @@ import { ProcessingServiceFormDialog } from "./components/ProcessingServiceFormD
 
 const columns: Column<ProcessingServiceItem>[] = [
   { key: "name", label: "Dịch vụ", render: (_, s) => <span className="font-medium text-slate-900">{s.name}</span> },
-  {
-    key: "factoryNames",
-    label: "Nhà máy",
-    render: (_, s) =>
-      s.factoryNames.length ? (
-        <div className="flex flex-wrap items-center gap-1">
-          <Badge variant="secondary" className="font-normal">{s.factoryNames[0]}</Badge>
-          {s.factoryNames.length > 1 && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="outline" className="cursor-default font-normal">+{s.factoryNames.length - 1}</Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <ul className="space-y-0.5">
-                  {s.factoryNames.slice(1).map((name) => (
-                    <li key={name}>{name}</li>
-                  ))}
-                </ul>
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
-      ) : (
-        <span className="text-sm text-slate-400">—</span>
-      ),
-  },
   { key: "description", label: "Mô tả", render: (_, s) => <span className="text-sm text-slate-600">{s.description || "—"}</span> },
 ];
 
