@@ -19,13 +19,13 @@ export function ResolveDialog({ target, loading, onOpenChange, onConfirm }: Reso
       open={!!target}
       onOpenChange={onOpenChange}
       title={success ? "Xác nhận kết nối thành công" : "Kết nối không thành công"}
-      description={target ? `${target.request.farmerName} ↔ ${target.request.factoryName}` : undefined}
+      description={target ? `${target.request.farmerName} ↔ ${target.request.factoryName ?? "Chưa chọn nhà máy"}` : undefined}
       submitLabel="Xác nhận"
       loading={loading}
       onSubmit={() => onConfirm(note.trim())}
     >
       <div className="space-y-3">
-        {success && (
+        {success && target?.request.machineName && (
           <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
             Tin đăng lịch nhận chế biến của "{target?.request.machineName}" sẽ được đóng để không tiếp tục matching.
           </p>

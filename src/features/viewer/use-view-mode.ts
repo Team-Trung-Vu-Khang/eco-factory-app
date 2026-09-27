@@ -1,5 +1,16 @@
 import { useMemo } from "react";
-import { authApi } from "@/features/auth";
+import { authApi, useCurrentUser } from "@/features/auth";
+
+/** Mirrors eco-shared-ui FACTORY_ADMIN_ROLES */
+const FACTORY_ADMIN_ROLES = ["MEVI_SUPER_ADMIN", "MEVI_ADMIN", "MEVI_FACTORY_ADMIN"];
+
+/** Admin gets the admin search form; every other member gets the member form */
+export function useIsFactoryAdmin() {
+  const { data: user } = useCurrentUser();
+  const roles = user?.roles ?? (user?.role ? [user.role].flat() : []);
+  return roles.some((r) => FACTORY_ADMIN_ROLES.includes(r));
+}
+
 
 /**
  * Farmer (nông hộ) sees only their own connections; everyone else sees all.

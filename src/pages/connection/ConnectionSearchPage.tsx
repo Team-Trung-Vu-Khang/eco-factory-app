@@ -1,66 +1,61 @@
-import { useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { Button, useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { SearchX } from "lucide-react";
-import { useMemo, useState } from "react";
-import { Link } from "wouter";
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
-import {
-  useConnections,
-  useFactorySearch,
-  useRegisterConnection,
-  type FactorySearchParams,
-  type MatchedMachine,
-} from "@/features/connection";
-import { useCurrentFarmer } from "@/features/viewer";
+import { useConnectFactories, useFactorySearch, type FactorySearchParams } from "@/features/connection";
+import { useCurrentFarmer, useIsFactoryAdmin } from "@/features/viewer";
 import { FactoryResultCard } from "./components/FactoryResultCard";
-import { RegisterDialog, type RegisterValues } from "./components/RegisterDialog";
 import { SearchFilters } from "./components/SearchFilters";
 
 export default function ConnectionSearchPage() {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const farmer = useCurrentFarmer();
+  const isAdmin = useIsFactoryAdmin();
   const [params, setParams] = useState<FactorySearchParams>();
-  const [registering, setRegistering] = useState<MatchedMachine | null>(null);
 
   const search = useFactorySearch(params);
-  const register = useRegisterConnection();
-  const mine = useConnections({ page: 0, size: 500, farmerId: farmer.id, status: "PENDING" });
-  const pendingScheduleIds = useMemo(() => new Set((mine.data?.content ?? []).map((c) => c.scheduleId)), [mine.data]);
+  const connect = useConnectFactories();
   const results = search.data ?? [];
 
-  const handleRegister = async (values: RegisterValues) => {
-    const result = results.find((r) => r.factory.id === registering?.factoryId);
-    if (!registering || !result) return;
+  const handleConnect = async (criteria: FactorySearchParams) => {
     try {
-      await register.mutateAsync({
-        farmer,
-        factory: result.factory,
-        machine: registering,
-        cropIds: values.cropIds,
-        quantity: values.quantity,
-        requirements: {
-          quantityUnit: values.quantityUnit,
-          requiredCertifications: params?.requiredCertifications ?? [],
-          materialCondition: params?.materialCondition,
-          packagingRequirements: params?.packagingRequirements,
-          technicalRequirements: params?.technicalRequirements,
-        },
-        note: values.note,
+      await connect.mutateAsync({ farmer, criteria });
+      toast({
+        title: "Đã gửi yêu cầu kết nối",
+        description: "Hệ thống sẽ kết nối bạn với nhà máy phù hợp.",
+        action: (
+          <Button size="sm" variant="outline" onClick={() => navigate(ROUTES.connectionHistory)}>
+            Xem lịch sử
+          </Button>
+        ),
       });
-      toast({ title: "Đã đăng ký", description: "Yêu cầu đang chờ kết nối." });
-      setRegistering(null);
     } catch (error) {
-      toast({ title: "Không thể đăng ký", description: (error as Error).message, variant: "destructive" });
+      toast({ title: "Không thể gửi yêu cầu", description: (error as Error).message, variant: "destructive" });
     }
   };
 
   return (
-    <PageWrapper title="Tìm kiếm nhà máy" description="Tìm nhà máy đang nhận chế biến phù hợp với vị trí, dịch vụ, nguyên liệu, sản lượng và chứng nhận" overflow="visible">
+    <PageWrapper
+      title={isAdmin ? "Tìm kiếm nhà máy" : "Kết nối nhà máy"}
+      description={
+        isAdmin
+          ? "Tìm nhà máy theo vị trí, dịch vụ, nhóm nông sản và chứng nhận"
+          : "Nhập nhu cầu chế biến rồi bấm Kết nối nhà máy — hoặc xem trước các nhà máy đang nhận chế biến phù hợp"
+      }
+      overflow="visible"
+    >
       <div className="space-y-6">
-        <SearchFilters loading={search.isFetching} onSearch={setParams} />
+        <SearchFilters
+          key={isAdmin ? "admin" : "member"}
+          mode={isAdmin ? "admin" : "member"}
+          searching={search.isFetching} connecting={connect.isPending} onSearch={setParams} onConnect={handleConnect}
+        />
 
         {!params ? (
-          <p className="py-10 text-center text-sm text-slate-500">Chọn điều kiện và bấm Tìm kiếm để xem nhà máy phù hợp.</p>
+          <p className="py-10 text-center text-sm text-slate-500">Bấm "Xem nhà máy phù hợp" để xem danh sách nhà máy theo điều kiện đã nhập.</p>
         ) : search.isLoading ? (
           <div className="space-y-3">
             {[0, 1].map((i) => (
@@ -81,23 +76,11 @@ export default function ConnectionSearchPage() {
                 Chưa có nhà máy đang nhận chế biến phù hợp. Thử mở rộng phạm vi hoặc bỏ bớt điều kiện.
               </div>
             ) : (
-              results.map((r) => (
-                <FactoryResultCard key={r.factory.id} result={r} pendingScheduleIds={pendingScheduleIds} onRegister={setRegistering} />
-              ))
+              results.map((r) => <FactoryResultCard key={r.factory.id} result={r} />)
             )}
           </section>
         )}
       </div>
-
-      <RegisterDialog
-        machine={registering}
-        defaultCropIds={params?.cropIds ?? []}
-        defaultQuantity={params?.quantity}
-        defaultQuantityUnit={params?.quantityUnit}
-        isSubmitting={register.isPending}
-        onOpenChange={(open) => !open && setRegistering(null)}
-        onSubmit={handleRegister}
-      />
     </PageWrapper>
   );
 }

@@ -11,8 +11,8 @@ import type {
   ConnectionRequest,
   FactorySearchParams,
   FactorySearchResult,
+  ConnectFactoriesInput,
   MatchedMachine,
-  RegisterConnectionInput,
 } from "../types";
 
 export const connectionKeys = {
@@ -47,6 +47,14 @@ const coversQuantity = (maxCapacity: number, unit: CapacityUnit, fromDate: strin
   return maxCapacity * factor * Math.max(days, 0) >= quantity;
 };
 
+/** Machine capacity ≥ requested; compared via kg/day when units differ, BATCH/OTHER only match their own unit */
+const meetsCapacity = (max: number, unit: CapacityUnit, min: number, wantUnit: CapacityUnit) => {
+  if (unit === wantUnit) return max >= min;
+  const a = KG_PER_DAY[unit];
+  const b = KG_PER_DAY[wantUnit];
+  return !!a && !!b && max * a >= min * b;
+};
+
 const hasCertifications = (factory: Factory, required: string[]) =>
   required.every((type) =>
     factory.certifications.some((c) => c.type === type && getCertificateValidity(c.expiryDate).validity !== "EXPIRED"),
@@ -76,6 +84,8 @@ export const connectionApi = {
           if (!schedule || m.status !== "ACTIVE") return [];
           if (params.functions.length && !m.functions.some((f) => params.functions.includes(f))) return [];
           if (params.cropIds.length && !m.productGroupIds.some((g) => groupIds.has(g))) return [];
+          if (params.productGroupIds?.length && !m.productGroupIds.some((g) => params.productGroupIds!.includes(g))) return [];
+          if (params.minCapacity && params.capacityUnit && !meetsCapacity(m.maxCapacity, m.capacityUnit, params.minCapacity, params.capacityUnit)) return [];
           if (params.quantity && !coversQuantity(schedule.maxCapacity, schedule.capacityUnit, schedule.fromDate, schedule.toDate, params.quantity)) return [];
           return [
             {
@@ -103,7 +113,7 @@ export const connectionApi = {
           (!params.farmerId || c.farmerId === params.farmerId) &&
           (!params.scheduleId || c.scheduleId === params.scheduleId) &&
           (!params.status || c.status === params.status) &&
-          (!keyword || [c.farmerName, c.factoryName, c.machineName, c.farmerPhone].some((v) => v.toLowerCase().includes(keyword))),
+          (!keyword || [c.farmerName, c.factoryName, c.machineName, c.farmerPhone].some((v) => v?.toLowerCase().includes(keyword))),
       )
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     const start = params.page * params.size;
@@ -116,27 +126,24 @@ export const connectionApi = {
     };
   },
 
-  /** "Đăng ký chờ kết nối" */
-  async register({ farmer, factory, machine, cropIds, quantity, requirements, note }: RegisterConnectionInput): Promise<ConnectionRequest> {
+  /** "Kết nối nhà máy" — sends the search criteria; admin matches a factory */
+  async connect({ farmer, criteria }: ConnectFactoriesInput): Promise<ConnectionRequest> {
     await delay();
-    if (db.some((c) => c.farmerId === farmer.id && c.scheduleId === machine.scheduleId && c.status === "PENDING")) {
-      throw new Error("Bạn đã đăng ký lịch này và đang chờ kết nối.");
-    }
     const created: ConnectionRequest = {
       id: crypto.randomUUID(),
       farmerId: farmer.id,
       farmerName: farmer.name,
       farmerPhone: farmer.phone,
-      factoryId: factory.id,
-      factoryName: factory.name,
-      machineId: machine.id,
-      machineName: machine.name,
-      scheduleId: machine.scheduleId,
-      cropIds,
-      quantity,
-      capacityUnit: machine.capacityUnit,
-      requirements,
-      note,
+      cropIds: criteria.cropIds,
+      quantity: criteria.quantity,
+      requirements: {
+        quantityUnit: criteria.quantityUnit,
+        requiredCertifications: criteria.requiredCertifications,
+        materialCondition: criteria.materialCondition,
+        packagingRequirements: criteria.packagingRequirements,
+        technicalRequirements: criteria.technicalRequirements,
+      },
+      criteria,
       status: "PENDING",
       createdAt: new Date().toISOString(),
     };
@@ -152,7 +159,7 @@ export const connectionApi = {
     if (found.status !== "PENDING") throw new Error("Yêu cầu đã được xử lý.");
     const updated = { ...found, status, resultNote, resolvedAt: new Date().toISOString() };
     db = db.map((c) => (c.id === id ? updated : c));
-    if (status === "SUCCESS") await scheduleApi.close(found.scheduleId, "CONNECTED");
+    if (status === "SUCCESS" && found.scheduleId) await scheduleApi.close(found.scheduleId, "CONNECTED");
     return updated;
   },
 };

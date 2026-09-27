@@ -19,8 +19,14 @@ const baseColumns: Column<ConnectionRequest>[] = [
     label: "Nhà máy",
     render: (_, c) => (
       <div className="min-w-44">
-        <p className="font-medium text-slate-900">{c.factoryName}</p>
-        <p className="text-xs text-slate-500">{c.machineName}</p>
+        {c.factoryName ? (
+          <>
+            <p className="font-medium text-slate-900">{c.factoryName}</p>
+            <p className="text-xs text-slate-500">{c.machineName}</p>
+          </>
+        ) : (
+          <p className="text-sm italic text-slate-500">Đang tìm nhà máy phù hợp</p>
+        )}
       </div>
     ),
   },

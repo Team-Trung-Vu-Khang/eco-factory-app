@@ -1,1 +1,1 @@
-export { useCurrentFarmer, useIsFarmer } from "./use-view-mode";
+export { useCurrentFarmer, useIsFactoryAdmin, useIsFarmer } from "./use-view-mode";

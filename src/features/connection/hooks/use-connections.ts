@@ -2,7 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { factoryKeys } from "@/features/factory";
 import { scheduleKeys } from "@/features/processing-schedule";
 import { connectionApi, connectionKeys } from "../api/connection.api";
-import type { ConnectionListParams, FactorySearchParams, RegisterConnectionInput } from "../types";
+import type { ConnectionListParams, ConnectFactoriesInput, FactorySearchParams } from "../types";
 
 /** `params` undefined = not searched yet */
 export function useFactorySearch(params: FactorySearchParams | undefined) {
@@ -21,10 +21,10 @@ export function useConnections(params: ConnectionListParams) {
   });
 }
 
-export function useRegisterConnection() {
+export function useConnectFactories() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: RegisterConnectionInput) => connectionApi.register(input),
+    mutationFn: (input: ConnectFactoriesInput) => connectionApi.connect(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: connectionKeys.all }),
   });
 }

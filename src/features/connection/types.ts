@@ -11,8 +11,13 @@ export interface FactorySearchParams {
   wardCode?: string;
   /** Matching: machine must offer at least one of these services */
   functions: string[];
-  /** Matching: raw material = crops, resolved to product groups */
+  /** Matching: raw material = crops, resolved to product groups (member form) */
   cropIds: string[];
+  /** Matching: machine processes one of these product groups (admin form) */
+  productGroupIds?: string[];
+  /** Matching: machine max capacity in this unit must reach this (member form) */
+  minCapacity?: number;
+  capacityUnit?: CapacityUnit;
   /** Matching: schedule capacity over its remaining window must cover this */
   quantity?: number;
   quantityUnit?: SearchQuantityUnit;
@@ -47,11 +52,14 @@ export interface ConnectionRequest {
   farmerId: string;
   farmerName: string;
   farmerPhone: string;
-  factoryId: string;
-  factoryName: string;
-  machineId: string;
-  machineName: string;
-  scheduleId: string;
+  /** Empty until admin matches the request to a factory */
+  factoryId?: string;
+  factoryName?: string;
+  machineId?: string;
+  machineName?: string;
+  scheduleId?: string;
+  /** Search criteria the farmer submitted with "Kết nối nhà máy" */
+  criteria?: FactorySearchParams;
   cropIds: string[];
   quantity?: number;
   capacityUnit?: CapacityUnit;
@@ -75,12 +83,8 @@ export interface ConnectionListParams {
   scheduleId?: string;
 }
 
-export interface RegisterConnectionInput {
+/** One request for the whole search — not tied to a single factory */
+export interface ConnectFactoriesInput {
   farmer: { id: string; name: string; phone: string };
-  factory: Factory;
-  machine: MatchedMachine;
-  cropIds: string[];
-  quantity?: number;
-  requirements?: ConnectionRequirements;
-  note?: string;
+  criteria: FactorySearchParams;
 }
