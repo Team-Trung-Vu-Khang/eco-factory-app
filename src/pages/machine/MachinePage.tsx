@@ -2,7 +2,7 @@ import { Button, DataTable, DeleteDialog, useToast } from "@Team-Trung-Vu-Khang/
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import PageWrapper from "@/components/common/PageWrapper";
-import { useDeleteMachine, useMachines, useSaveMachine, type MachineListParams, type MachineRow } from "@/features/factory";
+import { useCurrentFactory, useDeleteMachine, useMachines, useSaveMachine, type MachineListParams, type MachineRow } from "@/features/factory";
 import { machineColumns, machineFilters } from "./components/machine-columns";
 import { MachineFormDialog } from "./components/MachineFormDialog";
 import type { MachineDialogValues } from "./components/machine-form-schema";
@@ -31,7 +31,8 @@ export default function MachinePage() {
   const [editing, setEditing] = useState<MachineRow | null>(null);
   const [deleting, setDeleting] = useState<MachineRow | null>(null);
 
-  const query = useMachines({ page, size, keyword, ...filters });
+  const { factoryId } = useCurrentFactory();
+  const query = useMachines({ page, size, keyword, factoryId, ...filters });
   const save = useSaveMachine();
   const remove = useDeleteMachine();
   const editingValues = useMemo(() => (editing ? toDialogValues(editing) : undefined), [editing]);
@@ -80,7 +81,7 @@ export default function MachinePage() {
         data={query.data?.content ?? []}
         loading={query.isFetching}
         searchable
-        searchPlaceholder="Tìm theo tên máy, nhà máy..."
+        searchPlaceholder="Tìm theo tên máy..."
         onSearch={(v) => {
           setKeyword(v);
           setPage(0);
@@ -119,7 +120,7 @@ export default function MachinePage() {
         onOpenChange={(open) => !open && setDeleting(null)}
         onConfirm={handleConfirmDelete}
         loading={remove.isPending}
-        description={`Xóa máy "${deleting?.name ?? ""}" khỏi ${deleting?.factoryName ?? ""}?`}
+        description={`Xóa máy "${deleting?.name ?? ""}"?`}
       />
     </PageWrapper>
   );

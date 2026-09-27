@@ -20,10 +20,7 @@ export const machineColumns: Column<MachineRow>[] = [
     key: "name",
     label: "Máy / dây chuyền",
     render: (_, m) => (
-      <div className="min-w-44">
-        <p className="font-medium text-slate-900">{m.name}</p>
-        <p className="text-xs text-slate-500">{m.factoryName}</p>
-      </div>
+      <p className="min-w-44 font-medium text-slate-900">{m.name}</p>
     ),
   },
   {

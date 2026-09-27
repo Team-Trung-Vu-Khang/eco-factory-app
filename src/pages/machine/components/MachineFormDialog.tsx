@@ -1,10 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { CapacityField, MultiSelectField, SearchSelectField, SelectField, TextField } from "@/components/form";
+import { useForm } from "react-hook-form";
+import { CapacityField, MultiSelectField, SelectField, TextField } from "@/components/form";
 import { useCertificateOptions } from "@/features/certificate";
-import { MACHINE_STATUS_OPTIONS, useFactoryOptions } from "@/features/factory";
+import { MACHINE_STATUS_OPTIONS, useCurrentFactory } from "@/features/factory";
 import { useProcessingServiceOptions } from "@/features/processing-service";
 import { useProductGroupOptions } from "@/features/product-group";
 
@@ -27,15 +27,14 @@ export function MachineFormDialog({ open, onOpenChange, initialValues, isSubmitt
     mode: "onTouched",
   });
   const { control } = form;
-  const factoryId = useWatch({ control, name: "factoryId" });
-  const { options: factoryOptions } = useFactoryOptions();
+  const { factoryId } = useCurrentFactory();
   const productGroupOptions = useProductGroupOptions();
   const serviceOptions = useProcessingServiceOptions();
   const certificateOptions = useCertificateOptions(factoryId || undefined);
 
   useEffect(() => {
-    if (open) form.reset(initialValues ?? EMPTY_MACHINE_DIALOG);
-  }, [open, initialValues, form]);
+    if (open) form.reset(initialValues ?? { ...EMPTY_MACHINE_DIALOG, factoryId: factoryId ?? "" });
+  }, [open, initialValues, factoryId, form]);
 
   return (
     <FormDialog
@@ -50,15 +49,6 @@ export function MachineFormDialog({ open, onOpenChange, initialValues, isSubmitt
     >
       <Form {...form}>
         <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
-          <SearchSelectField
-            control={control}
-            name="factoryId"
-            label="Nhà máy"
-            required
-            disabled={isEdit}
-            options={factoryOptions}
-            className="sm:col-span-2"
-          />
           <TextField control={control} name="name" label="Tên máy / dây chuyền" required />
           <SelectField control={control} name="status" label="Tình trạng" required options={MACHINE_STATUS_OPTIONS} />
           <MultiSelectField
@@ -77,8 +67,7 @@ export function MachineFormDialog({ open, onOpenChange, initialValues, isSubmitt
             name="certificateIds"
             label="Chứng nhận"
             options={certificateOptions}
-            disabled={!factoryId}
-            placeholder={factoryId ? "Chọn chứng nhận..." : "Chọn nhà máy trước"}
+            placeholder="Chọn chứng nhận..."
             description="Chứng nhận của nhà máy áp dụng cho máy / dây chuyền này"
             className="sm:col-span-2"
           />

@@ -1,3 +1,4 @@
+import { getSelectedWorkspaceIdFromStorage } from "@/features/workspace";
 import {
   keepPreviousData,
   useMutation,
@@ -83,4 +84,16 @@ export function useFactoryOptions() {
   const options = (data?.content ?? []).map((f) => ({ value: f.id, label: f.name }));
   const nameOf = (id?: string) => options.find((o) => o.value === id)?.label ?? "—";
   return { options, nameOf, factories: data?.content ?? [] };
+}
+
+/**
+ * Factory owned by the signed-in account / selected workspace.
+ * Admins switch workspace to manage another factory.
+ * TODO: resolve from the auth/workspace API once available — mock picks the workspace's factory or the first one
+ */
+export function useCurrentFactory() {
+  const { factories } = useFactoryOptions();
+  const workspaceId = getSelectedWorkspaceIdFromStorage();
+  const factory = factories.find((f) => f.id === workspaceId) ?? factories[0];
+  return { factory, factoryId: factory?.id };
 }
