@@ -1,5 +1,6 @@
 import {
   DemandTrendChart,
+  GroupConnectionChart,
   MachineCapacityCard,
   ProfileStatusCard,
   RecentDemandsCard,
@@ -24,6 +25,11 @@ export function DashboardContent({ data }: { data: FactoryDashboard }) {
           <RecentDemandsCard demands={data.recentDemands} />
         </div>
         <MachineCapacityCard machines={data.machines} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 [&>*]:min-w-0">
+        <GroupConnectionChart title="Theo nhóm dịch vụ" data={data.serviceGroupStats} />
+        <GroupConnectionChart title="Theo nhóm nông sản" data={data.productGroupStats} />
       </div>
     </div>
   );

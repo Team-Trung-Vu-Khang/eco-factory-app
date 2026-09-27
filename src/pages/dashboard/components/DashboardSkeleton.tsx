@@ -3,6 +3,11 @@ import { Skeleton } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 export function DashboardSkeleton() {
   return (
     <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        {Array.from({ length: 3 }, (_, i) => (
+          <Skeleton key={i} className="h-28" />
+        ))}
+      </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
           <Skeleton key={i} className="h-28" />

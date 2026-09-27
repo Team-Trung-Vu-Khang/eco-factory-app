@@ -8,13 +8,29 @@ export type DemandStatus =
   | "COMPLETED"
   | "CANCELLED";
 
+/** Totals across all posts. Dedup rules (server-side):
+ * - views: max 1 per viewer unit per day
+ * - connectionRequests: max 1 per viewer unit per post
+ * - successfulConnections: max 1 per viewer unit per post */
+export interface DashboardOverview {
+  totalViews: number;
+  totalConnectionRequests: number;
+  totalSuccessfulConnections: number;
+}
+
+export interface LatestPostStats {
+  id: string;
+  title: string;
+  availableCapacity: number;
+  capacityUnit: string;
+  views: number;
+  connectionRequests: number;
+  successfulConnections: number;
+}
+
 export interface DashboardStats {
-  availableCapacityTonPerDay: number;
-  maxCapacityTonPerDay: number;
-  newMatchingDemands: number;
-  activeDemands: number;
-  connectedDemands: number;
-  profileCompletionPercent: number;
+  overview: DashboardOverview;
+  latestPost: LatestPostStats | null;
 }
 
 export interface ProfileChecklistItem {
@@ -33,6 +49,12 @@ export interface ProfileStatus {
 export interface MonthlyDemandPoint {
   month: string;
   received: number;
+  connected: number;
+}
+
+export interface GroupConnectionPoint {
+  name: string;
+  requests: number;
   connected: number;
 }
 
@@ -62,6 +84,8 @@ export interface FactoryDashboard {
   stats: DashboardStats;
   profile: ProfileStatus;
   monthlyDemands: MonthlyDemandPoint[];
+  serviceGroupStats: GroupConnectionPoint[];
+  productGroupStats: GroupConnectionPoint[];
   machines: MachineCapacity[];
   recentDemands: RecentDemand[];
 }

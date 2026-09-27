@@ -7,12 +7,20 @@ export const dashboardKeys = {
 // TODO: replace with apiClient.get("/api/factory/dashboard") when the API is ready
 const MOCK_DASHBOARD: FactoryDashboard = {
   stats: {
-    availableCapacityTonPerDay: 4.5,
-    maxCapacityTonPerDay: 12,
-    newMatchingDemands: 6,
-    activeDemands: 4,
-    connectedDemands: 11,
-    profileCompletionPercent: 80,
+    overview: {
+      totalViews: 128,
+      totalConnectionRequests: 17,
+      totalSuccessfulConnections: 11,
+    },
+    latestPost: {
+      id: "p1",
+      title: "Nhận sấy lạnh nông sản",
+      availableCapacity: 4.5,
+      capacityUnit: "tấn/ngày",
+      views: 42,
+      connectionRequests: 6,
+      successfulConnections: 2,
+    },
   },
   profile: {
     completionPercent: 80,
@@ -34,6 +42,19 @@ const MOCK_DASHBOARD: FactoryDashboard = {
     { month: "T7", received: 8, connected: 3 },
     { month: "T8", received: 7, connected: 1 },
     { month: "T9", received: 10, connected: 2 },
+  ],
+  serviceGroupStats: [
+    { name: "Sấy", requests: 9, connected: 4 },
+    { name: "Sơ chế", requests: 6, connected: 3 },
+    { name: "Nghiền", requests: 4, connected: 2 },
+    { name: "Đóng gói", requests: 5, connected: 1 },
+    { name: "Bảo quản", requests: 3, connected: 1 },
+  ],
+  productGroupStats: [
+    { name: "Chè", requests: 7, connected: 3 },
+    { name: "Trái cây", requests: 6, connected: 2 },
+    { name: "Dược liệu", requests: 5, connected: 3 },
+    { name: "Rau củ", requests: 4, connected: 2 },
   ],
   machines: [
     { id: "m1", name: "Máy sấy lạnh", unit: "kg/ngày", maxCapacity: 3000, availableCapacity: 1200, status: "ACTIVE" },

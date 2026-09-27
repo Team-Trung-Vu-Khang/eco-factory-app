@@ -18,12 +18,12 @@ const fmt = new Intl.NumberFormat("vi-VN");
 
 export function MachineCapacityCard({ machines }: { machines: MachineCapacity[] }) {
   return (
-    <Card className="h-full">
+    <Card className="flex h-full flex-col">
       <CardHeader>
-        <CardTitle className="text-base">Công suất máy móc</CardTitle>
+        <CardTitle className="text-base">Danh mục máy & dây chuyền</CardTitle>
         <CardDescription>Phần xanh đậm là công suất có thể nhận cho bên ngoài</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="max-h-80 flex-1 space-y-4 overflow-y-auto">
         {machines.map((m) => {
           const pct = m.maxCapacity ? (m.availableCapacity / m.maxCapacity) * 100 : 0;
           return (

@@ -21,7 +21,7 @@ export function DemandTrendChart({ data }: { data: MonthlyDemandPoint[] }) {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle className="text-base">Nhu cầu theo tháng</CardTitle>
+        <CardTitle className="text-base">Tình hình kết nối</CardTitle>
         <CardDescription>6 tháng gần nhất</CardDescription>
         <div className="flex flex-wrap gap-4 pt-1 text-xs text-slate-600">
           {Object.entries(chartConfig).map(([key, { label, color }]) => (
