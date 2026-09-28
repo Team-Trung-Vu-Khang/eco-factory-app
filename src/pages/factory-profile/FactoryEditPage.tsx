@@ -51,6 +51,7 @@ export default function FactoryEditPage() {
       ) : (
         <FactoryStepperForm
           key={factory.id}
+          mode="edit"
           defaultValues={toFactoryFormValues(factory)}
           submitLabel={isMember ? "Gửi duyệt" : "Lưu thay đổi"}
           isSubmitting={updateFactory.isPending}

@@ -16,9 +16,11 @@ interface MachineFormDialogProps {
   initialValues?: MachineDialogValues;
   isSubmitting?: boolean;
   onSubmit: (values: MachineDialogValues) => void;
+  /** Factory for new machines — defaults to the current workspace's factory */
+  factoryId?: string;
 }
 
-export function MachineFormDialog({ open, onOpenChange, initialValues, isSubmitting, onSubmit }: MachineFormDialogProps) {
+export function MachineFormDialog({ open, onOpenChange, initialValues, isSubmitting, onSubmit, factoryId: factoryIdProp }: MachineFormDialogProps) {
   const isEdit = !!initialValues;
   const form = useForm<MachineDialogValues>({
     resolver: zodResolver(machineFormSchema),
@@ -26,7 +28,8 @@ export function MachineFormDialog({ open, onOpenChange, initialValues, isSubmitt
     mode: "onTouched",
   });
   const { control } = form;
-  const { factoryId } = useCurrentFactory();
+  const { factoryId: currentFactoryId } = useCurrentFactory();
+  const factoryId = factoryIdProp ?? currentFactoryId;
   const productGroupOptions = useProductGroupOptions();
   const serviceOptions = useProcessingServiceOptions();
 
