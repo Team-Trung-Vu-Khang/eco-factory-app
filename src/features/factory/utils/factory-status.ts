@@ -22,7 +22,7 @@ export function computeFactoryStatus(f: FactoryFormValues) {
   const recommended = [
     f.location.latitude !== undefined && f.location.longitude !== undefined,
     f.avatarUrl,
-    f.facilityPhotos.length > 0,
+    f.machinePhotos.length > 0,
   ];
   const all = [...required, ...recommended];
 

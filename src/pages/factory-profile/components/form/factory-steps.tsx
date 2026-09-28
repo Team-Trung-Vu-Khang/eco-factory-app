@@ -47,7 +47,7 @@ export const FACTORY_STEPS: SchemaStep<FactoryFormValues>[] = [
     id: "certifications",
     title: "Chứng nhận & ảnh",
     description: "Chứng nhận, hình ảnh",
-    fields: ["hasCertification", "certifications", "facilityPhotos", "machinePhotos"],
+    fields: ["hasCertification", "certifications", "machinePhotos"],
     content: (
       <div className="space-y-8">
         <CertificationsSection />

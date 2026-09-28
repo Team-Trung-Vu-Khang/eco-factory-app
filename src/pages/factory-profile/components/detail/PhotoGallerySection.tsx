@@ -1,4 +1,4 @@
-import { Cog, Warehouse, type LucideIcon } from "lucide-react";
+import { Cog, type LucideIcon } from "lucide-react";
 import type { Factory } from "@/features/factory";
 import { DetailCard } from "@/components/common/DetailCard";
 
@@ -22,9 +22,6 @@ function Gallery({ icon, title, urls }: { icon: LucideIcon; title: string; urls:
 
 export function PhotoGallerySection({ factory }: { factory: Factory }) {
   return (
-    <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
-      <Gallery icon={Warehouse} title="Khu vực chế biến" urls={factory.facilityPhotos} />
-      <Gallery icon={Cog} title="Máy móc / dây chuyền" urls={factory.machinePhotos} />
-    </div>
+    <Gallery icon={Cog} title="Máy móc / dây chuyền" urls={factory.machinePhotos} />
   );
 }

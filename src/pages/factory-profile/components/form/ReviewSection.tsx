@@ -27,6 +27,7 @@ export function ReviewSection() {
     !status.hasAvailableCapacity && "Khai báo ít nhất 1 máy đang hoạt động để được tính vào chỉ số 300 cơ sở, sau đó đăng lịch nhận chế biến.",
     !hasGps && "Thêm toạ độ để hiển thị trên bản đồ và tính khoảng cách.",
     !values.avatarUrl && "Thêm ảnh đại diện để hồ sơ đáng tin cậy hơn.",
+    !values.machinePhotos.length && "Thêm ảnh máy móc / dây chuyền để hồ sơ đáng tin cậy hơn.",
   ].filter(Boolean) as string[];
 
   return (
@@ -76,6 +77,20 @@ export function ReviewSection() {
             { label: "Chứng nhận", value: values.hasCertification ? `${values.certifications.length} chứng nhận` : "Không có" },
           ]}
         />
+      </FormSection>
+
+      <FormSection title={`Hình ảnh (${values.machinePhotos.length})`}>
+        {values.machinePhotos.length === 0 ? (
+          <p className="text-sm text-slate-400">Chưa có ảnh máy móc / dây chuyền.</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3 lg:grid-cols-6">
+            {values.machinePhotos.map((url) => (
+              <a key={url} href={url} target="_blank" rel="noreferrer" className="aspect-square overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+                <img src={url} alt="" className="h-full w-full object-cover transition hover:scale-105" />
+              </a>
+            ))}
+          </div>
+        )}
       </FormSection>
     </div>
   );

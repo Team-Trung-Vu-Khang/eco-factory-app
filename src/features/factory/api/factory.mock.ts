@@ -22,7 +22,17 @@ export const SEED_FACTORIES: FactoryFormValues[] = [
       "https://images.unsplash.com/photo-1582793988951-9aed5509eb97?w=400",
       "https://images.unsplash.com/photo-1523920290228-4f321a939b4c?w=400",
     ],
-    machinePhotos: [],
+    machinePhotos: [
+      "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400",
+      "https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?w=400",
+      "https://images.unsplash.com/photo-1567789884554-0b844b597180?w=400",
+      "https://images.unsplash.com/photo-1513828583688-c52646db42da?w=400",
+      "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400",
+      "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400",
+      "https://images.unsplash.com/photo-1580983218765-f663bec07b37?w=400",
+      "https://images.unsplash.com/photo-1611117775350-ac3950990985?w=400",
+      "https://images.unsplash.com/photo-1602052577122-f73b9710adba?w=400",
+    ],
   },
   {
     name: "Công ty TNHH Nông sản Đoan Hùng",
