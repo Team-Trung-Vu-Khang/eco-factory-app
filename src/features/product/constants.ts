@@ -31,4 +31,9 @@ export const NEW_PRODUCT_TARGET = 20;
 export const PRODUCT_STATUS_OPTIONS = toOptions(PRODUCT_STATUS_LABELS);
 export const WEIGHT_UNIT_OPTIONS = toOptions(WEIGHT_UNIT_LABELS);
 export const SHELF_LIFE_UNIT_OPTIONS = toOptions(SHELF_LIFE_UNIT_LABELS);
-export const OUTPUT_UNIT_OPTIONS = toOptions(OUTPUT_UNIT_LABELS);
+/** Selectable units — other labels kept only to display existing data */
+export const OUTPUT_UNIT_OPTIONS = toOptions({
+  KG_PER_MONTH: OUTPUT_UNIT_LABELS.KG_PER_MONTH,
+  TON_PER_MONTH: OUTPUT_UNIT_LABELS.TON_PER_MONTH,
+  // UNIT_PER_MONTH: OUTPUT_UNIT_LABELS.UNIT_PER_MONTH,
+});
