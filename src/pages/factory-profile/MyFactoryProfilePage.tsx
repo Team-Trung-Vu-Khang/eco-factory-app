@@ -14,24 +14,22 @@ export default function MyFactoryProfilePage() {
   const { data: factory, isLoading, isError } = useFactory(factoryId);
 
   return (
-    <PageWrapper
-      title="Hồ sơ nhà máy"
-      actions={
-        // Phones: icon button inside the summary card instead
-        factory && (
-          <Button className="hidden! sm:inline-flex!" onClick={() => navigate(ROUTES.profileEdit(factory.id))}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Chỉnh sửa
-          </Button>
-        )
-      }
-    >
+    <PageWrapper>
       {!factoryId || isLoading ? (
         <DetailPageSkeleton />
       ) : isError || !factory ? (
         <NotFoundState message="Tài khoản chưa được gán nhà máy." />
       ) : (
-        <FactoryProfileView factory={factory} isOwner onEdit={() => navigate(ROUTES.profileEdit(factory.id))} />
+        <FactoryProfileView
+          factory={factory}
+          isOwner
+          actions={
+            <Button onClick={() => navigate(ROUTES.profileEdit(factory.id))}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Chỉnh sửa
+            </Button>
+          }
+        />
       )}
     </PageWrapper>
   );

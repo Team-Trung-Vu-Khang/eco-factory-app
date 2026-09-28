@@ -1,32 +1,30 @@
-import { FormSection } from "@/components/form";
+import { Cog, Warehouse, type LucideIcon } from "lucide-react";
 import type { Factory } from "@/features/factory";
+import { DetailCard } from "@/components/common/DetailCard";
 
-function Gallery({ title, urls }: { title: string; urls: string[] }) {
+function Gallery({ icon, title, urls }: { icon: LucideIcon; title: string; urls: string[] }) {
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-slate-500">{title}</p>
+    <DetailCard icon={icon} title={`${title} (${urls.length})`}>
       {urls.length === 0 ? (
         <p className="text-sm text-slate-400">Chưa có ảnh.</p>
       ) : (
-        <div className="grid grid-cols-4 gap-2 sm:grid-cols-4 sm:gap-3 lg:grid-cols-6">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3">
           {urls.map((url) => (
-            <a key={url} href={url} target="_blank" rel="noreferrer" className="aspect-square overflow-hidden rounded-lg border border-slate-200">
+            <a key={url} href={url} target="_blank" rel="noreferrer" className="aspect-square overflow-hidden rounded-lg border border-slate-200 shadow-sm">
               <img src={url} alt="" className="h-full w-full object-cover transition hover:scale-105" />
             </a>
           ))}
         </div>
       )}
-    </div>
+    </DetailCard>
   );
 }
 
 export function PhotoGallerySection({ factory }: { factory: Factory }) {
   return (
-    <FormSection title="Hình ảnh">
-      <div className="space-y-3 sm:space-y-4">
-        <Gallery title="Khu vực chế biến" urls={factory.facilityPhotos} />
-        <Gallery title="Máy móc / dây chuyền" urls={factory.machinePhotos} />
-      </div>
-    </FormSection>
+    <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
+      <Gallery icon={Warehouse} title="Khu vực chế biến" urls={factory.facilityPhotos} />
+      <Gallery icon={Cog} title="Máy móc / dây chuyền" urls={factory.machinePhotos} />
+    </div>
   );
 }

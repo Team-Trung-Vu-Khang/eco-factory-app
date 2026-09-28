@@ -15,30 +15,28 @@ export default function FactoryDetailPage() {
   const goBack = () => navigate(ROUTES.profile);
 
   return (
-    <PageWrapper
-      title="Chi tiết nhà máy"
-      actions={
-        <>
-          <Button variant="outline" onClick={goBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Danh sách
-          </Button>
-          {factory && <ReviewActions factory={factory} />}
-          {factory && (
-            <Button onClick={() => navigate(ROUTES.profileEdit(factory.id))}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Chỉnh sửa
-            </Button>
-          )}
-        </>
-      }
-    >
+    <PageWrapper>
       {isLoading ? (
         <DetailPageSkeleton />
       ) : isError || !factory ? (
         <NotFoundState message="Không tìm thấy nhà máy hoặc đã bị xóa." onBack={goBack} />
       ) : (
-        <FactoryProfileView factory={factory} />
+        <FactoryProfileView
+          factory={factory}
+          actions={
+            <>
+              <Button variant="outline" onClick={goBack}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Quay lại
+              </Button>
+              <ReviewActions factory={factory} />
+              <Button onClick={() => navigate(ROUTES.profileEdit(factory.id))}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Chỉnh sửa
+              </Button>
+            </>
+          }
+        />
       )}
     </PageWrapper>
   );

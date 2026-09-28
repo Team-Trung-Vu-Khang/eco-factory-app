@@ -1,36 +1,59 @@
 import dayjs from "dayjs";
-import { FormSection } from "@/components/form";
+import { Award, CalendarCheck, CalendarX, Hash, Landmark } from "lucide-react";
 import { CERTIFICATION_ISSUER_LABELS, CERTIFICATION_TYPE_LABELS, type Factory } from "@/features/factory";
+import { DetailCard, DetailField } from "@/components/common/DetailCard";
 
-const date = (d?: string) => (d ? dayjs(d).format("DD/MM/YYYY") : "—");
+const date = (d?: string) => (d ? dayjs(d).format("DD/MM/YYYY") : undefined);
 
 export function CertificationListSection({ factory }: { factory: Factory }) {
-  return (
-    <FormSection title="Chứng nhận">
-      {factory.certifications.length === 0 ? (
+  if (factory.certifications.length === 0) {
+    return (
+      <DetailCard icon={Award} title="Chứng nhận (0)">
         <p className="text-sm text-slate-500">Chưa có chứng nhận.</p>
-      ) : (
-        <ul className="divide-y divide-slate-100">
-          {factory.certifications.map((c) => {
-            const expired = !!c.expiryDate && dayjs(c.expiryDate).isBefore(dayjs(), "day");
-            return (
-              <li key={c.id} className="flex flex-col gap-0.5 py-2.5 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:py-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-900 sm:text-base">
-                    {CERTIFICATION_TYPE_LABELS[c.type]}
-                    {c.number && <span className="font-normal text-slate-500"> · {c.number}</span>}
-                  </p>
-                  <p className="text-xs text-slate-500">{c.issuer ? (CERTIFICATION_ISSUER_LABELS[c.issuer] ?? c.issuer) : "—"}</p>
-                </div>
-                <p className={`text-xs tabular-nums sm:text-sm ${expired ? "text-rose-600" : "text-slate-600"}`}>
-                  {date(c.issuedDate)} → {date(c.expiryDate)}
-                  {expired && " (hết hạn)"}
-                </p>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </FormSection>
+      </DetailCard>
+    );
+  }
+
+  return (
+    <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
+      {factory.certifications.map((c) => {
+        const expired = !!c.expiryDate && dayjs(c.expiryDate).isBefore(dayjs(), "day");
+        return (
+          <section key={c.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <header className="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-4 py-3 sm:px-5 sm:py-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-600 text-white">
+                <Award className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-700">Chứng nhận</p>
+                <h3 className="truncate text-base font-semibold text-slate-900 sm:text-lg">{CERTIFICATION_TYPE_LABELS[c.type]}</h3>
+              </div>
+              <span
+                className={`shrink-0 rounded-md border px-2 py-0.5 text-xs font-semibold ${
+                  expired ? "border-rose-200 bg-rose-50 text-rose-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                }`}
+              >
+                {expired ? "Hết hạn" : "Còn hiệu lực"}
+              </span>
+            </header>
+
+            <div className="grid grid-cols-2 gap-x-4 gap-y-5 p-4 sm:p-5">
+              <DetailField icon={Hash} label="Số chứng nhận" iconClassName="text-blue-500">
+                {c.number && <span className="inline-block rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-blue-700">{c.number}</span>}
+              </DetailField>
+              <DetailField icon={Landmark} label="Đơn vị cấp" iconClassName="text-amber-500">
+                {c.issuer ? (CERTIFICATION_ISSUER_LABELS[c.issuer] ?? c.issuer) : undefined}
+              </DetailField>
+              <DetailField icon={CalendarCheck} label="Ngày cấp" iconClassName="text-emerald-500">
+                {date(c.issuedDate) && <span className="tabular-nums">{date(c.issuedDate)}</span>}
+              </DetailField>
+              <DetailField icon={CalendarX} label="Ngày hết hạn" iconClassName="text-rose-500">
+                {date(c.expiryDate) && <span className={`tabular-nums ${expired ? "text-rose-600" : ""}`}>{date(c.expiryDate)}</span>}
+              </DetailField>
+            </div>
+          </section>
+        );
+      })}
+    </div>
   );
 }
