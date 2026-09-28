@@ -15,6 +15,17 @@ import {
 const fmt = new Intl.NumberFormat("vi-VN");
 const date = (d?: string) => (d ? dayjs(d).format("DD/MM") : "…");
 
+/** Admin list spans every factory */
+export const factoryColumn: Column<MachineRow> = {
+  key: "factoryName",
+  label: "Nhà máy",
+  render: (_, m) => (
+    <Link href={ROUTES.profileDetail(m.factoryId)} className="block min-w-48 text-sm text-slate-700 hover:text-emerald-700 hover:underline">
+      {m.factoryName}
+    </Link>
+  ),
+};
+
 export const machineColumns: Column<MachineRow>[] = [
   {
     key: "name",
