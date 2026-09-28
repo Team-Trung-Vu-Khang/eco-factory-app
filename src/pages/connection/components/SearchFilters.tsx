@@ -2,13 +2,32 @@ import { Button, Form } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Handshake, Loader2, Search } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { CapacityField, FormSection, MultiSelectField, SearchSelectField, SelectField, TextareaField } from "@/components/form";
-import { MATERIAL_CONDITION_OPTIONS, type MaterialCondition } from "@/features/demand/constants";
-import { SEARCH_QUANTITY_UNIT_OPTIONS, type FactorySearchParams, type SearchQuantityUnit } from "@/features/connection";
+import {
+  AsyncMultiSelectField,
+  CapacityField,
+  FormSection,
+  MultiSelectField,
+  SearchSelectField,
+  SelectField,
+  TextareaField,
+} from "@/components/form";
+import {
+  MATERIAL_CONDITION_OPTIONS,
+  type MaterialCondition,
+} from "@/features/demand/constants";
+import {
+  SEARCH_QUANTITY_UNIT_OPTIONS,
+  type FactorySearchParams,
+  type SearchQuantityUnit,
+} from "@/features/connection";
 import { CROP_OPTIONS } from "@/features/crop";
-import { CERTIFICATION_TYPE_OPTIONS, PROVINCES, type CapacityUnit } from "@/features/factory";
-import { useProductGroupOptions } from "@/features/product-group";
-import { useProcessingServiceOptions } from "@/features/processing-service";
+import {
+  CERTIFICATION_TYPE_OPTIONS,
+  PROVINCES,
+  type CapacityUnit,
+} from "@/features/factory";
+import { fetchProductGroupOptions } from "@/features/product-group";
+import { fetchProcessingServiceOptions } from "@/features/processing-service";
 
 interface FilterValues {
   provinceCode: string;
@@ -41,7 +60,10 @@ const EMPTY: FilterValues = {
   packagingRequirements: "",
   technicalRequirements: "",
 };
-const PROVINCE_OPTIONS = PROVINCES.map((p) => ({ value: p.code, label: p.name }));
+const PROVINCE_OPTIONS = PROVINCES.map((p) => ({
+  value: p.code,
+  label: p.name,
+}));
 
 interface SearchFiltersProps {
   /** admin: khu vực, dịch vụ, nhóm nông sản, chứng nhận · member: + nguyên liệu, sản lượng, năng suất */
@@ -54,12 +76,16 @@ interface SearchFiltersProps {
   onConnect?: (params: FactorySearchParams) => void;
 }
 
-export function SearchFilters({ mode, searching, connecting, onSearch, onConnect }: SearchFiltersProps) {
+export function SearchFilters({
+  mode,
+  searching,
+  connecting,
+  onSearch,
+  onConnect,
+}: SearchFiltersProps) {
   const form = useForm<FilterValues>({ defaultValues: EMPTY });
   const { control, setValue } = form;
   const isAdmin = mode === "admin";
-  const serviceOptions = useProcessingServiceOptions();
-  const productGroupOptions = useProductGroupOptions();
   const provinceCode = useWatch({ control, name: "provinceCode" });
   // Ward depends on province
   const prevProvince = useRef(provinceCode);
@@ -68,31 +94,35 @@ export function SearchFilters({ mode, searching, connecting, onSearch, onConnect
     prevProvince.current = provinceCode;
   }, [provinceCode, setValue]);
 
-  const wardOptions = (PROVINCES.find((p) => p.code === provinceCode)?.wards ?? []).map((w) => ({ value: w.code, label: w.name }));
+  const wardOptions = (
+    PROVINCES.find((p) => p.code === provinceCode)?.wards ?? []
+  ).map((w) => ({ value: w.code, label: w.name }));
 
   const toParams = (v: FilterValues): FactorySearchParams => ({
-      provinceCode: v.provinceCode || undefined,
-      wardCode: v.wardCode || undefined,
-      functions: v.functions,
-      requiredCertifications: v.requiredCertifications,
-      ...(isAdmin
-        ? { cropIds: [], productGroupIds: v.productGroupIds }
-        : {
-            cropIds: v.cropIds,
-            quantity: v.quantity,
-            quantityUnit: v.quantity ? v.quantityUnit : undefined,
-            minCapacity: v.minCapacity,
-            capacityUnit: v.minCapacity ? v.capacityUnit : undefined,
-            materialCondition: v.materialCondition || undefined,
-            packagingRequirements: v.packagingRequirements.trim() || undefined,
-            technicalRequirements: v.technicalRequirements.trim() || undefined,
-          }),
+    provinceCode: v.provinceCode || undefined,
+    wardCode: v.wardCode || undefined,
+    functions: v.functions,
+    requiredCertifications: v.requiredCertifications,
+    ...(isAdmin
+      ? { cropIds: [], productGroupIds: v.productGroupIds }
+      : {
+          cropIds: v.cropIds,
+          quantity: v.quantity,
+          quantityUnit: v.quantity ? v.quantityUnit : undefined,
+          minCapacity: v.minCapacity,
+          capacityUnit: v.minCapacity ? v.capacityUnit : undefined,
+          materialCondition: v.materialCondition || undefined,
+          packagingRequirements: v.packagingRequirements.trim() || undefined,
+          technicalRequirements: v.technicalRequirements.trim() || undefined,
+        }),
   });
 
   const submit = form.handleSubmit((v) => onSearch(toParams(v)));
   const connect = form.handleSubmit((v) => {
     if (!v.cropIds.length) {
-      form.setError("cropIds", { message: "Chọn nguyên liệu để kết nối nhà máy." });
+      form.setError("cropIds", {
+        message: "Chọn nguyên liệu để kết nối nhà máy.",
+      });
       return;
     }
     onConnect?.(toParams(v));
@@ -100,10 +130,22 @@ export function SearchFilters({ mode, searching, connecting, onSearch, onConnect
 
   return (
     <Form {...form}>
-      <form onSubmit={submit} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
-        <FormSection title="Khu vực" description="Để trống để tìm tất cả tỉnh/thành">
+      <form
+        onSubmit={submit}
+        className="space-y-5 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
+      >
+        <FormSection
+          title="Khu vực"
+          description="Để trống để tìm tất cả tỉnh/thành"
+        >
           <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-            <SearchSelectField control={control} name="provinceCode" label="Tỉnh/Thành phố" options={PROVINCE_OPTIONS} placeholder="Tất cả" />
+            <SearchSelectField
+              control={control}
+              name="provinceCode"
+              label="Tỉnh/Thành phố"
+              options={PROVINCE_OPTIONS}
+              placeholder="Tất cả"
+            />
             <SearchSelectField
               control={control}
               name="wardCode"
@@ -115,15 +157,23 @@ export function SearchFilters({ mode, searching, connecting, onSearch, onConnect
           </div>
         </FormSection>
 
-        <FormSection title={isAdmin ? "Điều kiện tìm kiếm" : "Nhu cầu chế biến"}>
+        <FormSection
+          title={isAdmin ? "Điều kiện tìm kiếm" : "Nhu cầu chế biến"}
+        >
           <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-            <MultiSelectField control={control} name="functions" label="Dịch vụ" options={serviceOptions} placeholder="Tất cả dịch vụ" />
+            <AsyncMultiSelectField
+              control={control}
+              name="functions"
+              label="Dịch vụ"
+              fetchOptions={fetchProcessingServiceOptions}
+              placeholder="Tất cả dịch vụ"
+            />
             {isAdmin ? (
-              <MultiSelectField
+              <AsyncMultiSelectField
                 control={control}
                 name="productGroupIds"
                 label="Nhóm nông sản/sản phẩm"
-                options={productGroupOptions}
+                fetchOptions={fetchProductGroupOptions}
                 placeholder="Tất cả nhóm"
               />
             ) : (
@@ -172,8 +222,20 @@ export function SearchFilters({ mode, searching, connecting, onSearch, onConnect
                   placeholder="Chọn tình trạng"
                   className="md:col-span-2"
                 />
-                <TextareaField control={control} name="packagingRequirements" label="Yêu cầu đóng gói" rows={2} placeholder="VD: Túi hút chân không 500g" />
-                <TextareaField control={control} name="technicalRequirements" label="Yêu cầu kỹ thuật đặc biệt" rows={2} placeholder="VD: Sấy lạnh dưới 40°C" />
+                <TextareaField
+                  control={control}
+                  name="packagingRequirements"
+                  label="Yêu cầu đóng gói"
+                  rows={2}
+                  placeholder="VD: Túi hút chân không 500g"
+                />
+                <TextareaField
+                  control={control}
+                  name="technicalRequirements"
+                  label="Yêu cầu kỹ thuật đặc biệt"
+                  rows={2}
+                  placeholder="VD: Sấy lạnh dưới 40°C"
+                />
               </>
             )}
           </div>
@@ -181,16 +243,32 @@ export function SearchFilters({ mode, searching, connecting, onSearch, onConnect
 
         {/* Phones: stacked full-width, primary action on top */}
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
-          <Button type="button" variant="ghost" onClick={() => form.reset(EMPTY)}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => form.reset(EMPTY)}
+          >
             Xóa bộ lọc
           </Button>
-          <Button type="submit" variant={isAdmin ? "default" : "outline"} disabled={searching}>
-            {searching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+          <Button
+            type="submit"
+            variant={isAdmin ? "default" : "outline"}
+            disabled={searching}
+          >
+            {searching ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Search className="mr-2 h-4 w-4" />
+            )}
             Xem nhà máy phù hợp
           </Button>
           {!isAdmin && onConnect && (
             <Button type="button" onClick={connect} disabled={connecting}>
-              {connecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Handshake className="mr-2 h-4 w-4" />}
+              {connecting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Handshake className="mr-2 h-4 w-4" />
+              )}
               Kết nối nhà máy
             </Button>
           )}

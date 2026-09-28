@@ -1,10 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { MultiSelectField, SearchSelectField, TextareaField } from "@/components/form";
-import { CROP_GROUP_OPTIONS, cropOptionsInGroup } from "@/features/crop";
-import { EMPTY_PRODUCT_GROUP, productGroupSchema, type ProductGroupFormValues } from "@/features/product-group";
+import { TagInputField, TextareaField, TextField } from "@/components/form";
+import {
+  EMPTY_PRODUCT_GROUP,
+  productGroupSchema,
+  type ProductGroupFormValues,
+} from "@/features/product-group";
 
 interface ProductGroupFormDialogProps {
   open: boolean;
@@ -15,7 +18,13 @@ interface ProductGroupFormDialogProps {
   onSubmit: (values: ProductGroupFormValues) => void;
 }
 
-export function ProductGroupFormDialog({ open, onOpenChange, initialValues, isSubmitting, onSubmit }: ProductGroupFormDialogProps) {
+export function ProductGroupFormDialog({
+  open,
+  onOpenChange,
+  initialValues,
+  isSubmitting,
+  onSubmit,
+}: ProductGroupFormDialogProps) {
   const isEdit = !!initialValues;
   const form = useForm<ProductGroupFormValues>({
     resolver: zodResolver(productGroupSchema),
@@ -23,15 +32,6 @@ export function ProductGroupFormDialog({ open, onOpenChange, initialValues, isSu
     mode: "onTouched",
   });
   const { control } = form;
-  const cropGroupId = form.watch("cropGroupId");
-  const cropOptions = useMemo(() => cropOptionsInGroup(cropGroupId), [cropGroupId]);
-
-  // Drop crops that don't belong to the newly picked group
-  useEffect(() => {
-    const ids = form.getValues("cropIds");
-    const kept = ids.filter((id) => cropOptions.some((o) => o.value === id));
-    if (kept.length !== ids.length) form.setValue("cropIds", kept);
-  }, [cropOptions, form]);
 
   useEffect(() => {
     if (open) form.reset(initialValues ?? EMPTY_PRODUCT_GROUP);
@@ -50,23 +50,41 @@ export function ProductGroupFormDialog({ open, onOpenChange, initialValues, isSu
     >
       <Form {...form}>
         <div className="space-y-4">
-          <SearchSelectField
+          <TextField
             control={control}
-            name="cropGroupId"
-            label="Tên nhóm (nhóm cây trồng)"
+            name="name"
+            label="Tên nhóm nông sản / sản phẩm"
             required
-            options={CROP_GROUP_OPTIONS}
+            placeholder="VD: Cây chè, Cà phê, Lúa gạo..."
           />
-          <MultiSelectField
+          <TextField
             control={control}
-            name="cropIds"
+            name="code"
+            label="Mã nhóm"
+            disabled={isEdit}
+            clearable={!isEdit}
+            placeholder={
+              isEdit ? undefined : "Tự sinh nếu để trống (VD: FPG-001)"
+            }
+            description={
+              isEdit
+                ? "Mã nhóm không thể thay đổi sau khi tạo."
+                : "Tối đa 80 ký tự. Hệ thống tự sinh nếu để trống."
+            }
+          />
+          <TagInputField
+            control={control}
+            name="crops"
             label="Cây trồng liên kết"
-            disabled={!cropGroupId}
-            options={cropOptions}
-            placeholder={cropGroupId ? "Tất cả cây trồng trong nhóm" : "Chọn nhóm cây trồng trước"}
+            placeholder="Nhập tên cây trồng rồi ấn Enter hoặc phẩy (VD: Chè búp tươi, Chè khô)..."
             description="Để trống = áp dụng cho tất cả cây trồng trong nhóm. Dùng để tìm nhà máy theo cây trồng."
           />
-          <TextareaField control={control} name="description" label="Mô tả" rows={2} />
+          <TextareaField
+            control={control}
+            name="description"
+            label="Mô tả"
+            rows={2}
+          />
         </div>
       </Form>
     </FormDialog>

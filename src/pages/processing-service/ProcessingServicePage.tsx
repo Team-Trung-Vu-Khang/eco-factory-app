@@ -1,4 +1,10 @@
-import { Button, DataTable, DeleteDialog, type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  Badge,
+  Button,
+  DataTable,
+  DeleteDialog,
+  type Column,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
 import {
@@ -13,11 +19,39 @@ import { useCrudPage } from "@/hooks/useCrudPage";
 import { ProcessingServiceFormDialog } from "./components/ProcessingServiceFormDialog";
 
 const columns: Column<ProcessingServiceItem>[] = [
-  { key: "name", label: "Dịch vụ", render: (_, s) => <span className="font-medium text-slate-900">{s.name}</span> },
-  { key: "description", label: "Mô tả", render: (_, s) => <span className="text-sm text-slate-600">{s.description || "—"}</span> },
+  {
+    key: "code",
+    label: "Mã dịch vụ",
+    render: (_, s) => (
+      <Badge variant="outline" className="font-mono text-xs font-normal">
+        {s.code || "—"}
+      </Badge>
+    ),
+  },
+  {
+    key: "name",
+    label: "Dịch vụ",
+    render: (_, s) => (
+      <span className="font-medium text-slate-900">{s.name}</span>
+    ),
+  },
+  {
+    key: "description",
+    label: "Mô tả",
+    render: (_, s) => (
+      <span className="text-sm text-slate-600">{s.description || "—"}</span>
+    ),
+  },
 ];
 
-const toFormValues = (s: ProcessingServiceItem): ProcessingServiceFormValues => ({ name: s.name, description: s.description ?? "" });
+const toFormValues = (
+  s: ProcessingServiceItem,
+): ProcessingServiceFormValues => ({
+  name: s.name,
+  code: s.code ?? "",
+  description: s.description ?? "",
+  status: s.status ?? "active",
+});
 
 export default function ProcessingServicePage() {
   const page = useCrudPage({
@@ -45,7 +79,7 @@ export default function ProcessingServicePage() {
         data={query.data?.content ?? []}
         loading={query.isFetching}
         searchable
-        searchPlaceholder="Tìm theo tên dịch vụ..."
+        searchPlaceholder="Tìm theo mã, tên dịch vụ, mô tả..."
         onSearch={page.handleSearch}
         pageSize={page.size}
         currentIndex={page.page}

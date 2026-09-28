@@ -28,8 +28,17 @@ const fmt = new Intl.NumberFormat("vi-VN");
 
 const unique = (ids: string[]) => [...new Set(ids)];
 
-function ReadonlyTags({ label, ids, options }: { label: string; ids: string[]; options: { value: string; label: string }[] }) {
-  const nameOf = (id: string) => options.find((o) => o.value === id)?.label ?? id;
+function ReadonlyTags({
+  label,
+  ids,
+  options,
+}: {
+  label: string;
+  ids: string[];
+  options: { value: string; label: string }[];
+}) {
+  const nameOf = (id: string) =>
+    options.find((o) => o.value === id)?.label ?? id;
   return (
     // Phones: hidden until a machine is picked — the placeholder only adds height
     <div className={`space-y-2 ${ids.length ? "" : "hidden! sm:block!"}`}>
@@ -75,7 +84,7 @@ export function ScheduleForm({
   const { options: factoryOptions } = useFactoryOptions();
   const { data: machines } = useMachines({
     page: 0,
-    size: 1000,
+    size: 100,
     status: "ACTIVE",
   });
   const allMachines = useMemo(() => machines?.content ?? [], [machines]);
@@ -90,7 +99,9 @@ export function ScheduleForm({
   const serviceOptions = useProcessingServiceOptions();
   const productGroupOptions = useProductGroupOptions();
   const serviceIds = unique(selectedMachines.flatMap((m) => m.functions));
-  const productGroupIds = unique(selectedMachines.flatMap((m) => m.productGroupIds));
+  const productGroupIds = unique(
+    selectedMachines.flatMap((m) => m.productGroupIds),
+  );
 
   // Deep link: ?machineId= selects the machine and its factory
   useEffect(() => {
@@ -152,10 +163,30 @@ export function ScheduleForm({
                 factoryId ? "Chọn máy đang hoạt động..." : "Chọn nhà máy trước"
               }
             />
-            <ReadonlyTags label="Dịch vụ" ids={serviceIds} options={serviceOptions} />
-            <ReadonlyTags label="Nhóm nông sản/sản phẩm" ids={productGroupIds} options={productGroupOptions} />
-            <TextField control={control} name="fromDate" label="Từ ngày" type="date" required />
-            <TextField control={control} name="toDate" label="Đến ngày" type="date" required />
+            <ReadonlyTags
+              label="Dịch vụ"
+              ids={serviceIds}
+              options={serviceOptions}
+            />
+            <ReadonlyTags
+              label="Nhóm nông sản/sản phẩm"
+              ids={productGroupIds}
+              options={productGroupOptions}
+            />
+            <TextField
+              control={control}
+              name="fromDate"
+              label="Từ ngày"
+              type="date"
+              required
+            />
+            <TextField
+              control={control}
+              name="toDate"
+              label="Đến ngày"
+              type="date"
+              required
+            />
             <CapacityField
               control={control}
               valueName="maxCapacity"
@@ -183,7 +214,11 @@ export function ScheduleForm({
           </div>
         </FormSection>
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto!">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full sm:w-auto!"
+          >
             {isSubmitting ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (

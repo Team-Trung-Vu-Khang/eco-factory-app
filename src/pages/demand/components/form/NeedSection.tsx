@@ -1,14 +1,20 @@
 import {
+  AsyncMultiSelectField,
+  AsyncSearchSelectField,
   FormSection,
   MultiSelectField,
   NumberField,
-  SearchSelectField,
   SelectField,
   TextareaField,
   TextField,
 } from "@/components/form";
-import { MATERIAL_CONDITION_OPTIONS, QUANTITY_UNIT_OPTIONS } from "@/features/demand";
-import { CERTIFICATION_TYPE_OPTIONS, PROCESSING_SERVICE_OPTIONS, PRODUCT_GROUP_OPTIONS } from "@/features/factory";
+import {
+  MATERIAL_CONDITION_OPTIONS,
+  QUANTITY_UNIT_OPTIONS,
+} from "@/features/demand";
+import { CERTIFICATION_TYPE_OPTIONS } from "@/features/factory";
+import { fetchProcessingServiceOptions } from "@/features/processing-service";
+import { fetchProductGroupOptions } from "@/features/product-group";
 import { useDemandTypeOptions } from "../../hooks/useDemandTypeOptions";
 import { useDemandFormContext } from "./useDemandFormContext";
 
@@ -19,18 +25,52 @@ export function NeedSection() {
   // Picking a type pre-fills its services; the user can still adjust them
   const handleTypeChange = (id: string) => {
     const type = types.find((t) => t.id === id);
-    if (type) setValue("services", type.processingServices, { shouldDirty: true, shouldValidate: true });
+    if (type)
+      setValue("services", type.processingServices, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
   };
 
   return (
     <div className="space-y-8">
       <FormSection title="Sản phẩm">
         <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-          <TextField control={control} name="productName" label="Tên sản phẩm cụ thể" required placeholder="VD: Chè Shan tuyết, bưởi, dứa" />
-          <SearchSelectField control={control} name="productGroupId" label="Nhóm nông sản" required options={PRODUCT_GROUP_OPTIONS} />
-          <NumberField control={control} name="quantity" label="Khối lượng cần chế biến" required step="any" />
-          <SelectField control={control} name="quantityUnit" label="Đơn vị" required options={QUANTITY_UNIT_OPTIONS} />
-          <SelectField control={control} name="materialCondition" label="Tình trạng nguyên liệu" options={MATERIAL_CONDITION_OPTIONS} />
+          <TextField
+            control={control}
+            name="productName"
+            label="Tên sản phẩm cụ thể"
+            required
+            placeholder="VD: Chè Shan tuyết, bưởi, dứa"
+          />
+          <AsyncSearchSelectField
+            control={control}
+            name="productGroupId"
+            label="Nhóm nông sản"
+            required
+            fetchOptions={fetchProductGroupOptions}
+            placeholder="Tìm kiếm nhóm nông sản..."
+          />
+          <NumberField
+            control={control}
+            name="quantity"
+            label="Khối lượng cần chế biến"
+            required
+            step="any"
+          />
+          <SelectField
+            control={control}
+            name="quantityUnit"
+            label="Đơn vị"
+            required
+            options={QUANTITY_UNIT_OPTIONS}
+          />
+          <SelectField
+            control={control}
+            name="materialCondition"
+            label="Tình trạng nguyên liệu"
+            options={MATERIAL_CONDITION_OPTIONS}
+          />
         </div>
       </FormSection>
 
@@ -44,7 +84,14 @@ export function NeedSection() {
             onValueChange={handleTypeChange}
             description="Tự điền dịch vụ tương ứng"
           />
-          <MultiSelectField control={control} name="services" label="Dịch vụ cần thực hiện" required options={PROCESSING_SERVICE_OPTIONS} />
+          <AsyncMultiSelectField
+            control={control}
+            name="services"
+            label="Dịch vụ cần thực hiện"
+            required
+            fetchOptions={fetchProcessingServiceOptions}
+            placeholder="Tìm kiếm và chọn dịch vụ..."
+          />
           <MultiSelectField
             control={control}
             name="requiredCertifications"
@@ -53,8 +100,18 @@ export function NeedSection() {
             description="Chỉ gợi ý cơ sở có chứng nhận còn hạn"
           />
           <div className="hidden sm:block!" />
-          <TextareaField control={control} name="technicalRequirements" label="Yêu cầu kỹ thuật đặc biệt" rows={3} />
-          <TextareaField control={control} name="packagingRequirements" label="Yêu cầu đóng gói" rows={3} />
+          <TextareaField
+            control={control}
+            name="technicalRequirements"
+            label="Yêu cầu kỹ thuật đặc biệt"
+            rows={3}
+          />
+          <TextareaField
+            control={control}
+            name="packagingRequirements"
+            label="Yêu cầu đóng gói"
+            rows={3}
+          />
         </div>
       </FormSection>
     </div>

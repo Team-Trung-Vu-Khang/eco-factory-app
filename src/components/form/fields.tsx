@@ -45,7 +45,14 @@ export function TextField<T extends FieldValues>({
   className,
   type = "text",
   placeholder,
-}: BaseFieldProps<T> & { type?: "text" | "email" | "tel" | "date" | "url" | "password"; placeholder?: string }) {
+  clearable,
+  onClear,
+}: BaseFieldProps<T> & {
+  type?: "text" | "email" | "tel" | "date" | "url" | "password";
+  placeholder?: string;
+  clearable?: boolean;
+  onClear?: () => void;
+}) {
   return (
     <FormField
       control={control}
@@ -54,7 +61,18 @@ export function TextField<T extends FieldValues>({
         <FormItem className={className}>
           <FormLabel required={required}>{label}</FormLabel>
           <FormControl>
-            <Input {...field} value={field.value ?? ""} type={type} placeholder={placeholder} disabled={disabled} />
+            <Input
+              {...field}
+              value={field.value ?? ""}
+              type={type}
+              placeholder={placeholder}
+              disabled={disabled}
+              clearable={disabled ? false : clearable}
+              onClear={() => {
+                field.onChange("");
+                onClear?.();
+              }}
+            />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
@@ -74,7 +92,14 @@ export function NumberField<T extends FieldValues>({
   className,
   placeholder,
   step,
-}: BaseFieldProps<T> & { placeholder?: string; step?: number | "any" }) {
+  clearable,
+  onClear,
+}: BaseFieldProps<T> & {
+  placeholder?: string;
+  step?: number | "any";
+  clearable?: boolean;
+  onClear?: () => void;
+}) {
   return (
     <FormField
       control={control}
@@ -89,13 +114,20 @@ export function NumberField<T extends FieldValues>({
               step={step}
               placeholder={placeholder}
               disabled={disabled}
+              clearable={disabled ? false : clearable}
               name={field.name}
               ref={field.ref}
               onBlur={field.onBlur}
               value={field.value ?? ""}
               onChange={(e) =>
-                field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)
+                field.onChange(
+                  e.target.value === "" ? undefined : e.target.valueAsNumber,
+                )
               }
+              onClear={() => {
+                field.onChange(undefined);
+                onClear?.();
+              }}
             />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}
@@ -125,7 +157,13 @@ export function TextareaField<T extends FieldValues>({
         <FormItem className={className}>
           <FormLabel required={required}>{label}</FormLabel>
           <FormControl>
-            <Textarea {...field} value={field.value ?? ""} rows={rows} placeholder={placeholder} disabled={disabled} />
+            <Textarea
+              {...field}
+              value={field.value ?? ""}
+              rows={rows}
+              placeholder={placeholder}
+              disabled={disabled}
+            />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
@@ -197,7 +235,12 @@ export function MultiSelectField<T extends FieldValues>({
   className,
   options,
   placeholder = "Chọn...",
-}: BaseFieldProps<T> & { options: Option[]; placeholder?: string }) {
+  clearable,
+}: BaseFieldProps<T> & {
+  options: Option[];
+  placeholder?: string;
+  clearable?: boolean;
+}) {
   return (
     <FormField
       control={control}
@@ -214,7 +257,7 @@ export function MultiSelectField<T extends FieldValues>({
               searchPlaceholder="Tìm kiếm..."
               emptyText="Không có kết quả"
               disabled={disabled}
-              clearable
+              clearable={disabled ? false : (clearable ?? true)}
             />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}
@@ -289,14 +332,20 @@ export function ImageUploadField<T extends FieldValues>({
       control={control}
       name={name}
       render={({ field }) => {
-        const urls: string[] = single ? (field.value ? [field.value] : []) : (field.value ?? []);
+        const urls: string[] = single
+          ? field.value
+            ? [field.value]
+            : []
+          : (field.value ?? []);
         return (
           <FormItem className={className}>
             <FormLabel required={required}>{label}</FormLabel>
             <FormControl>
               <ImageDropzone
                 value={urls}
-                onChange={(next) => field.onChange(single ? (next[0] ?? "") : next)}
+                onChange={(next) =>
+                  field.onChange(single ? (next[0] ?? "") : next)
+                }
                 maxFiles={single ? 1 : maxFiles}
                 variant={variant}
                 allowPdf={allowPdf}
@@ -324,7 +373,12 @@ export function SearchSelectField<T extends FieldValues>({
   className,
   options,
   placeholder = "Chọn...",
-}: BaseFieldProps<T> & { options: Option[]; placeholder?: string }) {
+  clearable,
+}: BaseFieldProps<T> & {
+  options: Option[];
+  placeholder?: string;
+  clearable?: boolean;
+}) {
   return (
     <FormField
       control={control}
@@ -341,7 +395,7 @@ export function SearchSelectField<T extends FieldValues>({
               searchPlaceholder="Tìm kiếm..."
               emptyText="Không có kết quả"
               disabled={disabled}
-              clearable
+              clearable={disabled ? false : (clearable ?? true)}
             />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}

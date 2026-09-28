@@ -1,7 +1,12 @@
-import { Badge, Button, DataTable, DeleteDialog, type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  Badge,
+  Button,
+  DataTable,
+  DeleteDialog,
+  type Column,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
-import { getCropName } from "@/features/crop";
 import {
   useCreateProductGroup,
   useDeleteProductGroup,
@@ -14,16 +19,35 @@ import { useCrudPage } from "@/hooks/useCrudPage";
 import { ProductGroupFormDialog } from "./components/ProductGroupFormDialog";
 
 const columns: Column<ProductGroup>[] = [
-  { key: "name", label: "Tên nhóm", render: (_, g) => <span className="font-medium text-slate-900">{g.name}</span> },
   {
-    key: "cropIds",
+    key: "code",
+    label: "Mã nhóm",
+    render: (_, g) => (
+      <Badge variant="outline" className="font-mono text-xs font-normal">
+        {g.code || "—"}
+      </Badge>
+    ),
+  },
+  {
+    key: "name",
+    label: "Tên nhóm",
+    render: (_, g) => (
+      <span className="font-medium text-slate-900">{g.name}</span>
+    ),
+  },
+  {
+    key: "crops",
     label: "Cây trồng liên kết",
     render: (_, g) =>
-      g.cropIds.length ? (
+      g.crops && g.crops.length > 0 ? (
         <div className="flex flex-wrap gap-1">
-          {g.cropIds.map((id) => (
-            <Badge key={id} variant="secondary" className="font-normal">
-              {getCropName(id)}
+          {g.crops.map((cropName, idx) => (
+            <Badge
+              key={`${cropName}-${idx}`}
+              variant="secondary"
+              className="font-normal"
+            >
+              {cropName}
             </Badge>
           ))}
         </div>
@@ -31,13 +55,21 @@ const columns: Column<ProductGroup>[] = [
         <Badge className="font-normal">Tất cả cây trồng trong nhóm</Badge>
       ),
   },
-  { key: "description", label: "Mô tả", render: (_, g) => <span className="text-sm text-slate-600">{g.description || "—"}</span> },
+  {
+    key: "description",
+    label: "Mô tả",
+    render: (_, g) => (
+      <span className="text-sm text-slate-600">{g.description || "—"}</span>
+    ),
+  },
 ];
 
 const toFormValues = (g: ProductGroup): ProductGroupFormValues => ({
-  cropGroupId: g.cropGroupId,
-  cropIds: g.cropIds,
+  name: g.name,
+  code: g.code ?? "",
+  crops: g.crops ?? [],
   description: g.description ?? "",
+  status: g.status ?? "active",
 });
 
 export default function ProductGroupPage() {
@@ -66,7 +98,7 @@ export default function ProductGroupPage() {
         data={query.data?.content ?? []}
         loading={query.isFetching}
         searchable
-        searchPlaceholder="Tìm theo tên nhóm..."
+        searchPlaceholder="Tìm theo mã, tên nhóm, cây trồng..."
         onSearch={page.handleSearch}
         pageSize={page.size}
         currentIndex={page.page}

@@ -1,10 +1,10 @@
 import {
+  AsyncMultiSelectField,
   FormSection,
-  MultiSelectField,
   SwitchField,
   TextareaField,
 } from "@/components/form";
-import { PRODUCT_GROUP_OPTIONS } from "@/features/factory";
+import { fetchProductGroupOptions } from "@/features/product-group";
 import { ManagerField } from "./ManagerField";
 import { useWarehouseFormContext } from "./useWarehouseFormContext";
 
@@ -15,7 +15,14 @@ export function OperationSection() {
     <FormSection title="Vận hành">
       <div className="space-y-4">
         <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-          <MultiSelectField control={control} name="productGroupIds" label="Nông sản phù hợp" options={PRODUCT_GROUP_OPTIONS} className="sm:col-span-2" />
+          <AsyncMultiSelectField
+            control={control}
+            name="productGroupIds"
+            label="Nông sản phù hợp"
+            fetchOptions={fetchProductGroupOptions}
+            placeholder="Tìm kiếm và chọn nhóm nông sản..."
+            className="sm:col-span-2"
+          />
           <ManagerField />
         </div>
         <SwitchField

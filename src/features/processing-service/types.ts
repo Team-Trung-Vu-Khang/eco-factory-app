@@ -1,16 +1,20 @@
-/** A processing service in the shared catalog; factories pick from it */
 export interface ProcessingServiceItem {
-  /** Also the value stored in factory.services */
-  id: string;
+  id: number | string;
+  code?: string;
   name: string;
-  description?: string;
-  /** Names of factories offering this service */
-  factoryNames: string[];
-  updatedAt: string;
+  description?: string | null;
+  displayOrder?: number | null;
+  status?: "active" | "inactive" | "archived";
+  metadataJson?: Record<string, unknown> | null;
+  /** Legacy or joined field for UI */
+  factoryNames?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ProcessingServiceListParams {
   page: number;
   size: number;
   keyword?: string;
+  status?: string;
 }

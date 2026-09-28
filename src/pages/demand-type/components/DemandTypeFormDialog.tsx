@@ -3,7 +3,7 @@ import { Form, FormDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
-  MultiSelectField,
+  AsyncMultiSelectField,
   SwitchField,
   TextareaField,
   TextField,
@@ -13,7 +13,7 @@ import {
   demandTypeSchema,
   type DemandTypeFormValues,
 } from "@/features/demand-type";
-import { PROCESSING_SERVICE_OPTIONS } from "@/features/factory";
+import { fetchProcessingServiceOptions } from "@/features/processing-service";
 
 interface DemandTypeFormDialogProps {
   open: boolean;
@@ -34,7 +34,13 @@ const toCode = (name: string) =>
     .replace(/[^A-Z0-9]+/g, "_")
     .replace(/^_|_$/g, "");
 
-export function DemandTypeFormDialog({ open, onOpenChange, initialValues, isSubmitting, onSubmit }: DemandTypeFormDialogProps) {
+export function DemandTypeFormDialog({
+  open,
+  onOpenChange,
+  initialValues,
+  isSubmitting,
+  onSubmit,
+}: DemandTypeFormDialogProps) {
   const isEdit = !!initialValues;
   const form = useForm<DemandTypeFormValues>({
     resolver: zodResolver(demandTypeSchema),
@@ -61,22 +67,52 @@ export function DemandTypeFormDialog({ open, onOpenChange, initialValues, isSubm
       <Form {...form}>
         <div className="space-y-4">
           <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
-            <TextField control={control} name="name" label="Tên loại nhu cầu" required placeholder="VD: Sấy lạnh" />
+            <TextField
+              control={control}
+              name="name"
+              label="Tên loại nhu cầu"
+              required
+              placeholder="VD: Sấy lạnh"
+            />
             <TextField
               control={control}
               name="code"
               label="Mã"
               required
+              disabled={isEdit}
+              clearable={!isEdit}
               placeholder="VD: SAY_LANH"
-              description={!isEdit ? "Tự tạo theo tên, có thể sửa lại" : undefined}
+              description={
+                isEdit
+                  ? "Mã không thể thay đổi sau khi tạo."
+                  : "Tự tạo theo tên, có thể sửa lại"
+              }
             />
           </div>
 
-          <MultiSelectField control={control} name="processingServices" label="Dịch vụ liên quan" required options={PROCESSING_SERVICE_OPTIONS} description="Dùng để gợi ý nhà máy có dịch vụ phù hợp" />
-          <TextareaField control={control} name="description" label="Mô tả" rows={2} />
+          <AsyncMultiSelectField
+            control={control}
+            name="processingServices"
+            label="Dịch vụ liên quan"
+            required
+            fetchOptions={fetchProcessingServiceOptions}
+            placeholder="Tìm kiếm và chọn dịch vụ..."
+            description="Dùng để gợi ý nhà máy có dịch vụ phù hợp"
+          />
+          <TextareaField
+            control={control}
+            name="description"
+            label="Mô tả"
+            rows={2}
+          />
 
           {isEdit && (
-            <SwitchField control={control} name="isActive" label="Đang hoạt động" description="Tắt để ẩn khỏi danh sách chọn khi tạo nhu cầu mới" />
+            <SwitchField
+              control={control}
+              name="isActive"
+              label="Đang hoạt động"
+              description="Tắt để ẩn khỏi danh sách chọn khi tạo nhu cầu mới"
+            />
           )}
         </div>
       </Form>
@@ -100,7 +136,9 @@ function AutoCode({
     if (!enabled) return;
     const sub = form.watch((values, { name }) => {
       if (name === "name" && !form.getFieldState("code").isDirty) {
-        form.setValue("code", toCode(values.name ?? ""), { shouldValidate: form.formState.isSubmitted });
+        form.setValue("code", toCode(values.name ?? ""), {
+          shouldValidate: form.formState.isSubmitted,
+        });
       }
     });
     return () => sub.unsubscribe();

@@ -1,8 +1,20 @@
-import { Button, DataTable, DeleteDialog, useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  Button,
+  DataTable,
+  DeleteDialog,
+  useToast,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import PageWrapper from "@/components/common/PageWrapper";
-import { useCurrentFactory, useDeleteMachine, useMachines, useSaveMachine, type MachineListParams, type MachineRow } from "@/features/factory";
+import {
+  useCurrentFactory,
+  useDeleteMachine,
+  useMachines,
+  useSaveMachine,
+  type MachineListParams,
+  type MachineRow,
+} from "@/features/factory";
 import { machineColumns, machineFilters } from "./components/machine-columns";
 import { MachineFormDialog } from "./components/MachineFormDialog";
 import type { MachineDialogValues } from "./components/machine-form-schema";
@@ -35,14 +47,30 @@ export default function MachinePage() {
   const query = useMachines({ page, size, keyword, factoryId, ...filters });
   const save = useSaveMachine();
   const remove = useDeleteMachine();
-  const editingValues = useMemo(() => (editing ? toDialogValues(editing) : undefined), [editing]);
+  const editingValues = useMemo(
+    () => (editing ? toDialogValues(editing) : undefined),
+    [editing],
+  );
 
-  const fail = (title: string, error: unknown) => toast({ title, description: (error as Error).message, variant: "destructive" });
+  const fail = (title: string, error: unknown) =>
+    toast({
+      title,
+      description: (error as Error).message,
+      variant: "destructive",
+    });
 
-  const handleSubmit = async ({ factoryId, ...values }: MachineDialogValues) => {
+  const handleSubmit = async ({
+    factoryId,
+    ...values
+  }: MachineDialogValues) => {
     try {
       await save.mutateAsync({ factoryId, values, machineId: editing?.id });
-      toast({ title: "Thành công", description: editing ? "Đã cập nhật máy / dây chuyền." : "Đã thêm máy / dây chuyền." });
+      toast({
+        title: "Thành công",
+        description: editing
+          ? "Đã cập nhật máy / dây chuyền."
+          : "Đã thêm máy / dây chuyền.",
+      });
       setFormOpen(false);
     } catch (error) {
       fail("Không thể lưu", error);
@@ -52,7 +80,10 @@ export default function MachinePage() {
   const handleConfirmDelete = async () => {
     if (!deleting) return;
     try {
-      await remove.mutateAsync({ factoryId: deleting.factoryId, machineId: deleting.id });
+      await remove.mutateAsync({
+        factoryId: deleting.factoryId,
+        machineId: deleting.id,
+      });
       toast({ title: "Đã xóa", description: `Đã xóa "${deleting.name}".` });
     } catch (error) {
       fail("Không thể xóa", error);
@@ -88,7 +119,10 @@ export default function MachinePage() {
         }}
         filters={machineFilters}
         onFilterChange={(key, value) => {
-          setFilters((prev) => ({ ...prev, [key]: value && value !== "all" ? value : undefined }));
+          setFilters((prev) => ({
+            ...prev,
+            [key]: value && value !== "all" ? value : undefined,
+          }));
           setPage(0);
         }}
         pageSize={size}

@@ -2,17 +2,30 @@ import { useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-interface CrudPageOptions<T extends { id: string; name: string }, V> {
+interface CrudPageOptions<
+  T extends { id: string | number; name: string },
+  V,
+  TId = T["id"],
+> {
   /** Entity name in toasts, e.g. "nhóm nông sản" */
   noun: string;
   toFormValues: (row: T) => V;
   create: UseMutationResult<unknown, Error, V>;
-  update: UseMutationResult<unknown, Error, { id: string; values: V }>;
-  remove: UseMutationResult<unknown, Error, string>;
+  update: UseMutationResult<unknown, Error, { id: TId; values: V }>;
+  remove: UseMutationResult<unknown, Error, TId>;
 }
 
 /** Paging/search + create/edit dialog + delete confirm state shared by catalog pages */
-export function useCrudPage<T extends { id: string; name: string }, V>({ noun, toFormValues, create, update, remove }: CrudPageOptions<T, V>) {
+export function useCrudPage<
+  T extends { id: string | number; name: string },
+  V,
+>({
+  noun,
+  toFormValues,
+  create,
+  update,
+  remove,
+}: CrudPageOptions<T, V, T["id"]>) {
   const { toast } = useToast();
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
@@ -20,9 +33,17 @@ export function useCrudPage<T extends { id: string; name: string }, V>({ noun, t
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<T | null>(null);
   const [deleting, setDeleting] = useState<T | null>(null);
-  const editingValues = useMemo(() => (editing ? toFormValues(editing) : undefined), [editing, toFormValues]);
+  const editingValues = useMemo(
+    () => (editing ? toFormValues(editing) : undefined),
+    [editing, toFormValues],
+  );
 
-  const fail = (title: string, error: unknown) => toast({ title, description: (error as Error).message, variant: "destructive" });
+  const fail = (title: string, error: unknown) =>
+    toast({
+      title,
+      description: (error as Error).message,
+      variant: "destructive",
+    });
 
   return {
     params: { page, size, keyword },
@@ -54,7 +75,10 @@ export function useCrudPage<T extends { id: string; name: string }, V>({ noun, t
       try {
         if (editing) await update.mutateAsync({ id: editing.id, values });
         else await create.mutateAsync(values);
-        toast({ title: "Thành công", description: editing ? `Đã cập nhật ${noun}.` : `Đã thêm ${noun}.` });
+        toast({
+          title: "Thành công",
+          description: editing ? `Đã cập nhật ${noun}.` : `Đã thêm ${noun}.`,
+        });
         setFormOpen(false);
       } catch (error) {
         fail("Không thể lưu", error);

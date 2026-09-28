@@ -18,7 +18,13 @@ interface ProcessingServiceFormDialogProps {
   onSubmit: (values: ProcessingServiceFormValues) => void;
 }
 
-export function ProcessingServiceFormDialog({ open, onOpenChange, initialValues, isSubmitting, onSubmit }: ProcessingServiceFormDialogProps) {
+export function ProcessingServiceFormDialog({
+  open,
+  onOpenChange,
+  initialValues,
+  isSubmitting,
+  onSubmit,
+}: ProcessingServiceFormDialogProps) {
   const isEdit = !!initialValues;
   const form = useForm<ProcessingServiceFormValues>({
     resolver: zodResolver(processingServiceSchema),
@@ -43,8 +49,34 @@ export function ProcessingServiceFormDialog({ open, onOpenChange, initialValues,
     >
       <Form {...form}>
         <div className="space-y-4">
-          <TextField control={control} name="name" label="Tên dịch vụ" required placeholder="VD: Sấy lạnh" />
-          <TextareaField control={control} name="description" label="Mô tả" rows={2} />
+          <TextField
+            control={control}
+            name="name"
+            label="Tên dịch vụ"
+            required
+            placeholder="VD: Sấy lạnh"
+          />
+          <TextField
+            control={control}
+            name="code"
+            label="Mã dịch vụ"
+            disabled={isEdit}
+            clearable={!isEdit}
+            placeholder={
+              isEdit ? undefined : "Tự sinh nếu để trống (VD: FPRCS-001)"
+            }
+            description={
+              isEdit
+                ? "Mã dịch vụ không thể thay đổi sau khi tạo."
+                : "Tối đa 80 ký tự. Hệ thống tự sinh nếu để trống."
+            }
+          />
+          <TextareaField
+            control={control}
+            name="description"
+            label="Mô tả"
+            rows={2}
+          />
         </div>
       </Form>
     </FormDialog>
