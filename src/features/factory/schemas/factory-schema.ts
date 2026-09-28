@@ -115,7 +115,7 @@ export const EMPTY_MACHINE: MachineFormValues = {
   functions: [],
   productGroupIds: [],
   maxCapacity: undefined as unknown as number,
-  capacityUnit: "KG_PER_DAY",
+  capacityUnit: "KG_PER_MONTH",
   status: "ACTIVE",
   certificateIds: [],
 };

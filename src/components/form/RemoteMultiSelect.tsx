@@ -91,14 +91,14 @@ export function RemoteMultiSelect({
           aria-expanded={open}
           disabled={disabled}
           className={cn(
-            "group h-auto min-h-9 w-full justify-between px-3 py-1 text-sm font-normal shadow-sm",
+            "group h-auto min-h-9 w-full min-w-0 justify-between overflow-hidden px-3 py-1 text-sm font-normal shadow-sm",
             !value.length && "text-muted-foreground",
             className,
           )}
         >
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left">
             {value.length === 0 ? (
-              <span className="text-muted-foreground">{placeholder}</span>
+              <span className="min-w-0 truncate text-muted-foreground">{placeholder}</span>
             ) : (
               value.map((item) => (
                 <Badge

@@ -39,7 +39,7 @@ export default function ConnectionSearchPage() {
 
   return (
     <PageWrapper
-      title={isAdmin ? "Tìm kiếm nhà máy" : "Kết nối nhà máy"}
+      title="Tìm kiếm nhà máy"
       description={
         isAdmin
           ? "Tìm nhà máy theo khu vực, dịch vụ, nhóm nông sản và chứng nhận"

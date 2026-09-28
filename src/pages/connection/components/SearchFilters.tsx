@@ -54,7 +54,7 @@ const EMPTY: FilterValues = {
   quantity: undefined,
   quantityUnit: "KG",
   minCapacity: undefined,
-  capacityUnit: "KG_PER_DAY",
+  capacityUnit: "KG_PER_MONTH",
   requiredCertifications: [],
   materialCondition: "",
   packagingRequirements: "",
