@@ -6,6 +6,7 @@ import { SEARCH_QUANTITY_UNIT_LABELS, useConnections, useResolveConnection, type
 import { getCropName } from "@/features/crop";
 import { CAPACITY_UNIT_LABELS } from "@/features/factory";
 import type { ScheduleRow } from "@/features/processing-schedule";
+import { useIsFactoryAdmin } from "@/features/viewer";
 import { ConnectionStatusBadge } from "@/pages/connection/components/ConnectionStatusBadge";
 import { ResolveDialog } from "@/pages/connection/components/ResolveDialog";
 
@@ -29,6 +30,8 @@ export function ScheduleConnectionsButton({ schedule }: { schedule: ScheduleRow 
   const { data, isLoading } = useConnections({ page: 0, size: 100, scheduleId: schedule.id });
   const requests = data?.content ?? [];
   const { toast } = useToast();
+  // Admin: view only — resolving is the factory's job
+  const isAdmin = useIsFactoryAdmin();
   const resolve = useResolveConnection();
   const [resolving, setResolving] = useState<Resolving | null>(null);
 
@@ -86,7 +89,7 @@ export function ScheduleConnectionsButton({ schedule }: { schedule: ScheduleRow 
                 <div className="max-w-56 shrink-0 space-y-1.5 sm:text-right">
                   <ConnectionStatusBadge status={c.status} />
                   {c.resultNote && <p className="text-xs text-slate-500">{c.resultNote}</p>}
-                  {c.status === "PENDING" && (
+                  {c.status === "PENDING" && !isAdmin && (
                     <div className="flex gap-1 sm:justify-end">
                       <Button size="sm" variant="outline" className="h-7 text-emerald-700" onClick={() => setResolving({ request: c, status: "SUCCESS" })}>
                         <Check className="mr-1 h-3.5 w-3.5" />

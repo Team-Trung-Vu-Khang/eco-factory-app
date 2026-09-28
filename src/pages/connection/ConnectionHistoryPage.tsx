@@ -6,7 +6,7 @@ import PageWrapper from "@/components/common/PageWrapper";
 import { CONNECTION_STATUS_OPTIONS, SEARCH_QUANTITY_UNIT_LABELS, useConnections, useResolveConnection, type ConnectionRequest } from "@/features/connection";
 import { getCropName } from "@/features/crop";
 import { CAPACITY_UNIT_LABELS } from "@/features/factory";
-import { useCurrentFarmer, useIsFarmer } from "@/features/viewer";
+import { useCurrentFarmer, useIsFactoryAdmin, useIsFarmer } from "@/features/viewer";
 import { ConnectionStatusBadge } from "./components/ConnectionStatusBadge";
 import { ResolveDialog } from "./components/ResolveDialog";
 
@@ -81,6 +81,8 @@ const farmerColumn: Column<ConnectionRequest> = {
 export default function ConnectionHistoryPage() {
   const { toast } = useToast();
   const isFarmer = useIsFarmer();
+  // Admin: view only — resolving is the factory's job
+  const isAdmin = useIsFactoryAdmin();
   const farmer = useCurrentFarmer();
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
@@ -101,7 +103,7 @@ export default function ConnectionHistoryPage() {
           key: "actions",
           label: "Xác nhận",
           render: (_, c) =>
-            c.status === "PENDING" ? (
+            c.status === "PENDING" && !isAdmin ? (
               <div className="flex gap-1">
                 <Button size="sm" variant="outline" className="h-7 text-emerald-700" onClick={() => setResolving({ request: c, status: "SUCCESS" })}>
                   <Check className="mr-1 h-3.5 w-3.5" />
