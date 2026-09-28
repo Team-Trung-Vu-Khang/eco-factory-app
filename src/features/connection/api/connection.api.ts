@@ -346,6 +346,7 @@ export const connectionApi = {
   async connect({
     farmer,
     criteria,
+    target,
   }: ConnectFactoriesInput): Promise<ConnectionRequest> {
     await delay();
     const created: ConnectionRequest = {
@@ -353,6 +354,13 @@ export const connectionApi = {
       farmerId: farmer.id,
       farmerName: farmer.name,
       farmerPhone: farmer.phone,
+      ...(target && {
+        factoryId: target.factory.id,
+        factoryName: target.factory.name,
+        machineId: target.machine.id,
+        machineName: target.machine.name,
+        scheduleId: target.machine.scheduleId,
+      }),
       cropIds: criteria.cropIds,
       quantity: criteria.quantity,
       requirements: {

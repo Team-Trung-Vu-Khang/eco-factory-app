@@ -90,8 +90,9 @@ export interface ConnectionListParams {
   scheduleId?: string;
 }
 
-/** One request for the whole search — not tied to a single factory */
+/** Request with the search criteria — tied to one result row when `target` is set */
 export interface ConnectFactoriesInput {
   farmer: { id: string; name: string; phone: string };
   criteria: FactorySearchParams;
+  target?: { factory: Factory; machine: MatchedMachine };
 }

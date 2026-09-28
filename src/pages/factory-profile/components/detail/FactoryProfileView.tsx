@@ -17,7 +17,18 @@ const TABS = [
 ];
 
 /** Full profile — admin detail page and the factory member's own profile */
-export function FactoryProfileView({ factory, isOwner, actions }: { factory: Factory; isOwner?: boolean; actions?: ReactNode }) {
+export function FactoryProfileView({
+  factory,
+  isOwner,
+  readOnly,
+  actions,
+}: {
+  factory: Factory;
+  isOwner?: boolean;
+  /** Member viewing another factory */
+  readOnly?: boolean;
+  actions?: ReactNode;
+}) {
   return (
     <div className="space-y-6">
       <FactoryDetailHeader factory={factory} actions={actions} />
@@ -41,7 +52,7 @@ export function FactoryProfileView({ factory, isOwner, actions }: { factory: Fac
           <FactoryOverviewTab factory={factory} />
         </TabsContent>
         <TabsContent value="machines" className="mt-0">
-          <MachineListSection factory={factory} />
+          <MachineListSection factory={factory} readOnly={readOnly} />
         </TabsContent>
         <TabsContent value="certs" className="mt-0">
           <CertificationListSection factory={factory} />

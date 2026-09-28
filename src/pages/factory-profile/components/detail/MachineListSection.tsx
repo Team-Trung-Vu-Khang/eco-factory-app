@@ -63,7 +63,14 @@ const toDialogValues = (
   certificateIds: m.certificateIds ?? [],
 });
 
-export function MachineListSection({ factory }: { factory: Factory }) {
+/** `readOnly`: viewing another factory — no add / edit / delete */
+export function MachineListSection({
+  factory,
+  readOnly,
+}: {
+  factory: Factory;
+  readOnly?: boolean;
+}) {
   const title = `Máy móc & công suất (${factory.machines.length} máy)`;
   const { toast } = useToast();
   const [formOpen, setFormOpen] = useState(false);
@@ -125,12 +132,14 @@ export function MachineListSection({ factory }: { factory: Factory }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={() => openForm(null)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Thêm máy
-        </Button>
-      </div>
+      {!readOnly && (
+        <div className="flex justify-end">
+          <Button onClick={() => openForm(null)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm máy
+          </Button>
+        </div>
+      )}
 
       {isEmpty ? (
         <DetailCard icon={Wrench} title={title}>
@@ -169,26 +178,28 @@ export function MachineListSection({ factory }: { factory: Factory }) {
                   >
                     {MACHINE_STATUS_LABELS[m.status]}
                   </span>
-                  <div className="flex shrink-0 gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      aria-label="Chỉnh sửa máy"
-                      onClick={() => openForm(m)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-rose-600 hover:text-rose-700"
-                      aria-label="Xóa máy"
-                      onClick={() => setDeleting(m)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {!readOnly && (
+                    <div className="flex shrink-0 gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        aria-label="Chỉnh sửa máy"
+                        onClick={() => openForm(m)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-rose-600 hover:text-rose-700"
+                        aria-label="Xóa máy"
+                        onClick={() => setDeleting(m)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </header>
 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-5 p-4 sm:p-5">

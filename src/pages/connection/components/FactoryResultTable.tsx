@@ -1,6 +1,9 @@
+import { Button } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
-import { ExternalLink, Users } from "lucide-react";
-import type { FactorySearchResult } from "@/features/connection";
+import { Eye, ExternalLink, Handshake, Loader2, Users } from "lucide-react";
+import type { FactorySearchResult, MatchedMachine } from "@/features/connection";
+import { Link } from "wouter";
+import { ROUTES } from "@/config/routes";
 import { CAPACITY_UNIT_LABELS, getProvinceName, getWardName, type Factory } from "@/features/factory";
 
 const fmt = new Intl.NumberFormat("vi-VN");
@@ -16,19 +19,32 @@ const directionsUrl = (f: Factory) => {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
 };
 
-const HEADERS = ["Nhà máy", "Địa chỉ", "Tỉnh/Thành", "Xã/Phường", "Máy / dây chuyền", "Lịch nhận", "Công suất tối đa", "Ngày đăng", "Yêu cầu kết nối"];
+const BASE_HEADERS = ["Nhà máy", "Địa chỉ", "Tỉnh/Thành", "Xã/Phường", "Máy / dây chuyền", "Lịch nhận", "Công suất tối đa", "Ngày đăng"];
 
-/** One row per available machine; read-only — connecting is done once for the whole search */
-export function FactoryResultTable({ results }: { results: FactorySearchResult[] }) {
+type Target = { factory: Factory; machine: MatchedMachine };
+
+interface FactoryResultTableProps {
+  results: FactorySearchResult[];
+  /** admin: sees request count · member: detail + connect per row */
+  mode: "admin" | "member";
+  /** Key of the row being connected (`factoryId-machineId`) */
+  connectingKey?: string;
+  onConnect?: (target: Target) => void;
+}
+
+/** One row per available machine */
+export function FactoryResultTable({ results, mode, connectingKey, onConnect }: FactoryResultTableProps) {
   const rows = results.flatMap(({ factory, machines }) => machines.map((m) => ({ factory, m })));
+  const isAdmin = mode === "admin";
+  const headers = [...BASE_HEADERS, isAdmin ? "Yêu cầu kết nối" : ""];
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
       <table className="w-full min-w-[1100px] text-sm">
         <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold text-slate-600">
           <tr>
-            {HEADERS.map((h) => (
-              <th key={h} className="whitespace-nowrap px-3 py-2.5">
+            {headers.map((h) => (
+              <th key={h || "actions"} className="whitespace-nowrap px-3 py-2.5">
                 {h}
               </th>
             ))}
@@ -60,12 +76,38 @@ export function FactoryResultTable({ results }: { results: FactorySearchResult[]
                 {fmt.format(m.scheduleCapacity)} {CAPACITY_UNIT_LABELS[m.scheduleUnit]}
               </td>
               <td className="whitespace-nowrap px-3 py-3 tabular-nums text-slate-700">{dayjs(m.schedulePostedAt).format("DD/MM/YYYY HH:mm")}</td>
-              <td className="px-3 py-3">
-                <span className={`inline-flex items-center gap-1 tabular-nums ${m.connectionCount ? "text-slate-700" : "text-slate-400"}`}>
-                  <Users className="h-4 w-4" />
-                  {m.connectionCount}
-                </span>
-              </td>
+              {isAdmin ? (
+                <td className="px-3 py-3">
+                  <span className={`inline-flex items-center gap-1 tabular-nums ${m.connectionCount ? "text-slate-700" : "text-slate-400"}`}>
+                    <Users className="h-4 w-4" />
+                    {m.connectionCount}
+                  </span>
+                </td>
+              ) : (
+                <td className="px-3 py-3">
+                  <div className="flex justify-end gap-1">
+                    <Button size="sm" variant="outline" className="h-8" asChild>
+                      <Link href={ROUTES.profileDetail(f.id)}>
+                        <Eye className="mr-1 h-3.5 w-3.5" />
+                        Chi tiết
+                      </Link>
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="h-8 whitespace-nowrap"
+                      disabled={!!connectingKey}
+                      onClick={() => onConnect?.({ factory: f, machine: m })}
+                    >
+                      {connectingKey === `${f.id}-${m.id}` ? (
+                        <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Handshake className="mr-1 h-3.5 w-3.5" />
+                      )}
+                      Kết nối
+                    </Button>
+                  </div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

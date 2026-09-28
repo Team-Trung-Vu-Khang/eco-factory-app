@@ -1,5 +1,5 @@
 import { Button, Form } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { Handshake, Loader2, Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
@@ -22,12 +22,12 @@ import {
 } from "@/features/connection";
 import { CROP_OPTIONS } from "@/features/crop";
 import {
-  CERTIFICATION_TYPE_OPTIONS,
+  CERTIFICATION_TYPE_NAMED_OPTIONS,
   PROVINCES,
-  type CapacityUnit,
 } from "@/features/factory";
 import { fetchProductGroupOptions } from "@/features/product-group";
 import { fetchProcessingServiceOptions } from "@/features/processing-service";
+import { searchSession } from "../search-session";
 
 interface FilterValues {
   provinceCode: string;
@@ -37,8 +37,6 @@ interface FilterValues {
   productGroupIds: string[];
   quantity?: number;
   quantityUnit: SearchQuantityUnit;
-  minCapacity?: number;
-  capacityUnit: CapacityUnit;
   requiredCertifications: string[];
   materialCondition: MaterialCondition | "";
   packagingRequirements: string;
@@ -53,8 +51,6 @@ const EMPTY: FilterValues = {
   productGroupIds: [],
   quantity: undefined,
   quantityUnit: "KG",
-  minCapacity: undefined,
-  capacityUnit: "KG_PER_MONTH",
   requiredCertifications: [],
   materialCondition: "",
   packagingRequirements: "",
@@ -66,24 +62,30 @@ const PROVINCE_OPTIONS = PROVINCES.map((p) => ({
 }));
 
 interface SearchFiltersProps {
-  /** admin: khu vực, dịch vụ, nhóm nông sản, chứng nhận · member: + nguyên liệu, sản lượng, năng suất */
+  /** admin: khu vực, dịch vụ, nhóm nông sản, chứng nhận · member: + nguyên liệu, sản lượng */
   mode: "admin" | "member";
   searching?: boolean;
-  connecting?: boolean;
-  /** Only lists matching factories */
+  /** Lists matching factories — member connects per result row */
   onSearch: (params: FactorySearchParams) => void;
-  /** Sends one connection request with these criteria (member only) */
-  onConnect?: (params: FactorySearchParams) => void;
+  /** "Xóa bộ lọc" — also clears the results */
+  onReset?: () => void;
 }
 
 export function SearchFilters({
   mode,
   searching,
-  connecting,
   onSearch,
-  onConnect,
+  onReset,
 }: SearchFiltersProps) {
-  const form = useForm<FilterValues>({ defaultValues: EMPTY });
+  const storeKey = `${mode}:form`;
+  const form = useForm<FilterValues>({
+    defaultValues: { ...EMPTY, ...searchSession.read<Partial<FilterValues>>(storeKey) },
+  });
+  // Persist as the user types — restored when they come back from a detail page
+  useEffect(() => {
+    const sub = form.watch((values) => searchSession.write(storeKey, values));
+    return () => sub.unsubscribe();
+  }, [form, storeKey]);
   const { control, setValue } = form;
   const isAdmin = mode === "admin";
   const provinceCode = useWatch({ control, name: "provinceCode" });
@@ -109,8 +111,6 @@ export function SearchFilters({
           cropIds: v.cropIds,
           quantity: v.quantity,
           quantityUnit: v.quantity ? v.quantityUnit : undefined,
-          minCapacity: v.minCapacity,
-          capacityUnit: v.minCapacity ? v.capacityUnit : undefined,
           materialCondition: v.materialCondition || undefined,
           packagingRequirements: v.packagingRequirements.trim() || undefined,
           technicalRequirements: v.technicalRequirements.trim() || undefined,
@@ -118,15 +118,6 @@ export function SearchFilters({
   });
 
   const submit = form.handleSubmit((v) => onSearch(toParams(v)));
-  const connect = form.handleSubmit((v) => {
-    if (!v.cropIds.length) {
-      form.setError("cropIds", {
-        message: "Chọn nguyên liệu để kết nối nhà máy.",
-      });
-      return;
-    }
-    onConnect?.(toParams(v));
-  });
 
   return (
     <Form {...form}>
@@ -194,23 +185,17 @@ export function SearchFilters({
                   unitOptions={SEARCH_QUANTITY_UNIT_OPTIONS}
                   description="Chỉ hiện máy có công suất đủ xử lý trong thời gian nhận chế biến"
                 />
-                <CapacityField
-                  control={control}
-                  valueName="minCapacity"
-                  unitName="capacityUnit"
-                  label="Năng suất - đơn vị"
-                  description="Năng suất tối thiểu của máy / dây chuyền"
-                />
               </>
             )}
             <MultiSelectField
               control={control}
               name="requiredCertifications"
               label="Chứng nhận của cơ sở"
-              options={CERTIFICATION_TYPE_OPTIONS}
+              options={CERTIFICATION_TYPE_NAMED_OPTIONS}
               placeholder="Không yêu cầu"
               description="Nhà máy phải có đủ các chứng nhận còn hiệu lực"
-              className="md:col-span-2"
+              // Member: sits beside "Sản lượng"
+              className={isAdmin ? "md:col-span-2" : undefined}
             />
             {!isAdmin && (
               <>
@@ -246,13 +231,15 @@ export function SearchFilters({
           <Button
             type="button"
             variant="ghost"
-            onClick={() => form.reset(EMPTY)}
+            onClick={() => {
+              form.reset(EMPTY);
+              onReset?.();
+            }}
           >
             Xóa bộ lọc
           </Button>
           <Button
             type="submit"
-            variant={isAdmin ? "default" : "outline"}
             disabled={searching}
           >
             {searching ? (
@@ -262,16 +249,6 @@ export function SearchFilters({
             )}
             Xem nhà máy phù hợp
           </Button>
-          {!isAdmin && onConnect && (
-            <Button type="button" onClick={connect} disabled={connecting}>
-              {connecting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Handshake className="mr-2 h-4 w-4" />
-              )}
-              Kết nối nhà máy
-            </Button>
-          )}
         </div>
       </form>
     </Form>

@@ -98,6 +98,15 @@ export const CERTIFICATION_TYPE_LABELS: Record<CertificationType, string> = {
   OTHER: "Khác",
 };
 
+/** Full certificate names — shown in pickers next to the short code */
+export const CERTIFICATION_TYPE_NAMES: Record<CertificationType, string> = {
+  FOOD_SAFETY: "Giấy chứng nhận cơ sở đủ điều kiện an toàn thực phẩm",
+  HACCP: "Hệ thống phân tích mối nguy và điểm kiểm soát tới hạn",
+  ISO: "Tiêu chuẩn quản lý chất lượng quốc tế (ISO 9001 / ISO 22000)",
+  GMP: "Thực hành sản xuất tốt",
+  OTHER: "Chứng nhận khác",
+};
+
 // TODO: load from master-data API (shared with MEVI Farms)
 export const PRODUCT_GROUP_LABELS: Record<string, string> = {
   TEA: "Cây chè",
@@ -206,6 +215,15 @@ export const CAPACITY_UNIT_OPTIONS = toOptions({
 });
 export const MACHINE_STATUS_OPTIONS = toOptions(MACHINE_STATUS_LABELS);
 export const CERTIFICATION_TYPE_OPTIONS = toOptions(CERTIFICATION_TYPE_LABELS);
+export const CERTIFICATION_TYPE_NAMED_OPTIONS = (
+  Object.keys(CERTIFICATION_TYPE_LABELS) as CertificationType[]
+).map((value) => ({
+  value,
+  label:
+    value === "OTHER"
+      ? CERTIFICATION_TYPE_LABELS[value]
+      : `${CERTIFICATION_TYPE_LABELS[value]} — ${CERTIFICATION_TYPE_NAMES[value]}`,
+}));
 export const PRODUCT_GROUP_OPTIONS = toOptions(PRODUCT_GROUP_LABELS);
 export const CERTIFICATION_ISSUER_OPTIONS = toOptions(
   CERTIFICATION_ISSUER_LABELS,

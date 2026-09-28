@@ -4,28 +4,43 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
-import { useConnectFactories, useFactorySearch, type FactorySearchParams } from "@/features/connection";
+import { useConnectFactories, useFactorySearch, type ConnectFactoriesInput, type FactorySearchParams } from "@/features/connection";
 import { useCurrentFarmer, useIsFactoryAdmin } from "@/features/viewer";
 import { FactoryResultTable } from "./components/FactoryResultTable";
 import { SearchFilters } from "./components/SearchFilters";
+import { searchSession } from "./search-session";
+
+type ConnectTarget = NonNullable<ConnectFactoriesInput["target"]>;
 
 export default function ConnectionSearchPage() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const farmer = useCurrentFarmer();
   const isAdmin = useIsFactoryAdmin();
-  const [params, setParams] = useState<FactorySearchParams>();
+  const mode = isAdmin ? "admin" : "member";
+  // Last search survives going to a factory detail page and back.
+  // Keyed by mode: roles load async, so the view can switch after mount.
+  const [byMode, setByMode] = useState<Partial<Record<string, FactorySearchParams | undefined>>>({});
+  const params = mode in byMode ? byMode[mode] : searchSession.read<FactorySearchParams>(`${mode}:params`);
+  const setParams = (next?: FactorySearchParams) => {
+    setByMode((prev) => ({ ...prev, [mode]: next }));
+    searchSession.write(`${mode}:params`, next);
+  };
 
   const search = useFactorySearch(params);
   const connect = useConnectFactories();
   const results = search.data ?? [];
 
-  const handleConnect = async (criteria: FactorySearchParams) => {
+  const [connectingKey, setConnectingKey] = useState<string>();
+
+  const handleConnect = async (target: ConnectTarget) => {
+    if (!params) return;
+    setConnectingKey(`${target.factory.id}-${target.machine.id}`);
     try {
-      await connect.mutateAsync({ farmer, criteria });
+      await connect.mutateAsync({ farmer, criteria: params, target });
       toast({
         title: "Đã gửi yêu cầu kết nối",
-        description: "Hệ thống sẽ kết nối bạn với nhà máy phù hợp.",
+        description: `Đã gửi tới ${target.factory.name} — ${target.machine.name}.`,
         action: (
           <Button size="sm" variant="outline" onClick={() => navigate(ROUTES.connectionHistory)}>
             Xem lịch sử
@@ -34,6 +49,8 @@ export default function ConnectionSearchPage() {
       });
     } catch (error) {
       toast({ title: "Không thể gửi yêu cầu", description: (error as Error).message, variant: "destructive" });
+    } finally {
+      setConnectingKey(undefined);
     }
   };
 
@@ -43,7 +60,7 @@ export default function ConnectionSearchPage() {
       description={
         isAdmin
           ? "Tìm nhà máy theo khu vực, dịch vụ, nhóm nông sản và chứng nhận"
-          : "Nhập nhu cầu chế biến rồi bấm Kết nối nhà máy — hoặc xem trước các nhà máy đang nhận chế biến phù hợp"
+          : "Hãy cung cấp để tìm kiếm nhà máy phù hợp với các tiêu chí theo yêu cầu"
       }
       overflow="visible"
     >
@@ -51,7 +68,7 @@ export default function ConnectionSearchPage() {
         <SearchFilters
           key={isAdmin ? "admin" : "member"}
           mode={isAdmin ? "admin" : "member"}
-          searching={search.isFetching} connecting={connect.isPending} onSearch={setParams} onConnect={handleConnect}
+          searching={search.isFetching} onSearch={setParams} onReset={() => setParams(undefined)}
         />
 
         {!params ? (
@@ -76,7 +93,12 @@ export default function ConnectionSearchPage() {
                 Chưa có nhà máy đang nhận chế biến phù hợp. Thử mở rộng phạm vi hoặc bỏ bớt điều kiện.
               </div>
             ) : (
-              <FactoryResultTable results={results} />
+              <FactoryResultTable
+                results={results}
+                mode={isAdmin ? "admin" : "member"}
+                connectingKey={connectingKey}
+                onConnect={handleConnect}
+              />
             )}
           </section>
         )}
