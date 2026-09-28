@@ -25,7 +25,11 @@ const quantityOf = (c: ConnectionRequest) => {
 };
 
 /** Count of connection requests on a post + dialog listing them */
-export function ScheduleConnectionsButton({ schedule }: { schedule: ScheduleRow }) {
+export function ScheduleConnectionsButton({
+  schedule,
+}: {
+  schedule: Pick<ScheduleRow, "id" | "machineName" | "fromDate" | "toDate">;
+}) {
   const [open, setOpen] = useState(false);
   const { data, isLoading } = useConnections({ page: 0, size: 100, scheduleId: schedule.id });
   const requests = data?.content ?? [];

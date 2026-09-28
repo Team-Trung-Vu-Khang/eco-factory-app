@@ -1,9 +1,10 @@
 import { Button } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
-import { Eye, ExternalLink, Handshake, Loader2, Users } from "lucide-react";
+import { Eye, ExternalLink, Handshake, Loader2 } from "lucide-react";
 import type { FactorySearchResult, MatchedMachine } from "@/features/connection";
 import { Link } from "wouter";
 import { ROUTES } from "@/config/routes";
+import { ScheduleConnectionsButton } from "@/pages/processing-schedule/components/ScheduleConnectionsButton";
 import { CAPACITY_UNIT_LABELS, getProvinceName, getWardName, type Factory } from "@/features/factory";
 
 const fmt = new Intl.NumberFormat("vi-VN");
@@ -78,10 +79,9 @@ export function FactoryResultTable({ results, mode, connectingKey, onConnect }: 
               <td className="whitespace-nowrap px-3 py-3 tabular-nums text-slate-700">{dayjs(m.schedulePostedAt).format("DD/MM/YYYY HH:mm")}</td>
               {isAdmin ? (
                 <td className="px-3 py-3">
-                  <span className={`inline-flex items-center gap-1 tabular-nums ${m.connectionCount ? "text-slate-700" : "text-slate-400"}`}>
-                    <Users className="h-4 w-4" />
-                    {m.connectionCount}
-                  </span>
+                  <ScheduleConnectionsButton
+                    schedule={{ id: m.scheduleId, machineName: m.name, fromDate: m.scheduleFrom, toDate: m.scheduleTo }}
+                  />
                 </td>
               ) : (
                 <td className="px-3 py-3">
