@@ -10,16 +10,18 @@ import PageWrapper from "@/components/common/PageWrapper";
 import {
   useCurrentFactory,
   useDeleteMachine,
+  useFactoryOptions,
   useMachines,
   useSaveMachine,
   type MachineListParams,
   type MachineRow,
 } from "@/features/factory";
-import { machineColumns, machineFilters } from "./components/machine-columns";
+import { useIsFactoryAdmin } from "@/features/viewer";
+import { factoryColumn, machineColumns, machineFilters } from "./components/machine-columns";
 import { MachineFormDialog } from "./components/MachineFormDialog";
 import type { MachineDialogValues } from "./components/machine-form-schema";
 
-type Filters = Pick<MachineListParams, "status" | "function">;
+type Filters = Pick<MachineListParams, "status" | "function" | "factoryId">;
 
 const toDialogValues = (m: MachineRow): MachineDialogValues => ({
   factoryId: m.factoryId,
@@ -43,8 +45,21 @@ export default function MachinePage() {
   const [editing, setEditing] = useState<MachineRow | null>(null);
   const [deleting, setDeleting] = useState<MachineRow | null>(null);
 
+  // Admin: every factory (filterable) · member: their own factory only
+  const isAdmin = useIsFactoryAdmin();
   const { factoryId } = useCurrentFactory();
-  const query = useMachines({ page, size, keyword, factoryId, ...filters });
+  const { options: factoryOptions } = useFactoryOptions();
+  const query = useMachines({
+    page,
+    size,
+    keyword,
+    ...filters,
+    factoryId: isAdmin ? filters.factoryId : factoryId,
+  });
+  const columns = isAdmin ? [factoryColumn, ...machineColumns] : machineColumns;
+  const tableFilters = isAdmin
+    ? [{ key: "factoryId", label: "Nhà máy", options: factoryOptions }, ...machineFilters]
+    : machineFilters;
   const save = useSaveMachine();
   const remove = useDeleteMachine();
   const editingValues = useMemo(
@@ -108,16 +123,16 @@ export default function MachinePage() {
       }
     >
       <DataTable
-        columns={machineColumns}
+        columns={columns}
         data={query.data?.content ?? []}
         loading={query.isFetching}
         searchable
-        searchPlaceholder="Tìm theo tên máy..."
+        searchPlaceholder={isAdmin ? "Tìm theo tên máy, nhà máy..." : "Tìm theo tên máy..."}
         onSearch={(v) => {
           setKeyword(v);
           setPage(0);
         }}
-        filters={machineFilters}
+        filters={tableFilters}
         onFilterChange={(key, value) => {
           setFilters((prev) => ({
             ...prev,
@@ -126,14 +141,14 @@ export default function MachinePage() {
           setPage(0);
         }}
         pageSize={size}
-        currentIndex={page}
+        currentIndex={page + 1}
         totalElements={query.data?.totalElements}
         totalPages={query.data?.totalPages}
         onPageSize={(next) => {
           setSize(next);
           setPage(0);
         }}
-        onIndexChange={setPage}
+        onIndexChange={(index) => setPage(Math.max(0, index - 1))}
         onEdit={(m) => {
           setEditing(m);
           setFormOpen(true);

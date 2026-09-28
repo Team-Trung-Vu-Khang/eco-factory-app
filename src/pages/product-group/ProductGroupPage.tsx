@@ -101,11 +101,11 @@ export default function ProductGroupPage() {
         searchPlaceholder="Tìm theo mã, tên nhóm, cây trồng..."
         onSearch={page.handleSearch}
         pageSize={page.size}
-        currentIndex={page.page}
+        currentIndex={page.page + 1}
         totalElements={query.data?.totalElements}
         totalPages={query.data?.totalPages}
         onPageSize={page.handlePageSize}
-        onIndexChange={page.setPage}
+        onIndexChange={(index) => page.setPage(Math.max(0, index - 1))}
         onEdit={page.openEdit}
         onDelete={page.setDeleting}
       />

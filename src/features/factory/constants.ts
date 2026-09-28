@@ -140,6 +140,9 @@ export const PROVINCES: {
     wards: [
       { code: "TQ-HG", name: "Phường Hà Giang 1" },
       { code: "TQ-VX", name: "Xã Vị Xuyên" },
+      { code: "TQ-CB", name: "Xã Cao Bồ" },
+      { code: "TQ-ML", name: "Phường Mỹ Lâm" },
+      { code: "TQ-MB", name: "Xã Mỹ Bằng" },
     ],
   },
   {
@@ -149,6 +152,7 @@ export const PROVINCES: {
       { code: "PT-VT", name: "Phường Việt Trì" },
       { code: "PT-DH", name: "Xã Đoan Hùng" },
       { code: "PT-HB", name: "Phường Hòa Bình" },
+      { code: "PT-TB", name: "Xã Thanh Ba" },
     ],
   },
   {
@@ -157,6 +161,15 @@ export const PROVINCES: {
     wards: [
       { code: "LC-LC", name: "Phường Lào Cai" },
       { code: "LC-SP", name: "Phường Sa Pa" },
+      { code: "LC-YB", name: "Phường Yên Bái" },
+    ],
+  },
+  {
+    code: "SL",
+    name: "Sơn La",
+    wards: [
+      { code: "SL-MC", name: "Phường Mộc Châu" },
+      { code: "SL-TL", name: "Xã Tân Lập" },
     ],
   },
   {
@@ -164,7 +177,23 @@ export const PROVINCES: {
     name: "Ninh Bình",
     wards: [
       { code: "NB-HL", name: "Phường Hoa Lư" },
-      { code: "NB-TD", name: "Xã Tam Điệp" },
+      { code: "NB-TD", name: "Phường Tam Điệp" },
+    ],
+  },
+  {
+    code: "NA",
+    name: "Nghệ An",
+    wards: [
+      { code: "NA-VH", name: "Phường Vinh Hưng" },
+      { code: "NA-QC", name: "Xã Quỳnh Châu" },
+    ],
+  },
+  {
+    code: "DLK",
+    name: "Đắk Lắk",
+    wards: [
+      { code: "DLK-BMT", name: "Phường Buôn Ma Thuột" },
+      { code: "DLK-TA", name: "Phường Tân An" },
     ],
   },
   {
@@ -172,7 +201,26 @@ export const PROVINCES: {
     name: "Lâm Đồng",
     wards: [
       { code: "LD-DL", name: "Phường Đà Lạt" },
+      { code: "LD-LV", name: "Phường Lâm Viên - Đà Lạt" },
       { code: "LD-BL", name: "Phường Bảo Lộc" },
+      { code: "LD-LT", name: "Xã Lộc Tân" },
+      { code: "LD-PH", name: "Xã Phú Hội" },
+    ],
+  },
+  {
+    code: "AG",
+    name: "An Giang",
+    wards: [
+      { code: "AG-LX", name: "Phường Long Xuyên" },
+      { code: "AG-CP", name: "Xã Châu Phú" },
+    ],
+  },
+  {
+    code: "CT",
+    name: "Cần Thơ",
+    wards: [
+      { code: "CT-TK", name: "Phường Trung Kiên" },
+      { code: "CT-TN", name: "Phường Thốt Nốt" },
     ],
   },
 ];

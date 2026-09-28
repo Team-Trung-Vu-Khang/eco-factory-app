@@ -38,11 +38,12 @@ function FactoryList() {
         filters={factoryFilters}
         onFilterChange={page.handleFilterChange}
         pageSize={page.size}
-        currentIndex={page.page}
+        // DataTable pages are 1-based; the API is 0-based
+        currentIndex={page.page + 1}
         totalElements={page.totalElements}
         totalPages={page.totalPages}
         onPageSize={page.handlePageSize}
-        onIndexChange={page.setPage}
+        onIndexChange={(index) => page.setPage(Math.max(0, index - 1))}
         onView={page.goView}
         onEdit={page.goEdit}
         onDelete={page.setDeleting}

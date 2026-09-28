@@ -29,11 +29,11 @@ export default function DemandTypePage() {
         filters={demandTypeFilters}
         onFilterChange={page.handleFilterChange}
         pageSize={page.size}
-        currentIndex={page.page}
+        currentIndex={page.page + 1}
         totalElements={page.totalElements}
         totalPages={page.totalPages}
         onPageSize={page.handlePageSize}
-        onIndexChange={page.setPage}
+        onIndexChange={(index) => page.setPage(Math.max(0, index - 1))}
         onEdit={page.openEdit}
         onDelete={page.setDeleting}
       />

@@ -2,10 +2,10 @@ import dayjs from "dayjs";
 import { factoryApi, type PageResponse } from "@/features/factory";
 import { scheduleApi } from "@/features/processing-schedule";
 import { activeScheduleFor } from "@/features/processing-schedule/api/schedule.store";
-import { productGroupApi } from "@/features/product-group";
+import { CROPS, cropGroupName } from "@/features/crop";
 import { getCertificateValidity } from "@/features/certificate/utils/certificate-validity";
 import { distanceKm } from "@/lib/distance";
-import type { CapacityUnit, Factory } from "@/features/factory";
+import { PRODUCT_GROUP_LABELS, type CapacityUnit, type Factory } from "@/features/factory";
 import type {
   ConnectionListParams,
   ConnectionRequest,
@@ -30,136 +30,62 @@ export const connectionKeys = {
 const delay = (ms = 350) => new Promise((r) => setTimeout(r, ms));
 const at = (offsetDays: number) => dayjs().add(offsetDays, "day").toISOString();
 
+// Farmers (sample) — "me" is the current user in farmer view
+const FARMERS = {
+  me: { farmerId: "me", farmerName: "Nguyễn Văn Nam", farmerPhone: "0987654321" },
+  mai: { farmerId: "u-2", farmerName: "Lò Thị Mai", farmerPhone: "0911222333" },
+  duc: { farmerId: "u-3", farmerName: "Hoàng Văn Đức", farmerPhone: "0977000111" },
+  hung: { farmerId: "u-4", farmerName: "Đinh Văn Hùng", farmerPhone: "0966555444" },
+  hoa: { farmerId: "u-5", farmerName: "Phạm Thị Hoa", farmerPhone: "0933444555" },
+  pu: { farmerId: "u-6", farmerName: "Vàng Seo Pử", farmerPhone: "0944777888" },
+  lan: { farmerId: "u-7", farmerName: "Nông Thị Lan", farmerPhone: "0955123123" },
+  tuan: { farmerId: "u-8", farmerName: "Y Tuấn Êban", farmerPhone: "0905777333" },
+  sang: { farmerId: "u-9", farmerName: "Trần Văn Sáng", farmerPhone: "0939456456" },
+  thao: { farmerId: "u-10", farmerName: "Lê Thị Thảo", farmerPhone: "0918999000" },
+};
+
+// Post each request targets — ids / names match SEED_FACTORIES and schedule.store
+const POSTS = {
+  "s-1": { factoryId: "f-1", factoryName: "Hợp tác xã Chè Shan tuyết Cao Bồ", machineId: "m-1", machineName: "Máy sấy chè Shan tuyết", scheduleId: "s-1" },
+  "s-25": { factoryId: "f-1", factoryName: "Hợp tác xã Chè Shan tuyết Cao Bồ", machineId: "m-1", machineName: "Máy sấy chè Shan tuyết", scheduleId: "s-25" },
+  "s-3": { factoryId: "f-2", factoryName: "Công ty Cổ phần Chè Mỹ Lâm", machineId: "m-3", machineName: "Dây chuyền chè đen OTD", scheduleId: "s-3" },
+  "s-4": { factoryId: "f-4", factoryName: "Công ty TNHH Một thành viên Chè Phú Bền", machineId: "m-6", machineName: "Dây chuyền chè đen CTC", scheduleId: "s-4" },
+  "s-6": { factoryId: "f-5", factoryName: "Công ty TNHH Một thành viên Traphacosapa", machineId: "m-8", machineName: "Lò sấy dược liệu", scheduleId: "s-6" },
+  "s-7": { factoryId: "f-6", factoryName: "Công ty Cổ phần Sản xuất và Xuất khẩu Quế Hồi Việt Nam (Vinasamex)", machineId: "m-10", machineName: "Dây chuyền cạo, cắt quế", scheduleId: "s-7" },
+  "s-9": { factoryId: "f-7", factoryName: "Công ty Chè Mộc Châu", machineId: "m-12", machineName: "Dây chuyền chè ô long", scheduleId: "s-9" },
+  "s-11": { factoryId: "f-9", factoryName: "Công ty Cổ phần Thực phẩm Xuất khẩu Đồng Giao (Doveco)", machineId: "m-15", machineName: "Dây chuyền ép dứa cô đặc", scheduleId: "s-11" },
+  "s-27": { factoryId: "f-9", factoryName: "Công ty Cổ phần Thực phẩm Xuất khẩu Đồng Giao (Doveco)", machineId: "m-15", machineName: "Dây chuyền ép dứa cô đặc", scheduleId: "s-27" },
+  "s-13": { factoryId: "f-10", factoryName: "Công ty Cổ phần Nafoods Group", machineId: "m-18", machineName: "Dây chuyền puree chanh leo", scheduleId: "s-13" },
+  "s-16": { factoryId: "f-12", factoryName: "Chi nhánh Công ty CP Tập đoàn Intimex tại Buôn Ma Thuột", machineId: "m-23", machineName: "Máy phân loại màu (color sorter)", scheduleId: "s-16" },
+  "s-20": { factoryId: "f-17", factoryName: "Công ty Cổ phần Chế biến Thực phẩm Đà Lạt Tự Nhiên", machineId: "m-31", machineName: "Máy sấy lạnh heat-pump", scheduleId: "s-20" },
+  "s-22": { factoryId: "f-18", factoryName: "Công ty Cổ phần Rau quả Thực phẩm An Giang (Antesco) – Nhà máy Bình Long", machineId: "m-33", machineName: "Hầm đông IQF băng chuyền", scheduleId: "s-22" },
+  "s-23": { factoryId: "f-19", factoryName: "Công ty Cổ phần Tập đoàn Lộc Trời", machineId: "m-35", machineName: "Tháp sấy lúa", scheduleId: "s-23" },
+  "s-24": { factoryId: "f-20", factoryName: "Công ty Cổ phần Nông nghiệp Công nghệ cao Trung An", machineId: "m-37", machineName: "Dây chuyền xát trắng, tách màu", scheduleId: "s-24" },
+};
+
+const ton = { requirements: { quantityUnit: "TON" as const, requiredCertifications: [] } };
+const kg = { requirements: { quantityUnit: "KG" as const, requiredCertifications: [] } };
+
 let db: ConnectionRequest[] = [
-  {
-    id: "cn-1",
-    farmerId: "me",
-    farmerName: "Nguyễn Văn Nam",
-    farmerPhone: "0987654321",
-    factoryId: "f-1",
-    factoryName: "HTX Chè Shan tuyết Vị Xuyên",
-    machineId: "m-1",
-    machineName: "Máy sấy chè",
-    scheduleId: "s-1",
-    cropIds: ["SHAN_TEA"],
-    quantity: 200,
-    capacityUnit: "KG_PER_DAY",
-    note: "Chè búp hái sáng",
-    status: "PENDING",
-    createdAt: at(-1),
-  },
-  {
-    id: "cn-2",
-    farmerId: "u-2",
-    farmerName: "Lò Thị Mai",
-    farmerPhone: "0911222333",
-    factoryId: "f-5",
-    factoryName: "Kho lạnh Việt Trì",
-    machineId: "m-5",
-    machineName: "Kho lạnh số 1",
-    scheduleId: "s-4",
-    cropIds: ["ORANGE"],
-    quantity: 3,
-    capacityUnit: "TON_PER_DAY",
-    status: "PENDING",
-    createdAt: at(-2),
-  },
-  {
-    id: "cn-3",
-    farmerId: "me",
-    farmerName: "Nguyễn Văn Nam",
-    farmerPhone: "0987654321",
-    factoryId: "f-1",
-    factoryName: "HTX Chè Shan tuyết Vị Xuyên",
-    machineId: "m-1",
-    machineName: "Máy sấy chè",
-    scheduleId: "s-6",
-    cropIds: ["GREEN_TEA"],
-    status: "SUCCESS",
-    resultNote: "Đã ký hợp đồng sấy 2 tấn",
-    createdAt: at(-90),
-    resolvedAt: at(-80),
-  },
-  {
-    id: "cn-4",
-    farmerId: "u-3",
-    farmerName: "Hoàng Văn Đức",
-    farmerPhone: "0977000111",
-    factoryId: "f-4",
-    factoryName: "Công ty CP Thực phẩm Tam Điệp",
-    machineId: "m-4",
-    machineName: "Máy chiết rót đóng chai",
-    scheduleId: "s-3",
-    cropIds: ["PINEAPPLE"],
-    status: "FAILED",
-    resultNote: "Sản lượng chưa đủ tối thiểu",
-    createdAt: at(-8),
-    resolvedAt: at(-5),
-  },
-  {
-    id: "cn-5",
-    farmerId: "u-4",
-    farmerName: "Đinh Văn Hùng",
-    farmerPhone: "0966555444",
-    factoryId: "f-4",
-    factoryName: "Công ty CP Thực phẩm Tam Điệp",
-    machineId: "m-3",
-    machineName: "Dây chuyền ép dứa",
-    scheduleId: "s-2",
-    cropIds: ["PINEAPPLE"],
-    quantity: 2,
-    capacityUnit: "TON_PER_DAY",
-    status: "PENDING",
-    createdAt: at(-1),
-  },
-  {
-    id: "cn-6",
-    farmerId: "u-5",
-    farmerName: "Phạm Thị Hoa",
-    farmerPhone: "0933444555",
-    factoryId: "f-4",
-    factoryName: "Công ty CP Thực phẩm Tam Điệp",
-    machineId: "m-3",
-    machineName: "Dây chuyền ép dứa",
-    scheduleId: "s-2",
-    cropIds: ["PINEAPPLE"],
-    quantity: 800,
-    capacityUnit: "KG_PER_DAY",
-    status: "PENDING",
-    createdAt: at(0),
-  },
-  {
-    id: "cn-7",
-    farmerId: "u-6",
-    farmerName: "Vàng Seo Pử",
-    farmerPhone: "0944777888",
-    factoryId: "f-5",
-    factoryName: "Kho lạnh Việt Trì",
-    machineId: "m-5",
-    machineName: "Kho lạnh số 1",
-    scheduleId: "s-4",
-    cropIds: ["ORANGE"],
-    quantity: 5,
-    capacityUnit: "TON_PER_DAY",
-    status: "PENDING",
-    createdAt: at(0),
-  },
-  {
-    id: "cn-8",
-    farmerId: "u-7",
-    farmerName: "Nông Thị Lan",
-    farmerPhone: "0955123123",
-    factoryId: "f-6",
-    factoryName: "Xưởng sấy nông sản Hà Giang",
-    machineId: "m-6",
-    machineName: "Máy sấy lạnh",
-    scheduleId: "s-7",
-    cropIds: ["SHAN_TEA"],
-    quantity: 300,
-    capacityUnit: "KG_PER_DAY",
-    status: "PENDING",
-    createdAt: at(-1),
-  },
+  { id: "cn-1", ...FARMERS.me, ...POSTS["s-1"], cropIds: ["SHAN_TEA"], quantity: 800, ...kg, note: "Chè búp hái sáng, giao trong ngày", status: "PENDING", createdAt: at(-1) },
+  { id: "cn-2", ...FARMERS.lan, ...POSTS["s-1"], cropIds: ["SHAN_TEA"], quantity: 1.5, ...ton, status: "PENDING", createdAt: at(0) },
+  { id: "cn-3", ...FARMERS.me, ...POSTS["s-25"], cropIds: ["SHAN_TEA"], status: "SUCCESS", resultNote: "Đã ký hợp đồng sấy 2 tấn", createdAt: at(-90), resolvedAt: at(-80) },
+  { id: "cn-4", ...FARMERS.hung, ...POSTS["s-3"], cropIds: ["GREEN_TEA"], quantity: 5, ...ton, status: "FAILED", resultNote: "Chè búp chưa đạt tiêu chuẩn 1 tôm 2 lá", createdAt: at(-8), resolvedAt: at(-5) },
+  { id: "cn-5", ...FARMERS.hoa, ...POSTS["s-4"], cropIds: ["GREEN_TEA"], quantity: 12, ...ton, status: "PENDING", createdAt: at(0) },
+  { id: "cn-6", ...FARMERS.mai, ...POSTS["s-6"], cropIds: ["ARTICHOKE"], quantity: 600, ...kg, note: "Atiso hái bông, đã phơi héo", status: "PENDING", createdAt: at(-1) },
+  { id: "cn-7", ...FARMERS.pu, ...POSTS["s-7"], cropIds: ["CINNAMON"], quantity: 20, ...ton, note: "Quế vỏ 15 năm tuổi, Văn Yên", status: "PENDING", createdAt: at(-3) },
+  { id: "cn-8", ...FARMERS.pu, ...POSTS["s-9"], cropIds: ["GREEN_TEA"], quantity: 3, ...ton, status: "SUCCESS", resultNote: "Giao 3 tấn/đợt, thanh toán 15 ngày", createdAt: at(-2), resolvedAt: at(-1) },
+  { id: "cn-9", ...FARMERS.duc, ...POSTS["s-11"], cropIds: ["PINEAPPLE"], quantity: 50, ...ton, note: "Dứa Queen, độ Brix ≥ 13", status: "PENDING", createdAt: at(-4) },
+  { id: "cn-10", ...FARMERS.hoa, ...POSTS["s-11"], cropIds: ["PINEAPPLE"], quantity: 8, ...ton, status: "FAILED", resultNote: "Sản lượng chưa đủ tối thiểu 20 tấn", createdAt: at(-6), resolvedAt: at(-5) },
+  { id: "cn-11", ...FARMERS.duc, ...POSTS["s-27"], cropIds: ["PINEAPPLE"], status: "SUCCESS", resultNote: "Đã ký hợp đồng bao tiêu 120 tấn", createdAt: at(-140), resolvedAt: at(-130) },
+  { id: "cn-12", ...FARMERS.hung, ...POSTS["s-13"], cropIds: ["PINEAPPLE"], quantity: 30, ...ton, status: "PENDING", createdAt: at(-2) },
+  { id: "cn-13", ...FARMERS.tuan, ...POSTS["s-16"], cropIds: ["COFFEE"], quantity: 40, ...ton, note: "Robusta sàng 16, độ ẩm 12.5%", status: "PENDING", createdAt: at(-1) },
+  { id: "cn-14", ...FARMERS.thao, ...POSTS["s-20"], cropIds: ["SWEET_POTATO"], quantity: 2, ...ton, status: "PENDING", createdAt: at(0) },
+  { id: "cn-15", ...FARMERS.sang, ...POSTS["s-22"], cropIds: ["MANGO"], quantity: 25, ...ton, note: "Xoài cát Hòa Lộc loại 2", status: "PENDING", createdAt: at(-2) },
+  { id: "cn-16", ...FARMERS.sang, ...POSTS["s-23"], cropIds: ["RICE"], quantity: 200, ...ton, note: "Lúa OM18 vụ Thu Đông", status: "SUCCESS", resultNote: "Sấy 200 tấn, nhận trong tuần", createdAt: at(-1), resolvedAt: at(0) },
+  { id: "cn-17", ...FARMERS.thao, ...POSTS["s-24"], cropIds: ["RICE"], quantity: 80, ...ton, status: "PENDING", createdAt: at(-3) },
+  // Not yet matched to a factory (sent from the search form)
+  { id: "cn-18", ...FARMERS.me, cropIds: ["DURIAN"], quantity: 10, ...ton, note: "Tìm nhà máy cấp đông sầu riêng", status: "PENDING", createdAt: at(0) },
 ];
 
 // Rough kg/day for comparing a requested quantity; BATCH / OTHER can't be compared
@@ -212,6 +138,19 @@ const hasCertifications = (factory: Factory, required: string[]) =>
     ),
   );
 
+/**
+ * Crop → product-group ids, matched by group name ("Cây chè", "Cây ăn quả"…).
+ * PRODUCT_GROUP_LABELS holds seed keys plus ids synced from the API.
+ */
+const groupIdsForCrop = (cropId: string) => {
+  const groupId = CROPS.find((c) => c.id === cropId)?.groupId;
+  if (!groupId) return [];
+  const name = cropGroupName(groupId).trim().toLowerCase();
+  return Object.entries(PRODUCT_GROUP_LABELS)
+    .filter(([, label]) => label.trim().toLowerCase() === name)
+    .map(([id]) => id);
+};
+
 export const connectionApi = {
   async search(params: FactorySearchParams): Promise<FactorySearchResult[]> {
     await delay();
@@ -221,7 +160,7 @@ export const connectionApi = {
     });
     // Crop → product groups via "Nhóm nông sản" links
     const groupIds = new Set(
-      params.cropIds.flatMap((c) => productGroupApi.groupIdsForCrop(c)),
+      params.cropIds.flatMap(groupIdsForCrop),
     );
     const origin = { latitude: params.latitude, longitude: params.longitude };
     const useRadius =

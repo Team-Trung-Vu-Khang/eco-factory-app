@@ -46,14 +46,14 @@ export default function ScheduleHistoryPage() {
           setPage(0);
         }}
         pageSize={size}
-        currentIndex={page}
+        currentIndex={page + 1}
         totalElements={query.data?.totalElements}
         totalPages={query.data?.totalPages}
         onPageSize={(next) => {
           setSize(next);
           setPage(0);
         }}
-        onIndexChange={setPage}
+        onIndexChange={(index) => setPage(Math.max(0, index - 1))}
       />
 
       <DeleteDialog
