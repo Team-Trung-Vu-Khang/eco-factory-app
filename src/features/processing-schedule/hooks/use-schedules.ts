@@ -1,4 +1,9 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { factoryKeys } from "@/features/factory";
 import { scheduleApi, scheduleKeys } from "../api/schedule.api";
 import type { ScheduleFormValues } from "../schema";
@@ -23,10 +28,25 @@ function useInvalidate() {
 
 export function useCreateSchedule() {
   const invalidate = useInvalidate();
-  return useMutation({ mutationFn: (v: ScheduleFormValues) => scheduleApi.create(v), onSuccess: invalidate });
+  return useMutation({
+    mutationFn: (v: ScheduleFormValues) => scheduleApi.create(v),
+    onSuccess: invalidate,
+  });
+}
+
+export function useUpdateSchedule() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: ({ id, values }: { id: string; values: ScheduleFormValues }) =>
+      scheduleApi.update(id, values),
+    onSuccess: invalidate,
+  });
 }
 
 export function useCloseSchedule() {
   const invalidate = useInvalidate();
-  return useMutation({ mutationFn: (id: string) => scheduleApi.close(id), onSuccess: invalidate });
+  return useMutation({
+    mutationFn: (id: string) => scheduleApi.close(id),
+    onSuccess: invalidate,
+  });
 }

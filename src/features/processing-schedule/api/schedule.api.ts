@@ -120,24 +120,76 @@ export const scheduleApi = {
     return created;
   },
 
+  async update(
+    id: string,
+    values: ScheduleFormValues,
+  ): Promise<ProcessingSchedule> {
+    await delay();
+    const prev = scheduleStore.all().find((s) => s.id === id);
+    if (!prev) throw new Error("Không tìm thấy tin đăng.");
+
+    const machines = await machineIndex();
+    const machineId = values.machineIds[0] ?? prev.machineId;
+    const machine = machines.get(machineId);
+    if (!machine) throw new Error("Không tìm thấy máy / dây chuyền.");
+    if (machine.status !== "ACTIVE")
+      throw new Error(
+        `"${machine.name}" đang không hoạt động, không thể cập nhật lịch.`,
+      );
+
+    if (
+      values.capacityUnit === machine.capacityUnit &&
+      values.maxCapacity > machine.maxCapacity
+    ) {
+      throw new Error(
+        `Công suất nhận vượt công suất tối đa của "${machine.name}".`,
+      );
+    }
+
+    const clash = scheduleStore
+      .all()
+      .find(
+        (s) =>
+          s.id !== id &&
+          s.machineId === machineId &&
+          s.status === "OPEN" &&
+          s.toDate >= today() &&
+          overlaps(s, values),
+      );
+    if (clash)
+      throw new Error(
+        `"${machine.name}" đã có lịch đang mở khác trùng khoảng thời gian này.`,
+      );
+
+    const updated: ProcessingSchedule = {
+      ...prev,
+      ...values,
+      machineId,
+      capacityUnit: values.capacityUnit as ProcessingSchedule["capacityUnit"],
+    };
+
+    scheduleStore.set(
+      scheduleStore.all().map((s) => (s.id === id ? updated : s)),
+    );
+    return updated;
+  },
+
   async close(
     id: string,
     reason: "MANUAL" | "CONNECTED" = "MANUAL",
   ): Promise<void> {
     await delay(200);
     scheduleStore.set(
-      scheduleStore
-        .all()
-        .map((s) =>
-          s.id === id && s.status === "OPEN"
-            ? {
-                ...s,
-                status: "CLOSED",
-                closedReason: reason,
-                closedAt: new Date().toISOString(),
-              }
-            : s,
-        ),
+      scheduleStore.all().map((s) =>
+        s.id === id && s.status === "OPEN"
+          ? {
+              ...s,
+              status: "CLOSED",
+              closedReason: reason,
+              closedAt: new Date().toISOString(),
+            }
+          : s,
+      ),
     );
   },
 };

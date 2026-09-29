@@ -20,6 +20,7 @@ import {
   EMPTY_SCHEDULE,
   scheduleSchema,
   type ScheduleFormValues,
+  type ScheduleRow,
 } from "@/features/processing-schedule";
 import { useProcessingServiceOptions } from "@/features/processing-service";
 import { useProductGroupOptions } from "@/features/product-group";
@@ -61,14 +62,18 @@ function ReadonlyTags({
 interface ScheduleFormProps {
   /** Pre-select a machine, e.g. from the machines page */
   machineId?: string;
+  editingSchedule?: ScheduleRow | null;
   isSubmitting?: boolean;
   onSubmit: (values: ScheduleFormValues) => Promise<boolean>;
+  onCancelEdit?: () => void;
 }
 
 export function ScheduleForm({
   machineId,
+  editingSchedule,
   isSubmitting,
   onSubmit,
+  onCancelEdit,
 }: ScheduleFormProps) {
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(scheduleSchema),
@@ -103,14 +108,30 @@ export function ScheduleForm({
     selectedMachines.flatMap((m) => m.productGroupIds),
   );
 
-  // Deep link: ?machineId= selects the machine and its factory
+  // Sync when editing schedule changes
   useEffect(() => {
+    if (editingSchedule) {
+      form.reset({
+        factoryId: editingSchedule.factoryId,
+        machineIds: [editingSchedule.machineId],
+        fromDate: editingSchedule.fromDate,
+        toDate: editingSchedule.toDate,
+        maxCapacity: editingSchedule.maxCapacity,
+        capacityUnit: editingSchedule.capacityUnit,
+        note: editingSchedule.note ?? "",
+      });
+    }
+  }, [editingSchedule, form]);
+
+  // Deep link: ?machineId= selects the machine and its factory (only if not editing)
+  useEffect(() => {
+    if (editingSchedule) return;
     const target = allMachines.find((m) => m.id === machineId);
     if (target && !form.getValues("machineIds").length) {
       setValue("factoryId", target.factoryId);
       setValue("machineIds", [target.id]);
     }
-  }, [machineId, allMachines, form, setValue]);
+  }, [machineId, allMachines, form, setValue, editingSchedule]);
 
   // Changing factory drops machines from the previous one
   useEffect(() => {
@@ -123,15 +144,21 @@ export function ScheduleForm({
 
   // Default the unit to the first machine's; the user can still change it
   useEffect(() => {
-    if (firstMachine)
+    if (firstMachine && !editingSchedule)
       setValue("capacityUnit", firstMachine.capacityUnit, {
         shouldValidate: form.formState.isSubmitted,
       });
-  }, [firstMachine, setValue, form]);
+  }, [firstMachine, setValue, form, editingSchedule]);
+
+  const handleCancel = () => {
+    form.reset(EMPTY_SCHEDULE);
+    onCancelEdit?.();
+  };
 
   const submit = form.handleSubmit(async (values) => {
-    if (await onSubmit(values))
+    if (await onSubmit(values)) {
       form.reset({ ...EMPTY_SCHEDULE, factoryId: values.factoryId });
+    }
   });
 
   return (
@@ -141,8 +168,16 @@ export function ScheduleForm({
         className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
       >
         <FormSection
-          title="Đăng tin nhận chế biến"
-          description="Máy chỉ xuất hiện trong tìm kiếm của nông hộ khi có lịch đang mở"
+          title={
+            editingSchedule
+              ? "Chỉnh sửa tin nhận chế biến"
+              : "Đăng tin nhận chế biến"
+          }
+          description={
+            editingSchedule
+              ? `Đang chỉnh sửa lịch đăng cho máy "${editingSchedule.machineName}"`
+              : "Máy chỉ xuất hiện trong tìm kiếm của nông hộ khi có lịch đang mở"
+          }
         >
           <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
             <SearchSelectField
@@ -213,7 +248,18 @@ export function ScheduleForm({
             />
           </div>
         </FormSection>
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {editingSchedule && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+              className="w-full sm:w-auto!"
+            >
+              Hủy
+            </Button>
+          )}
           <Button
             type="submit"
             disabled={isSubmitting}
@@ -224,7 +270,7 @@ export function ScheduleForm({
             ) : (
               <Send className="mr-2 h-4 w-4" />
             )}
-            Đăng tin
+            {editingSchedule ? "Cập nhật tin đăng" : "Đăng tin"}
           </Button>
         </div>
       </form>
