@@ -1,4 +1,4 @@
-import { Button, useToast, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { Button, cn, useToast, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
 import { Check, Phone, Users, X } from "lucide-react";
 import { useState } from "react";
@@ -56,11 +56,18 @@ export function ScheduleConnectionsButton({
   return (
     <>
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
-        className="h-7 gap-1.5 px-2 tabular-nums"
+        className={cn(
+          "h-8 min-w-14 gap-1.5 px-3 font-medium tabular-nums",
+          // Has requests: green call-to-action · none: muted, not clickable
+          requests.length
+            ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800"
+            : "text-slate-400",
+        )}
         disabled={isLoading || !requests.length}
         onClick={() => setOpen(true)}
+        title={requests.length ? "Xem yêu cầu kết nối" : "Chưa có yêu cầu kết nối"}
       >
         <Users className="h-3.5 w-3.5" />
         {isLoading ? "…" : requests.length}
