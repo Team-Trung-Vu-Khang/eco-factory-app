@@ -1,8 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { TagInputField, TextareaField, TextField } from "@/components/form";
+import { useEffect, useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { MultiSelectField, TextareaField, TextField } from "@/components/form";
+import { CROPS } from "@/features/crop";
 import {
   EMPTY_PRODUCT_GROUP,
   productGroupSchema,
@@ -32,6 +33,12 @@ export function ProductGroupFormDialog({
     mode: "onTouched",
   });
   const { control } = form;
+  // API stores crop names — keep names already saved that aren't in the crop list
+  const selectedCrops = useWatch({ control, name: "crops" });
+  const cropOptions = useMemo(() => {
+    const names = new Set([...CROPS.map((c) => c.name), ...(selectedCrops ?? [])]);
+    return [...names].map((name) => ({ value: name, label: name }));
+  }, [selectedCrops]);
 
   useEffect(() => {
     if (open) form.reset(initialValues ?? EMPTY_PRODUCT_GROUP);
@@ -72,11 +79,12 @@ export function ProductGroupFormDialog({
                 : "Tối đa 80 ký tự. Hệ thống tự sinh nếu để trống."
             }
           />
-          <TagInputField
+          <MultiSelectField
             control={control}
             name="crops"
             label="Cây trồng liên kết"
-            placeholder="Nhập tên cây trồng rồi ấn Enter hoặc phẩy (VD: Chè búp tươi, Chè khô)..."
+            options={cropOptions}
+            placeholder="Tìm và chọn cây trồng..."
             description="Để trống = áp dụng cho tất cả cây trồng trong nhóm. Dùng để tìm nhà máy theo cây trồng."
           />
           <TextareaField
