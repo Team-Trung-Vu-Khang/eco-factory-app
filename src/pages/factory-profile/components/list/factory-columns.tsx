@@ -17,7 +17,9 @@ export const factoryColumns: Column<Factory>[] = [
     render: (_, row) => (
       <div className="min-w-48">
         <p className="font-medium text-slate-900">{row.name}</p>
-        <p className="text-xs text-slate-500">{ORGANIZATION_TYPE_LABELS[row.organizationType]}</p>
+        <p className="text-xs text-slate-500">
+          {ORGANIZATION_TYPE_LABELS[row.organizationType]}
+        </p>
       </div>
     ),
   },
@@ -28,7 +30,8 @@ export const factoryColumns: Column<Factory>[] = [
       <div>
         <p className="text-sm">{row.representative.fullName}</p>
         <p className="text-xs text-slate-500">
-          {GENDER_LABELS[row.representative.gender]} · {row.representative.phone}
+          {GENDER_LABELS[row.representative.gender]} ·{" "}
+          {row.representative.phone}
         </p>
       </div>
     ),
@@ -47,29 +50,29 @@ export const factoryColumns: Column<Factory>[] = [
       </span>
     ),
   },
-  {
-    key: "hasAvailableCapacity",
-    label: "Công suất khả dụng",
-    render: (_, row) =>
-      row.hasAvailableCapacity ? (
-        <span className="text-sm font-medium text-emerald-700">Có</span>
-      ) : (
-        <span className="text-sm text-slate-400">Không</span>
-      ),
-  },
-  {
-    key: "completionPercent",
-    label: "Hoàn thiện",
-    render: (_, row) => <CompletionBar percent={row.completionPercent} />,
-  },
+  // {
+  //   key: "hasAvailableCapacity",
+  //   label: "Công suất khả dụng",
+  //   render: (_, row) =>
+  //     row.hasAvailableCapacity ? (
+  //       <span className="text-sm font-medium text-emerald-700">Có</span>
+  //     ) : (
+  //       <span className="text-sm text-slate-400">Không</span>
+  //     ),
+  // },
+  // {
+  //   key: "completionPercent",
+  //   label: "Hoàn thiện",
+  //   render: (_, row) => <CompletionBar percent={row.completionPercent} />,
+  // },
   {
     key: "approvalStatus",
     label: "Trạng thái duyệt",
     render: (_, row) => <ApprovalStatusBadge status={row.approvalStatus} />,
   },
-  {
-    key: "isKpiEligible",
-    label: "Chỉ số 300 cơ sở",
-    render: (_, row) => <KpiStatusBadge eligible={row.isKpiEligible} />,
-  },
+  // {
+  //   key: "isKpiEligible",
+  //   label: "Chỉ số 300 cơ sở",
+  //   render: (_, row) => <KpiStatusBadge eligible={row.isKpiEligible} />,
+  // },
 ];
