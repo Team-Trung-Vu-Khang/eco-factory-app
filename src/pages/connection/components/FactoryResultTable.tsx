@@ -1,11 +1,11 @@
 import { Button } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
-import { Eye, ExternalLink, Handshake, Loader2 } from "lucide-react";
+import { Building2, ExternalLink, Handshake, Loader2 } from "lucide-react";
 import type { FactorySearchResult, MatchedMachine } from "@/features/connection";
 import { Link } from "wouter";
 import { ROUTES } from "@/config/routes";
 import { ScheduleConnectionsButton } from "@/pages/processing-schedule/components/ScheduleConnectionsButton";
-import { CAPACITY_UNIT_LABELS, getProvinceName, getWardName, type Factory } from "@/features/factory";
+import { CAPACITY_UNIT_LABELS, PROCESSING_SERVICE_LABELS, getProvinceName, getWardName, type Factory } from "@/features/factory";
 
 const fmt = new Intl.NumberFormat("vi-VN");
 const date = (d: string) => dayjs(d).format("DD/MM/YYYY");
@@ -20,7 +20,7 @@ const directionsUrl = (f: Factory) => {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
 };
 
-const BASE_HEADERS = ["Nhà máy", "Địa chỉ", "Tỉnh/Thành", "Xã/Phường", "Máy / dây chuyền", "Lịch nhận", "Công suất tối đa", "Ngày đăng"];
+const BASE_HEADERS = ["Tin đăng", "Nhà máy", "Địa chỉ", "Tỉnh/Thành", "Xã/Phường", "Máy / dây chuyền", "Lịch nhận", "Công suất tối đa", "Ngày đăng"];
 
 type Target = { factory: Factory; machine: MatchedMachine };
 
@@ -33,7 +33,7 @@ interface FactoryResultTableProps {
   onConnect?: (target: Target) => void;
 }
 
-/** One row per available machine */
+/** One row per matching post (open schedule of a machine) */
 export function FactoryResultTable({ results, mode, connectingKey, onConnect }: FactoryResultTableProps) {
   const rows = results.flatMap(({ factory, machines }) => machines.map((m) => ({ factory, m })));
   const isAdmin = mode === "admin";
@@ -41,7 +41,7 @@ export function FactoryResultTable({ results, mode, connectingKey, onConnect }: 
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-      <table className="w-full min-w-[1100px] text-sm">
+      <table className="w-full min-w-[1300px] text-sm">
         <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold text-slate-600">
           <tr>
             {headers.map((h) => (
@@ -54,7 +54,13 @@ export function FactoryResultTable({ results, mode, connectingKey, onConnect }: 
         <tbody className="divide-y divide-slate-100">
           {rows.map(({ factory: f, m }) => (
             <tr key={`${f.id}-${m.id}`} className="align-top">
-              <td className="px-3 py-3 font-medium text-slate-900">{f.name}</td>
+              <td className="min-w-56 px-3 py-3">
+                <p className="font-medium text-slate-900">{m.scheduleNote || `Nhận chế biến — ${m.name}`}</p>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  {m.functions.map((s) => PROCESSING_SERVICE_LABELS[s] ?? s).join(", ")}
+                </p>
+              </td>
+              <td className="px-3 py-3 text-slate-800">{f.name}</td>
               <td className="px-3 py-3">
                 <a
                   href={directionsUrl(f)}
@@ -86,10 +92,10 @@ export function FactoryResultTable({ results, mode, connectingKey, onConnect }: 
               ) : (
                 <td className="px-3 py-3">
                   <div className="flex justify-end gap-1">
-                    <Button size="sm" variant="outline" className="h-8" asChild>
+                    <Button size="sm" variant="outline" className="h-8 whitespace-nowrap" asChild>
                       <Link href={ROUTES.profileDetail(f.id)}>
-                        <Eye className="mr-1 h-3.5 w-3.5" />
-                        Chi tiết
+                        <Building2 className="mr-1 h-3.5 w-3.5" />
+                        Hồ sơ nhà máy
                       </Link>
                     </Button>
                     <Button

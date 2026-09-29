@@ -237,6 +237,7 @@ export const connectionApi = {
               scheduleCapacity: schedule.maxCapacity,
               scheduleUnit: schedule.capacityUnit,
               schedulePostedAt: schedule.createdAt,
+              scheduleNote: schedule.note,
               connectionCount: db.filter((c) => c.scheduleId === schedule.id)
                 .length,
             },

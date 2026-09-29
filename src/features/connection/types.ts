@@ -44,6 +44,8 @@ export interface MatchedMachine extends MachineRow {
   scheduleUnit: CapacityUnit;
   /** Ngày đăng */
   schedulePostedAt: string;
+  /** Post content (Ghi chú of the posting) */
+  scheduleNote?: string;
   /** Connection requests on this schedule */
   connectionCount: number;
 }
