@@ -16,6 +16,8 @@ import {
   type ScheduleFormValues,
   type ScheduleRow,
 } from "@/features/processing-schedule";
+import { useIsFactoryAdmin } from "@/features/viewer";
+import { useFactoryFilter } from "./components/useFactoryFilter";
 import { scheduleColumns } from "./components/schedule-columns";
 import { ScheduleForm } from "./components/ScheduleForm";
 
@@ -33,7 +35,15 @@ export default function ProcessingSchedulePage() {
   const create = useCreateSchedule();
   const update = useUpdateSchedule();
   const close = useCloseSchedule();
-  const activeQuery = useSchedules({ page: 0, size: 100, status: "ACTIVE" });
+  const [factoryId, setFactoryId] = useState<string | undefined>();
+  const [keyword, setKeyword] = useState("");
+  const activeQuery = useSchedules({
+    page: 0,
+    size: 100,
+    keyword,
+    status: "ACTIVE",
+    factoryId,
+  });
   const active = activeQuery.data?.content ?? [];
 
   const handleEditClick = (s: ScheduleRow) => {
@@ -41,33 +51,38 @@ export default function ProcessingSchedulePage() {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const columns: Column<ScheduleRow>[] = [
-    ...scheduleColumns,
-    {
-      key: "actions",
-      label: "",
-      render: (_, s) => (
-        <div className="flex items-center justify-end gap-1.5">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-primary hover:text-primary"
-            onClick={() => handleEditClick(s)}
-          >
-            Sửa
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-            onClick={() => setClosing(s)}
-          >
-            Đóng tin
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  // Admin: view only — no editing / closing posts
+  const isAdmin = useIsFactoryAdmin();
+  const factoryFilter = useFactoryFilter();
+  const columns: Column<ScheduleRow>[] = isAdmin
+    ? scheduleColumns
+    : [
+        ...scheduleColumns,
+        {
+          key: "actions",
+          label: "",
+          render: (_, s) => (
+            <div className="flex items-center justify-end gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-primary hover:text-primary"
+                onClick={() => handleEditClick(s)}
+              >
+                Sửa
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                onClick={() => setClosing(s)}
+              >
+                Đóng tin
+              </Button>
+            </div>
+          ),
+        },
+      ];
 
   const handleSubmit = async (values: ScheduleFormValues) => {
     try {
@@ -123,7 +138,14 @@ export default function ProcessingSchedulePage() {
             columns={columns}
             data={active}
             loading={activeQuery.isFetching}
-            searchable={false}
+            searchable
+            searchPlaceholder="Tìm theo máy, nhà máy..."
+            onSearch={setKeyword}
+            // Admin sees every factory's posts — filter by factory
+            filters={isAdmin ? [factoryFilter.filter] : undefined}
+            onFilterChange={(_key, value) =>
+              setFactoryId(value && value !== "all" ? value : undefined)
+            }
             columnToggleable={false}
             downloadable={false}
           />
