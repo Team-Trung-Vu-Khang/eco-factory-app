@@ -1,8 +1,22 @@
-import { Button, cn, useToast, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  Button,
+  cn,
+  useToast,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
 import { Check, Phone, Users, X } from "lucide-react";
 import { useState } from "react";
-import { SEARCH_QUANTITY_UNIT_LABELS, useConnections, useResolveConnection, type ConnectionRequest } from "@/features/connection";
+import {
+  SEARCH_QUANTITY_UNIT_LABELS,
+  useConnections,
+  useResolveConnection,
+  type ConnectionRequest,
+} from "@/features/connection";
 import { getCropName } from "@/features/crop";
 import { CAPACITY_UNIT_LABELS } from "@/features/factory";
 import type { ScheduleRow } from "@/features/processing-schedule";
@@ -31,7 +45,11 @@ export function ScheduleConnectionsButton({
   schedule: Pick<ScheduleRow, "id" | "machineName" | "fromDate" | "toDate">;
 }) {
   const [open, setOpen] = useState(false);
-  const { data, isLoading } = useConnections({ page: 0, size: 100, scheduleId: schedule.id });
+  const { data, isLoading } = useConnections({
+    page: 0,
+    size: 100,
+    scheduleId: schedule.id,
+  });
   const requests = data?.content ?? [];
   const { toast } = useToast();
   // Admin: view only — resolving is the factory's job
@@ -42,14 +60,25 @@ export function ScheduleConnectionsButton({
   const handleResolve = async (note: string) => {
     if (!resolving) return;
     try {
-      await resolve.mutateAsync({ id: resolving.request.id, status: resolving.status, note: note || undefined });
+      await resolve.mutateAsync({
+        id: resolving.request.id,
+        status: resolving.status,
+        note: note || undefined,
+      });
       toast({
         title: "Đã cập nhật",
-        description: resolving.status === "SUCCESS" ? "Đã kết nối, tin đăng đã được đóng." : "Đã huỷ kết nối.",
+        description:
+          resolving.status === "SUCCESS"
+            ? "Đã kết nối, tin đăng đã được đóng."
+            : "Đã huỷ kết nối.",
       });
       setResolving(null);
     } catch (error) {
-      toast({ title: "Không thể cập nhật", description: (error as Error).message, variant: "destructive" });
+      toast({
+        title: "Không thể cập nhật",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -67,7 +96,9 @@ export function ScheduleConnectionsButton({
         )}
         disabled={isLoading || !requests.length}
         onClick={() => setOpen(true)}
-        title={requests.length ? "Xem yêu cầu kết nối" : "Chưa có yêu cầu kết nối"}
+        title={
+          requests.length ? "Xem yêu cầu kết nối" : "Chưa có yêu cầu kết nối"
+        }
       >
         <Users className="h-3.5 w-3.5" />
         {isLoading ? "…" : requests.length}
@@ -78,38 +109,56 @@ export function ScheduleConnectionsButton({
           <DialogHeader>
             <DialogTitle>Yêu cầu kết nối ({requests.length})</DialogTitle>
             <DialogDescription>
-              {schedule.machineName} · {dayjs(schedule.fromDate).format("DD/MM/YYYY")} →{" "}
+              {schedule.machineName} ·{" "}
+              {dayjs(schedule.fromDate).format("DD/MM/YYYY")} →{" "}
               {dayjs(schedule.toDate).format("DD/MM/YYYY")}
             </DialogDescription>
           </DialogHeader>
           <ul className="max-h-[60vh] divide-y divide-slate-100 overflow-y-auto">
             {requests.map((c) => (
-              <li key={c.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-start sm:justify-between">
+              <li
+                key={c.id}
+                className="flex flex-col gap-2 py-3 sm:flex-row sm:items-start sm:justify-between"
+              >
                 <div className="min-w-0 space-y-1">
-                  <p className="text-sm font-medium text-slate-900">{c.farmerName}</p>
+                  <p className="text-sm font-medium text-slate-900">
+                    {c.farmerName}
+                  </p>
                   <p className="flex items-center gap-1 text-xs text-slate-500">
                     <Phone className="h-3 w-3" />
-                    {c.farmerPhone} · {dayjs(c.createdAt).format("DD/MM/YYYY HH:mm")}
+                    {c.farmerPhone} ·{" "}
+                    {dayjs(c.createdAt).format("DD/MM/YYYY HH:mm")}
                   </p>
                   <p className="text-sm text-slate-700">
                     {c.cropIds.map(getCropName).join(", ") || "—"}
-                    {quantityOf(c) && <span className="text-slate-500"> · {quantityOf(c)}</span>}
+                    {quantityOf(c) && (
+                      <span className="text-slate-500"> · {quantityOf(c)}</span>
+                    )}
                   </p>
                   {c.note && <p className="text-xs text-slate-500">{c.note}</p>}
                 </div>
                 <div className="max-w-56 shrink-0 space-y-1.5 sm:text-right">
                   <ConnectionStatusBadge status={c.status} />
-                  {c.resultNote && <p className="text-xs text-slate-500">{c.resultNote}</p>}
+                  {c.resultNote && (
+                    <p className="text-xs text-slate-500">{c.resultNote}</p>
+                  )}
                   {c.status === "PENDING" && !isAdmin && (
                     <div className="flex gap-1 sm:justify-end">
-                      <Button size="sm" variant="outline" className="h-7 text-emerald-700" onClick={() => setResolving({ request: c, status: "SUCCESS" })}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-emerald-700"
+                        onClick={() =>
+                          setResolving({ request: c, status: "SUCCESS" })
+                        }
+                      >
                         <Check className="mr-1 h-3.5 w-3.5" />
                         Xác nhận kết nối
                       </Button>
-                      <Button size="sm" variant="ghost" className="h-7 text-rose-600" onClick={() => setResolving({ request: c, status: "FAILED" })}>
+                      {/* <Button size="sm" variant="ghost" className="h-7 text-rose-600" onClick={() => setResolving({ request: c, status: "FAILED" })}>
                         <X className="mr-1 h-3.5 w-3.5" />
                         Huỷ kết nối
-                      </Button>
+                      </Button> */}
                     </div>
                   )}
                 </div>
