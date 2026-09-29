@@ -8,7 +8,16 @@ import {
 const REQUIRED = "Trường này là bắt buộc.";
 const PHONE_REGEX = /^(0|\+84)\d{9,10}$/;
 
-const optionalNumber = z.number().optional();
+const optionalNumber = z.preprocess(
+  (v) =>
+    v === "" ||
+    v === null ||
+    v === undefined ||
+    (typeof v === "number" && Number.isNaN(v))
+      ? undefined
+      : Number(v),
+  z.number().optional(),
+);
 
 // Processing windows are posted separately as "Lịch nhận chế biến" (processing-schedule)
 export const machineSchema = z.object({
@@ -233,7 +242,7 @@ export function fromFactoryProfileToFormValues(
           ? String(profile.organizationTypeId)
           : "",
     taxCode: profile.taxCode ?? "",
-    foundedYear: profile.foundedYear,
+    foundedYear: profile.foundedYear ?? undefined,
     representativeName: profile.representativeName ?? "",
     representativeGender: profile.representativeGender ?? "MALE",
     representativePhone: profile.representativePhone ?? "",
@@ -241,8 +250,8 @@ export function fromFactoryProfileToFormValues(
     address: profile.address ?? "",
     province: profile.province ?? "",
     ward: profile.ward ?? "",
-    latitude: profile.latitude,
-    longitude: profile.longitude,
+    latitude: profile.latitude ?? undefined,
+    longitude: profile.longitude ?? undefined,
     productGroupIds: (profile.productGroups ?? []).map((g) => String(g.id)),
     processingServiceIds: (profile.processingServices ?? []).map((s) =>
       String(s.id),

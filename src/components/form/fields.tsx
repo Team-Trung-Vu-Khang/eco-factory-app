@@ -119,11 +119,14 @@ export function NumberField<T extends FieldValues>({
               ref={field.ref}
               onBlur={field.onBlur}
               value={field.value ?? ""}
-              onChange={(e) =>
+              onChange={(e) => {
+                const val = e.target.value;
                 field.onChange(
-                  e.target.value === "" ? undefined : e.target.valueAsNumber,
-                )
-              }
+                  val === "" || Number.isNaN(e.target.valueAsNumber)
+                    ? undefined
+                    : e.target.valueAsNumber,
+                );
+              }}
               onClear={() => {
                 field.onChange(undefined);
                 onClear?.();
