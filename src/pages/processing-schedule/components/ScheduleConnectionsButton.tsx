@@ -104,7 +104,7 @@ export function ScheduleConnectionsButton({
                     <div className="flex gap-1 sm:justify-end">
                       <Button size="sm" variant="outline" className="h-7 text-emerald-700" onClick={() => setResolving({ request: c, status: "SUCCESS" })}>
                         <Check className="mr-1 h-3.5 w-3.5" />
-                        Đã kết nối
+                        Xác nhận kết nối
                       </Button>
                       <Button size="sm" variant="ghost" className="h-7 text-rose-600" onClick={() => setResolving({ request: c, status: "FAILED" })}>
                         <X className="mr-1 h-3.5 w-3.5" />
