@@ -4,6 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { queryClient } from "@/lib/query-client";
 import { productGroupApi, productGroupKeys } from "../api/product-group.api";
 import type { ProductGroupFormValues } from "../schema";
 import type { ProductGroupListParams } from "../types";
@@ -16,15 +17,20 @@ export function useProductGroups(params: ProductGroupListParams) {
   });
 }
 
-/** Function to fetch dynamic options for AsyncSelect components */
+/** Function to fetch dynamic options for AsyncSelect components (cached 30s via TanStack Query) */
 export const fetchProductGroupOptions = (keyword = "") =>
-  productGroupApi.searchOptions(keyword, 20);
+  queryClient.fetchQuery({
+    queryKey: productGroupKeys.search(keyword, 20),
+    queryFn: () => productGroupApi.searchOptions(keyword, 20),
+    staleTime: 30_000,
+  });
 
 /** Select options for forms; falls back to [] while loading */
 export function useProductGroupOptions() {
   const { data } = useQuery({
     queryKey: [...productGroupKeys.all, "all"],
     queryFn: productGroupApi.all,
+    staleTime: 30_000,
   });
   return (data ?? []).map((g) => ({ value: String(g.id), label: g.name }));
 }

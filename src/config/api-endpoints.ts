@@ -34,17 +34,21 @@ export const API_ENDPOINTS = {
     // Nhóm nông sản/sản phẩm đang chế biến
     factoryProductGroups: {
       public: "/api/master-data/factory-product-groups",
-      publicDetail: (id: string | number) => `/api/master-data/factory-product-groups/${id}`,
+      publicDetail: (id: string | number) =>
+        `/api/master-data/factory-product-groups/${id}`,
       admin: "/api/admin/master-data/factory-product-groups",
-      adminDetail: (id: string | number) => `/api/admin/master-data/factory-product-groups/${id}`,
+      adminDetail: (id: string | number) =>
+        `/api/admin/master-data/factory-product-groups/${id}`,
     },
 
     // Dịch vụ chế biến tại nhà máy
     factoryProcessingServices: {
       public: "/api/master-data/factory-processing-services",
-      publicDetail: (id: string | number) => `/api/master-data/factory-processing-services/${id}`,
+      publicDetail: (id: string | number) =>
+        `/api/master-data/factory-processing-services/${id}`,
       admin: "/api/admin/master-data/factory-processing-services",
-      adminDetail: (id: string | number) => `/api/admin/master-data/factory-processing-services/${id}`,
+      adminDetail: (id: string | number) =>
+        `/api/admin/master-data/factory-processing-services/${id}`,
     },
 
     // Chứng chỉ, tiêu chuẩn và tổ chức cấp
@@ -96,13 +100,51 @@ export const API_ENDPOINTS = {
     // Địa lý hành chính (Tỉnh/Thành, Xã/Phường)
     geo: {
       provinces: "/api/master-data/geo/provinces",
-      provinceDetail: (code: string | number) => `/api/master-data/geo/provinces/${code}`,
+      provinceDetail: (code: string | number) =>
+        `/api/master-data/geo/provinces/${code}`,
       wards: "/api/master-data/geo/wards",
-      wardDetail: (code: string | number) => `/api/master-data/geo/wards/${code}`,
+      wardDetail: (code: string | number) =>
+        `/api/master-data/geo/wards/${code}`,
+    },
+
+    // Loại hình tổ chức
+    organizationTypes: {
+      public: "/api/master-data/organization-types",
+      admin: "/api/admin/master-data/organization-types",
     },
   },
 
-  // ─── HỒ SƠ NHÀ MÁY & CƠ SỞ (FARM / FACTORY DOMAIN) ────────────────
+  // ─── HỒ SƠ NHÀ MÁY & CHỨNG NHẬN (FACTORY DOMAIN - SCOPE: X-Workspace-Id) ─
+  factory: {
+    profile: "/api/factory/profile",
+    certificates: {
+      base: "/api/factory/certificates",
+      summary: "/api/factory/certificates/summary",
+      detail: (id: string | number) => `/api/factory/certificates/${id}`,
+    },
+  },
+
+  // ─── QUẢN TRỊ HỆ THỐNG FACTORY (ADMIN DOMAIN) ─────────────────────
+  admin: {
+    factory: {
+      profiles: {
+        base: "/api/admin/factory/profiles",
+        detail: (id: string | number) => `/api/admin/factory/profiles/${id}`,
+        approve: (id: string | number) =>
+          `/api/admin/factory/profiles/${id}/approve`,
+        reject: (id: string | number) =>
+          `/api/admin/factory/profiles/${id}/reject`,
+      },
+      certificates: {
+        base: "/api/admin/factory/certificates",
+        summary: "/api/admin/factory/certificates/summary",
+        detail: (id: string | number) =>
+          `/api/admin/factory/certificates/${id}`,
+      },
+    },
+  },
+
+  // ─── HỒ SƠ CƠ SỞ DÙNG CHUNG (FARM DOMAIN) ─────────────────────────
   farm: {
     workspaceProfile: "/api/farm/workspace-profile",
     certificates: {

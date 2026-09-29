@@ -18,6 +18,7 @@ import {
 import { useMemo, useState } from "react";
 import {
   useDeleteMachine,
+  useMachines,
   useSaveMachine,
   type Machine,
   CAPACITY_UNIT_LABELS,
@@ -25,6 +26,7 @@ import {
   PROCESSING_SERVICE_LABELS,
   PRODUCT_GROUP_LABELS,
   type Factory,
+  type FactoryProfile,
 } from "@/features/factory";
 import { DetailCard, DetailField } from "@/components/common/DetailCard";
 import { MachineFormDialog } from "@/pages/machine/components/MachineFormDialog";
@@ -68,10 +70,20 @@ export function MachineListSection({
   factory,
   readOnly,
 }: {
-  factory: Factory;
+  factory: Factory | FactoryProfile;
   readOnly?: boolean;
 }) {
-  const title = `Máy móc & công suất (${factory.machines.length} máy)`;
+  const factoryIdStr = String(factory.id);
+  const { data: machinesData } = useMachines({
+    page: 0,
+    size: 100,
+    factoryId: factoryIdStr,
+  });
+  const machines =
+    "machines" in factory && Array.isArray(factory.machines)
+      ? factory.machines
+      : (machinesData?.content ?? []);
+  const title = `Máy móc & công suất (${machines.length} máy)`;
   const { toast } = useToast();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Machine | null>(null);
@@ -79,8 +91,8 @@ export function MachineListSection({
   const save = useSaveMachine();
   const remove = useDeleteMachine();
   const editingValues = useMemo(
-    () => (editing ? toDialogValues(factory.id, editing) : undefined),
-    [editing, factory.id],
+    () => (editing ? toDialogValues(factoryIdStr, editing) : undefined),
+    [editing, factoryIdStr],
   );
 
   const fail = (title: string, error: unknown) =>
@@ -100,7 +112,11 @@ export function MachineListSection({
     ...values
   }: MachineDialogValues) => {
     try {
-      await save.mutateAsync({ factoryId, values, machineId: editing?.id });
+      await save.mutateAsync({
+        factoryId: factoryId || factoryIdStr,
+        values,
+        machineId: editing?.id,
+      });
       toast({
         title: "Thành công",
         description: editing
@@ -117,7 +133,7 @@ export function MachineListSection({
     if (!deleting) return;
     try {
       await remove.mutateAsync({
-        factoryId: factory.id,
+        factoryId: factoryIdStr,
         machineId: deleting.id,
       });
       toast({ title: "Đã xóa", description: `Đã xóa "${deleting.name}".` });
@@ -128,7 +144,8 @@ export function MachineListSection({
   };
 
   const isEmpty =
-    !factory.offersExternalCapacity || factory.machines.length === 0;
+    ("offersExternalCapacity" in factory && !factory.offersExternalCapacity) ||
+    machines.length === 0;
 
   return (
     <div className="space-y-4">
@@ -149,7 +166,7 @@ export function MachineListSection({
         </DetailCard>
       ) : (
         <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
-          {factory.machines.map((m) => {
+          {machines.map((m) => {
             const active = m.status === "ACTIVE";
             const unit = CAPACITY_UNIT_LABELS[m.capacityUnit];
             return (
@@ -291,7 +308,7 @@ export function MachineListSection({
         open={formOpen}
         onOpenChange={setFormOpen}
         initialValues={editingValues}
-        factoryId={factory.id}
+        factoryId={factoryIdStr}
         isSubmitting={save.isPending}
         onSubmit={handleSubmit}
       />

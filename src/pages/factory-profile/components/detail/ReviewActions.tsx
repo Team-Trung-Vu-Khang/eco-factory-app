@@ -1,34 +1,82 @@
-import { Button, FormDialog, Label, Textarea, useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  Button,
+  FormDialog,
+  Label,
+  Textarea,
+  useToast,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Check, X } from "lucide-react";
 import { useState } from "react";
-import { useReviewFactory, type Factory } from "@/features/factory";
+import {
+  useAdminApproveProfile,
+  useAdminRejectProfile,
+  type FactoryProfile,
+} from "@/features/factory";
 
 /** Admin: approve / reject a pending profile */
-export function ReviewActions({ factory }: { factory: Factory }) {
+export function ReviewActions({ factory }: { factory: FactoryProfile }) {
   const { toast } = useToast();
-  const review = useReviewFactory();
+  const approve = useAdminApproveProfile();
+  const reject = useAdminRejectProfile();
   const [rejecting, setRejecting] = useState(false);
   const [note, setNote] = useState("");
 
-  const submit = async (status: "APPROVED" | "REJECTED") => {
+  const isPending = factory.reviewStatus === "PENDING_REVIEW";
+  if (!isPending) return null;
+
+  const handleApprove = async () => {
     try {
-      await review.mutateAsync({ id: factory.id, status, note: note.trim() || undefined });
-      toast({ title: status === "APPROVED" ? "Đã duyệt hồ sơ" : "Đã từ chối hồ sơ" });
-      setRejecting(false);
+      await approve.mutateAsync(factory.id);
+      toast({ title: "Thành công", description: "Đã duyệt hồ sơ nhà máy." });
     } catch (error) {
-      toast({ title: "Không thể cập nhật", description: (error as Error).message, variant: "destructive" });
+      toast({
+        title: "Không thể duyệt",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
     }
   };
 
-  if (factory.approvalStatus !== "PENDING") return null;
+  const handleReject = async () => {
+    if (!note.trim()) {
+      toast({
+        title: "Chưa nhập lý do",
+        description: "Vui lòng nhập lý do từ chối hồ sơ.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      await reject.mutateAsync({ id: factory.id, note: note.trim() });
+      toast({ title: "Đã từ chối", description: "Đã từ chối hồ sơ nhà máy." });
+      setRejecting(false);
+    } catch (error) {
+      toast({
+        title: "Không thể từ chối",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const isLoading = approve.isPending || reject.isPending;
 
   return (
     <>
-      <Button variant="outline" className="text-rose-600" onClick={() => setRejecting(true)} disabled={review.isPending}>
+      <Button
+        variant="outline"
+        className="text-rose-600"
+        onClick={() => setRejecting(true)}
+        disabled={isLoading}
+      >
         <X className="mr-2 h-4 w-4" />
         Từ chối
       </Button>
-      <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={() => submit("APPROVED")} disabled={review.isPending}>
+      <Button
+        className="bg-emerald-600 hover:bg-emerald-700"
+        onClick={handleApprove}
+        disabled={isLoading}
+      >
         <Check className="mr-2 h-4 w-4" />
         Duyệt
       </Button>
@@ -39,12 +87,21 @@ export function ReviewActions({ factory }: { factory: Factory }) {
         title="Từ chối hồ sơ"
         description={factory.name}
         submitLabel="Từ chối"
-        loading={review.isPending}
-        onSubmit={() => submit("REJECTED")}
+        loading={reject.isPending}
+        onSubmit={handleReject}
       >
         <div className="space-y-1.5">
-          <Label htmlFor="review-note">Lý do</Label>
-          <Textarea id="review-note" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="VD: Thiếu ảnh cơ sở sản xuất" />
+          <Label htmlFor="review-note">
+            Lý do từ chối <span className="text-rose-500">*</span>
+          </Label>
+          <Textarea
+            id="review-note"
+            rows={3}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="VD: Thiếu ảnh cơ sở sản xuất hoặc thông tin giấy phép chưa rõ ràng"
+            required
+          />
         </div>
       </FormDialog>
     </>

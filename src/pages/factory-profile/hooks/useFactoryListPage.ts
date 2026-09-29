@@ -1,36 +1,54 @@
-import { useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { ROUTES } from "@/config/routes";
 import {
-  useDeleteFactory,
-  useFactories,
-  type Factory,
-  type FactoryListParams,
+  useAdminFactoryProfiles,
+  type FactoryProfile,
+  type AdminFactoryProfileListParams,
 } from "@/features/factory";
 
-type Filters = Pick<FactoryListParams, "organizationType" | "provinceCode" | "kpiStatus" | "approvalStatus">;
+type Filters = Omit<AdminFactoryProfileListParams, "page" | "size" | "keyword">;
 
 export function useFactoryListPage() {
   const [, navigate] = useLocation();
-  const { toast } = useToast();
 
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [keyword, setKeyword] = useState("");
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [filters, setFilters] = useState<Filters>({});
-  const [deleting, setDeleting] = useState<Factory | null>(null);
 
-  const query = useFactories({ page, size, keyword, ...filters });
-  const deleteMutation = useDeleteFactory();
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedKeyword(keyword);
+      setPage(0);
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [keyword]);
+
+  const query = useAdminFactoryProfiles({
+    page,
+    size,
+    keyword: debouncedKeyword,
+    ...filters,
+  });
 
   const handleSearch = (value: string) => {
     setKeyword(value);
-    setPage(0);
   };
 
   const handleFilterChange = (key: string, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value && value !== "all" ? value : undefined }));
+    setFilters((prev) => {
+      if (!value || value === "all") {
+        const next = { ...prev };
+        delete (next as Record<string, unknown>)[key];
+        return next;
+      }
+      if (key === "program300Eligible") {
+        return { ...prev, program300Eligible: value === "true" };
+      }
+      return { ...prev, [key]: value };
+    });
     setPage(0);
   };
 
@@ -39,16 +57,19 @@ export function useFactoryListPage() {
     setPage(0);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!deleting) return;
-    try {
-      await deleteMutation.mutateAsync(deleting.id);
-      toast({ title: "Đã xóa", description: `Đã xóa "${deleting.name}".` });
-      setDeleting(null);
-    } catch (error) {
-      toast({ title: "Không thể xóa", description: (error as Error).message, variant: "destructive" });
-    }
-  };
+  // TODO: Mở lại khi BE bổ sung API DELETE /api/admin/factory/profiles/:id
+  // const [deleting, setDeleting] = useState<FactoryProfile | null>(null);
+  // const deleteMutation = useDeleteFactoryProfile();
+  // const handleConfirmDelete = async () => {
+  //   if (!deleting) return;
+  //   try {
+  //     await deleteMutation.mutateAsync(deleting.id);
+  //     toast({ title: "Đã xóa", description: `Đã xóa "${deleting.name}".` });
+  //     setDeleting(null);
+  //   } catch (error) {
+  //     toast({ title: "Không thể xóa", description: (error as Error).message, variant: "destructive" });
+  //   }
+  // };
 
   return {
     data: query.data?.content ?? [],
@@ -62,11 +83,13 @@ export function useFactoryListPage() {
     handleSearch,
     handleFilterChange,
     goCreate: () => navigate(ROUTES.profileCreate),
-    goView: (row: Factory) => navigate(ROUTES.profileDetail(row.id)),
-    goEdit: (row: Factory) => navigate(ROUTES.profileEdit(row.id)),
-    deleting,
-    setDeleting,
-    isDeleting: deleteMutation.isPending,
-    handleConfirmDelete,
+    goView: (row: FactoryProfile) =>
+      navigate(ROUTES.profileDetail(String(row.id))),
+    goEdit: (row: FactoryProfile) =>
+      navigate(ROUTES.profileEdit(String(row.id))),
+    // deleting,
+    // setDeleting,
+    // isDeleting: deleteMutation.isPending,
+    // handleConfirmDelete,
   };
 }

@@ -1,21 +1,32 @@
 import { SchemaStepperForm } from "@/components/form";
-import { factorySchema, type FactoryFormValues } from "@/features/factory";
+import {
+  factoryFormSchema,
+  type FactoryProfileFormValues,
+} from "@/features/factory";
 import { FACTORY_STEPS } from "./factory-steps";
 import { useFactoryForm } from "./useFactoryForm";
 
-// Machines are edited separately, so the edit flow skips that step
-const EDIT_STEPS = FACTORY_STEPS.filter((step) => step.id !== "machines");
-
 interface FactoryStepperFormProps {
-  defaultValues: FactoryFormValues;
+  defaultValues: FactoryProfileFormValues;
   submitLabel: string;
   isSubmitting?: boolean;
-  onSubmit: (values: FactoryFormValues) => void;
+  onSubmit: (values: FactoryProfileFormValues) => void;
   onCancel: () => void;
-  mode?: "create" | "edit";
 }
 
-export function FactoryStepperForm({ defaultValues, mode = "create", ...props }: FactoryStepperFormProps) {
+export function FactoryStepperForm({
+  defaultValues,
+  submitLabel = "Gửi duyệt",
+  ...props
+}: FactoryStepperFormProps) {
   const form = useFactoryForm(defaultValues);
-  return <SchemaStepperForm form={form} schema={factorySchema} steps={mode === "edit" ? EDIT_STEPS : FACTORY_STEPS} {...props} />;
+  return (
+    <SchemaStepperForm
+      form={form}
+      schema={factoryFormSchema}
+      steps={FACTORY_STEPS}
+      submitLabel={submitLabel}
+      {...props}
+    />
+  );
 }

@@ -1,44 +1,48 @@
 import { useWatch } from "react-hook-form";
+import { InfoGrid } from "@/components/common/InfoGrid";
 import { FormSection } from "@/components/form";
 import {
-  ORGANIZATION_TYPE_LABELS,
-  PROCESSING_SERVICE_LABELS,
-  getProvinceName,
-  getWardName,
-  type FactoryFormValues,
-  type OrganizationType,
-  type ProcessingService,
+  GENDER_LABELS,
+  type FactoryProfileFormValues,
 } from "@/features/factory";
-import { InfoGrid } from "@/components/common/InfoGrid";
 import { useFactoryFormContext } from "./useFactoryFormContext";
 
 export function ReviewSection() {
   const { control } = useFactoryFormContext();
-  const values = useWatch({ control }) as FactoryFormValues;
-  const machines = values.offersExternalCapacity ? values.machines : [];
+  const values = useWatch({ control }) as FactoryProfileFormValues;
+
+  const images = values.images ?? [];
+  const certs = values.hasCertificates ? (values.certificates ?? []) : [];
 
   return (
-    <div className="space-y-4">
-      {/* <FormSection title="Tình trạng hồ sơ" description="Hệ thống sẽ tính lại sau khi lưu">
+    <div className="space-y-6">
+      {/* <FormSection
+        title="Tình trạng hồ sơ"
+        description="Mức độ hoàn thiện và điều kiện chỉ số 300 cơ sở"
+      >
         <div className="flex flex-wrap gap-8">
           <div className="space-y-1">
             <p className="text-xs text-slate-500">Mức hoàn thiện</p>
-            <CompletionBar percent={status.completionPercent} />
+            <CompletionBar percent={completeness} />
           </div>
           <div className="space-y-1">
             <p className="text-xs text-slate-500">Chỉ số 300 cơ sở</p>
-            <KpiStatusBadge eligible={status.isKpiEligible} />
+            <KpiStatusBadge eligible={isEligible} />
           </div>
         </div>
+
         <ul className="mt-4 space-y-2">
           {hints.length === 0 ? (
-            <li className="flex items-center gap-2 text-sm text-emerald-700">
+            <li className="flex items-center gap-2 text-sm font-medium text-emerald-700">
               <CheckCircle2 className="h-4 w-4" />
-              Hồ sơ đầy đủ.
+              Hồ sơ đầy đủ thông tin đề xuất.
             </li>
           ) : (
             hints.map((hint) => (
-              <li key={hint} className="flex items-start gap-2 text-sm text-amber-700">
+              <li
+                key={hint}
+                className="flex items-start gap-2 text-sm text-amber-700"
+              >
                 <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
                 {hint}
               </li>
@@ -47,81 +51,63 @@ export function ReviewSection() {
         </ul>
       </FormSection> */}
 
-      <FormSection title="Tóm tắt">
+      <FormSection title="Tóm tắt thông tin hồ sơ">
         <InfoGrid
           items={[
-            { label: "Tên cơ sở", value: values.name },
-            {
-              label: "Loại hình",
-              value:
-                ORGANIZATION_TYPE_LABELS[
-                  values.organizationType as OrganizationType
-                ],
-            },
+            { label: "Tên cơ sở / nhà máy", value: values.name },
             {
               label: "Người đại diện",
-              value: `${values.representative.fullName} · ${values.representative.phone}`,
+              value: `${values.representativeName} · ${GENDER_LABELS[values.representativeGender] ?? ""} · ${values.representativePhone}`,
             },
             {
               label: "Địa điểm",
-              value: [
-                values.location.address,
-                getWardName(
-                  values.location.provinceCode,
-                  values.location.wardCode,
-                ),
-                getProvinceName(values.location.provinceCode),
-              ]
+              value: [values.address, values.ward, values.province]
                 .filter(Boolean)
                 .join(", "),
             },
             {
-              label: "Dịch vụ",
-              value: values.services
-                .map((s) => PROCESSING_SERVICE_LABELS[s as ProcessingService])
-                .join(", "),
+              label: "Nhóm nông sản",
+              value: `${values.productGroupIds?.length ?? 0} nhóm đã chọn`,
             },
             {
-              label: "Máy / dây chuyền",
-              value: machines.length
-                ? `${machines.length} máy`
-                : "Không cung cấp cho bên ngoài",
+              label: "Dịch vụ chế biến",
+              value: `${values.processingServiceIds?.length ?? 0} dịch vụ đã chọn`,
             },
             {
               label: "Chứng nhận",
-              value: values.hasCertification
-                ? `${values.certifications.length} chứng nhận`
-                : "Không có",
+              value: values.hasCertificates
+                ? `${certs.length} chứng nhận`
+                : "Không có chứng nhận",
+            },
+            {
+              label: "Hình ảnh máy móc",
+              value: `${images.length} ảnh đã tải lên`,
             },
           ]}
         />
       </FormSection>
 
-      <FormSection title={`Hình ảnh (${values.machinePhotos.length})`}>
-        {values.machinePhotos.length === 0 ? (
-          <p className="text-sm text-slate-400">
-            Chưa có ảnh máy móc / dây chuyền.
-          </p>
-        ) : (
+      {images.length > 0 && (
+        <FormSection title={`Hình ảnh máy móc / dây chuyền (${images.length})`}>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-3 lg:grid-cols-6">
-            {values.machinePhotos.map((url) => (
+            {images.map((img) => (
               <a
-                key={url}
-                href={url}
+                key={img.fileUrl}
+                href={img.fileUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="aspect-square overflow-hidden rounded-lg border border-slate-200 shadow-sm"
               >
                 <img
-                  src={url}
-                  alt=""
+                  src={img.fileUrl}
+                  alt={img.fileName || ""}
                   className="h-full w-full object-cover transition hover:scale-105"
                 />
               </a>
             ))}
           </div>
-        )}
-      </FormSection>
+        </FormSection>
+      )}
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import type { SchemaStep } from "@/components/form";
 import type { CertificateFormValues } from "@/features/certificate";
-import { DocumentsSection } from "./DocumentsSection";
 import { InfoSection } from "./InfoSection";
 import { ReviewSection } from "./ReviewSection";
 import { ScopeSection } from "./ScopeSection";
@@ -10,22 +9,21 @@ export const CERTIFICATE_STEPS: SchemaStep<CertificateFormValues>[] = [
     id: "info",
     title: "Thông tin",
     description: "Loại, số, đơn vị cấp, hiệu lực",
-    fields: ["type", "standardName", "number", "issuer", "issuedDate", "expiryDate"],
+    fields: [
+      "certificateType",
+      "certificateNumber",
+      "issuer",
+      "issuedDate",
+      "expiryDate",
+    ],
     content: <InfoSection />,
   },
   {
     id: "scope",
     title: "Phạm vi",
-    description: "Nhà máy được chứng nhận",
-    fields: ["factoryId", "scopeDescription"],
+    description: "Mô tả phạm vi áp dụng",
+    fields: ["scopeDescription"],
     content: <ScopeSection />,
-  },
-  {
-    id: "documents",
-    title: "Tài liệu",
-    description: "Ảnh / PDF chứng nhận",
-    fields: ["files", "note"],
-    content: <DocumentsSection />,
   },
   {
     id: "review",

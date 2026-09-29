@@ -1,4 +1,7 @@
-import { Button, DataTable, DeleteDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  Button,
+  DataTable /*, DeleteDialog */,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
 import { AppLoadingState } from "@/components/common/AppLoadingState";
@@ -46,9 +49,10 @@ function FactoryList() {
         onIndexChange={(index) => page.setPage(Math.max(0, index - 1))}
         onView={page.goView}
         onEdit={page.goEdit}
-        onDelete={page.setDeleting}
+        // onDelete={page.setDeleting} // Mở lại khi BE bổ sung API DELETE /api/admin/factory/profiles/:id
       />
 
+      {/* TODO: Mở lại khi BE bổ sung API DELETE /api/admin/factory/profiles/:id
       <DeleteDialog
         open={!!page.deleting}
         onOpenChange={(open) => !open && page.setDeleting(null)}
@@ -56,6 +60,7 @@ function FactoryList() {
         loading={page.isDeleting}
         description={`Bạn có chắc chắn muốn xóa "${page.deleting?.name ?? ""}"? Thao tác này không thể hoàn tác.`}
       />
+      */}
     </PageWrapper>
   );
 }

@@ -1,12 +1,12 @@
 import {
+  AsyncSearchSelectField,
   FormSection,
   ImageUploadField,
   NumberField,
-  SelectField,
   TextField,
   useUploadStatus,
 } from "@/components/form";
-import { ORGANIZATION_TYPE_OPTIONS } from "@/features/factory";
+import { fetchOrganizationTypeOptions } from "@/features/factory";
 import { useFactoryFormContext } from "./useFactoryFormContext";
 
 export function BasicInfoSection() {
@@ -19,21 +19,40 @@ export function BasicInfoSection() {
         <div className="flex flex-col gap-4 sm:flex-row">
           <ImageUploadField
             control={control}
-            name="avatarUrl"
-            label="Logo / ảnh"
+            name="logoUrl"
+            label="Logo / ảnh đại diện"
             variant="avatar"
             folder="factory"
+            maxFiles={1}
             onUploadingChange={track}
             className="shrink-0"
           />
           <div className="grid flex-1 content-start gap-y-3">
-            <TextField control={control} name="name" label="Tên cơ sở / nhà máy" required placeholder="Tên hiển thị trên MEVI Factories" />
-            <SelectField control={control} name="organizationType" label="Loại hình" required options={ORGANIZATION_TYPE_OPTIONS} />
+            <TextField
+              control={control}
+              name="name"
+              label="Tên cơ sở / nhà máy"
+              required
+              placeholder="Tên hiển thị trên MEVI Factories"
+            />
+            <AsyncSearchSelectField
+              control={control}
+              name="organizationTypeId"
+              label="Loại hình"
+              required
+              fetchOptions={fetchOrganizationTypeOptions}
+              placeholder="Tìm kiếm loại hình..."
+            />
           </div>
         </div>
         <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
           <TextField control={control} name="taxCode" label="Mã số thuế" />
-          <NumberField control={control} name="foundedYear" label="Năm thành lập" placeholder="VD: 2018" />
+          <NumberField
+            control={control}
+            name="foundedYear"
+            label="Năm thành lập"
+            placeholder="VD: 2018"
+          />
         </div>
       </div>
     </FormSection>

@@ -1,7 +1,12 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Award, Image, Info, Megaphone, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
-import type { Factory } from "@/features/factory";
+import type { FactoryProfile } from "@/features/factory";
 import { ApprovalNotice } from "./ApprovalNotice";
 import { CertificationListSection } from "./CertificationListSection";
 import { FactoryDetailHeader } from "./FactoryDetailHeader";
@@ -10,7 +15,7 @@ import { FactoryPostsSection } from "./FactoryPostsSection";
 import { MachineListSection } from "./MachineListSection";
 import { PhotoGallerySection } from "./PhotoGallerySection";
 
-const TABS = [
+const tabs = [
   { value: "info", label: "Thông tin", icon: Info },
   { value: "machines", label: "Máy móc", icon: Wrench },
   { value: "certs", label: "Chứng nhận", icon: Award },
@@ -19,16 +24,14 @@ const TABS = [
 /** Farmer (read-only) view also lists the factory's open posts */
 const POSTS_TAB = { value: "posts", label: "Tin đăng", icon: Megaphone };
 
-/** Full profile — admin detail page and the factory member's own profile */
 export function FactoryProfileView({
   factory,
   isOwner,
   readOnly,
   actions,
 }: {
-  factory: Factory;
+  factory: FactoryProfile;
   isOwner?: boolean;
-  /** Member viewing another factory */
   readOnly?: boolean;
   actions?: ReactNode;
 }) {
@@ -39,16 +42,18 @@ export function FactoryProfileView({
       <Tabs defaultValue="info" className="space-y-6">
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-1.5">
           <TabsList className="mx-auto flex h-auto w-max gap-1 bg-transparent p-0">
-            {(readOnly ? [...TABS, POSTS_TAB] : TABS).map(({ value, label, icon: Icon }) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className="gap-2 rounded-lg px-4 py-2 text-slate-500 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </TabsTrigger>
-            ))}
+            {(readOnly ? [...tabs, POSTS_TAB] : tabs).map(
+              ({ value, label, icon: Icon }) => (
+                <TabsTrigger
+                  key={value}
+                  value={value}
+                  className="gap-2 rounded-lg px-4 py-2 text-slate-500 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </TabsTrigger>
+              ),
+            )}
           </TabsList>
         </div>
         <TabsContent value="info" className="mt-0">

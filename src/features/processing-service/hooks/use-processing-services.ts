@@ -4,6 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { queryClient } from "@/lib/query-client";
 import {
   processingServiceApi,
   processingServiceKeys,
@@ -19,14 +20,19 @@ export function useProcessingServices(params: ProcessingServiceListParams) {
   });
 }
 
-/** Function to fetch dynamic options for AsyncSelect components */
+/** Function to fetch dynamic options for AsyncSelect components (cached 30s via TanStack Query) */
 export const fetchProcessingServiceOptions = (keyword = "") =>
-  processingServiceApi.searchOptions(keyword, 20);
+  queryClient.fetchQuery({
+    queryKey: processingServiceKeys.search(keyword, 20),
+    queryFn: () => processingServiceApi.searchOptions(keyword, 20),
+    staleTime: 30_000,
+  });
 
 export function useProcessingServiceOptions() {
   const { data } = useQuery({
     queryKey: [...processingServiceKeys.all, "all"],
     queryFn: processingServiceApi.all,
+    staleTime: 30_000,
   });
   return (data ?? []).map((s) => ({ value: String(s.id), label: s.name }));
 }

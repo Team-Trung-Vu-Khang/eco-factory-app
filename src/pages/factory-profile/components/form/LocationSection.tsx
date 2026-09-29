@@ -6,58 +6,105 @@ import {
   FormMessage,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Loader2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
-import { AddressAutocomplete, FormSection, SelectField } from "@/components/form";
-import { LocationPickerMap, type LatLng } from "@/components/map/LocationPickerMap";
-import { PROVINCES } from "@/features/factory";
-import { findByName, goongApi, type ResolvedPlace } from "@/features/geo";
+import {
+  AddressAutocomplete,
+  FormSection,
+  SearchSelectField,
+} from "@/components/form";
+import {
+  LocationPickerMap,
+  type LatLng,
+} from "@/components/map/LocationPickerMap";
+import {
+  findByName,
+  geoApi,
+  goongApi,
+  useProvinceOptions,
+  useWardOptions,
+  type ResolvedPlace,
+} from "@/features/geo";
 import { useFactoryFormContext } from "./useFactoryFormContext";
 
-const PROVINCE_OPTIONS = PROVINCES.map((p) => ({ value: p.code, label: p.name }));
+const FORM_OPTS = { shouldDirty: true, shouldValidate: true } as const;
 
 export function LocationSection() {
   const { control, setValue, getValues } = useFactoryFormContext();
-  const [provinceCode, latitude, longitude] = useWatch({
+  const [province, latitude, longitude] = useWatch({
     control,
-    name: ["location.provinceCode", "location.latitude", "location.longitude"],
+    name: ["province", "latitude", "longitude"],
   });
   const [resolving, setResolving] = useState(false);
   const pickRequestRef = useRef(0);
+  const prevProvinceRef = useRef(province);
 
-  const wardOptions =
-    PROVINCES.find((p) => p.code === provinceCode)?.wards.map((w) => ({ value: w.code, label: w.name })) ?? [];
+  const { options: provinceOptions, provinces } = useProvinceOptions();
 
-  const opts = { shouldDirty: true, shouldValidate: true };
+  const currentProvince = useMemo(
+    () =>
+      provinces.find(
+        (p) =>
+          p.name === province || p.fullName === province || p.code === province,
+      ),
+    [provinces, province],
+  );
 
-  const applyPlace = (place: ResolvedPlace, { overwriteAddress }: { overwriteAddress: boolean }) => {
-    setValue("location.latitude", place.latitude, opts);
-    setValue("location.longitude", place.longitude, opts);
-    if (overwriteAddress && place.address) setValue("location.address", place.address, opts);
+  const { options: wardOptions } = useWardOptions(currentProvince?.code);
 
-    // Fill province / ward only when Goong's names match our list
-    const province = findByName(PROVINCES, place.compound.province);
-    if (!province) return;
-    if (province.code !== getValues("location.provinceCode")) {
-      setValue("location.provinceCode", province.code, opts);
-      setValue("location.wardCode", "", opts);
+  // Reset ward when province changes manually
+  useEffect(() => {
+    if (prevProvinceRef.current && prevProvinceRef.current !== province) {
+      setValue("ward", "", FORM_OPTS);
     }
-    // compound.commune may still be the pre-2025 name; the new ward usually
-    // appears in the formatted address ("Tràng Tiền, Cửa Nam, Hà Nội")
-    const ward =
-      findByName(province.wards, place.compound.commune) ??
-      place.address.split(",").map((part) => findByName(province.wards, part)).find(Boolean);
-    if (ward) setValue("location.wardCode", ward.code, opts);
+    prevProvinceRef.current = province;
+  }, [province, setValue]);
+
+  const applyPlace = async (
+    place: ResolvedPlace,
+    { overwriteAddress }: { overwriteAddress: boolean },
+  ) => {
+    setValue("latitude", place.latitude, FORM_OPTS);
+    setValue("longitude", place.longitude, FORM_OPTS);
+    if (overwriteAddress && place.address)
+      setValue("address", place.address, FORM_OPTS);
+
+    // Match Goong province name with API master data provinces
+    const foundProvince = findByName(provinces, place.compound.province);
+    if (!foundProvince) return;
+
+    if (foundProvince.name !== getValues("province")) {
+      setValue("province", foundProvince.name, FORM_OPTS);
+      setValue("ward", "", FORM_OPTS);
+    }
+
+    // Fetch wards for the found province to auto-select ward
+    try {
+      const wardsResp = await geoApi.getWards({
+        provinceCode: foundProvince.code,
+      });
+      const wardList = wardsResp.content ?? [];
+      const foundWard =
+        findByName(wardList, place.compound.commune) ??
+        place.address
+          .split(",")
+          .map((part) => findByName(wardList, part.trim()))
+          .find(Boolean);
+      if (foundWard) setValue("ward", foundWard.name, FORM_OPTS);
+    } catch {
+      // Keep silent on ward auto-selection error
+    }
   };
 
-  const handleMapPick = async ({ latitude, longitude }: LatLng) => {
+  const handleMapPick = async ({ latitude: lat, longitude: lng }: LatLng) => {
     const requestId = ++pickRequestRef.current;
-    setValue("location.latitude", latitude, opts);
-    setValue("location.longitude", longitude, opts);
+    setValue("latitude", lat, FORM_OPTS);
+    setValue("longitude", lng, FORM_OPTS);
     setResolving(true);
     try {
-      const place = await goongApi.reverseGeocode(latitude, longitude);
-      if (place && requestId === pickRequestRef.current) applyPlace(place, { overwriteAddress: true });
+      const place = await goongApi.reverseGeocode(lat, lng);
+      if (place && requestId === pickRequestRef.current)
+        await applyPlace(place, { overwriteAddress: true });
     } catch {
       // keep the picked coordinates even if reverse geocoding fails
     } finally {
@@ -68,12 +115,15 @@ export function LocationSection() {
   const hasPosition = Number.isFinite(latitude) && Number.isFinite(longitude);
 
   return (
-    <FormSection title="Địa điểm" description="Dùng để tìm kiếm và gợi ý cơ sở gần người có nhu cầu">
+    <FormSection
+      title="Địa điểm"
+      description="Dùng để tìm kiếm và gợi ý cơ sở gần người có nhu cầu"
+    >
       <div className="space-y-4">
         <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
           <FormField
             control={control}
-            name="location.address"
+            name="address"
             render={({ field }) => (
               <FormItem className="sm:col-span-2">
                 <FormLabel required>Địa chỉ</FormLabel>
@@ -83,7 +133,9 @@ export function LocationSection() {
                     value={field.value ?? ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
-                    onSelectPlace={(place) => applyPlace(place, { overwriteAddress: false })}
+                    onSelectPlace={(place) =>
+                      applyPlace(place, { overwriteAddress: false })
+                    }
                     placeholder="Nhập số nhà, đường, thôn/xóm… để tìm"
                   />
                 </FormControl>
@@ -97,31 +149,39 @@ export function LocationSection() {
               </FormItem>
             )}
           />
-          <SelectField
+          <SearchSelectField
             control={control}
-            name="location.provinceCode"
+            name="province"
             label="Tỉnh / Thành phố"
             required
-            options={PROVINCE_OPTIONS}
-            onValueChange={() => setValue("location.wardCode", "")}
+            options={provinceOptions}
+            placeholder="Tìm & chọn tỉnh/thành..."
           />
-          <SelectField
+          <SearchSelectField
             control={control}
-            name="location.wardCode"
+            name="ward"
             label="Xã / Phường"
             required
             options={wardOptions}
-            disabled={!provinceCode}
-            placeholder={provinceCode ? "Chọn..." : "Chọn tỉnh trước"}
+            disabled={!province}
+            placeholder={
+              province ? "Tìm & chọn xã/phường..." : "Chọn tỉnh trước"
+            }
           />
         </div>
 
         <div className="space-y-1.5">
           <LocationPickerMap
-            value={hasPosition ? { latitude: latitude!, longitude: longitude! } : undefined}
+            value={
+              hasPosition
+                ? { latitude: latitude!, longitude: longitude! }
+                : undefined
+            }
             onPick={handleMapPick}
           />
-          <p className="text-xs text-slate-500">Bấm lên bản đồ hoặc kéo ghim để chọn lại vị trí chính xác.</p>
+          <p className="text-xs text-slate-500">
+            Bấm lên bản đồ hoặc kéo ghim để chọn lại vị trí chính xác.
+          </p>
         </div>
       </div>
     </FormSection>

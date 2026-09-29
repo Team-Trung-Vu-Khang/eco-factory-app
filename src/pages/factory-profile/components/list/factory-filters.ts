@@ -1,19 +1,34 @@
-import { FACTORY_APPROVAL_STATUS_OPTIONS, ORGANIZATION_TYPE_OPTIONS, PROVINCES } from "@/features/factory";
+export const FACTORY_REVIEW_STATUS_OPTIONS = [
+  { value: "PENDING_REVIEW", label: "Chờ duyệt" },
+  { value: "APPROVED", label: "Đã duyệt" },
+  { value: "REJECTED", label: "Từ chối" },
+];
+
+export const PROGRAM_300_OPTIONS = [
+  { value: "true", label: "Đủ điều kiện" },
+  { value: "false", label: "Chưa đủ" },
+];
+
+export const CERTIFICATE_STATUS_FILTER_OPTIONS = [
+  { value: "ACTIVE", label: "Còn hạn" },
+  { value: "EXPIRING_SOON", label: "Sắp hết hạn" },
+  { value: "EXPIRED", label: "Đã hết hạn" },
+];
 
 export const factoryFilters = [
-  { key: "organizationType", label: "Loại hình", options: ORGANIZATION_TYPE_OPTIONS },
   {
-    key: "provinceCode",
-    label: "Tỉnh / Thành phố",
-    options: PROVINCES.map((p) => ({ value: p.code, label: p.name })),
+    key: "reviewStatus",
+    label: "Trạng thái duyệt",
+    options: FACTORY_REVIEW_STATUS_OPTIONS,
   },
-  { key: "approvalStatus", label: "Trạng thái duyệt", options: FACTORY_APPROVAL_STATUS_OPTIONS },
   {
-    key: "kpiStatus",
+    key: "program300Eligible",
     label: "Chỉ số 300 cơ sở",
-    options: [
-      { value: "ELIGIBLE", label: "Đủ điều kiện" },
-      { value: "NOT_ELIGIBLE", label: "Chưa đủ" },
-    ],
+    options: PROGRAM_300_OPTIONS,
+  },
+  {
+    key: "certificateStatus",
+    label: "Trạng thái chứng nhận",
+    options: CERTIFICATE_STATUS_FILTER_OPTIONS,
   },
 ];

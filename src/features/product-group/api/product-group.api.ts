@@ -11,8 +11,8 @@ export const productGroupKeys = {
     [...productGroupKeys.lists(), params] as const,
   detail: (id: string | number) =>
     [...productGroupKeys.all, "detail", id] as const,
-  search: (keyword: string) =>
-    [...productGroupKeys.all, "search", keyword] as const,
+  search: (keyword: string, size = 20) =>
+    [...productGroupKeys.all, "search", keyword, size] as const,
 };
 
 const syncLabels = (items: ProductGroup[]) => {

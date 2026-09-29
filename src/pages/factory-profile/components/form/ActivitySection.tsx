@@ -23,7 +23,7 @@ export function ActivitySection() {
         />
         <AsyncMultiSelectField
           control={control}
-          name="services"
+          name="processingServiceIds"
           label="Dịch vụ chế biến có thể cung cấp"
           required
           fetchOptions={fetchProcessingServiceOptions}
@@ -34,8 +34,9 @@ export function ActivitySection() {
           name="description"
           label="Mô tả ngắn về cơ sở"
           required
+          rows={4}
           className="md:col-span-2"
-          placeholder="Giới thiệu năng lực chế biến..."
+          placeholder="Giới thiệu năng lực chế biến, quy mô, công nghệ..."
         />
       </div>
     </FormSection>

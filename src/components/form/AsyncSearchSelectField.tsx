@@ -7,7 +7,7 @@ import {
   FormMessage,
   RemoteAutoCompleteSelect,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Control, FieldPath, FieldValues } from "react-hook-form";
 
 export interface Option {
@@ -48,13 +48,14 @@ export function AsyncSearchSelectField<T extends FieldValues>({
   fetchOptions,
   initialOptions = [],
 }: AsyncSearchSelectFieldProps<T>) {
-  const [options, setOptions] = useState<Option[]>(initialOptions);
+  const [options, setOptions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
 
-  // Debounced search
+  // Search options - immediately on mount (when keyword is empty), debounced when typing
   useEffect(() => {
     let active = true;
+    const delay = searchKeyword ? 300 : 0;
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
@@ -75,7 +76,7 @@ export function AsyncSearchSelectField<T extends FieldValues>({
       } finally {
         if (active) setLoading(false);
       }
-    }, 300);
+    }, delay);
 
     return () => {
       active = false;
@@ -83,18 +84,33 @@ export function AsyncSearchSelectField<T extends FieldValues>({
     };
   }, [searchKeyword, fetchOptions]);
 
+  const allOptions = useMemo(() => {
+    if (!initialOptions.length) return options;
+    const mergedMap = new Map<string, Option>();
+    initialOptions.forEach((opt) => mergedMap.set(opt.value, opt));
+    options.forEach((opt) => mergedMap.set(opt.value, opt));
+    return Array.from(mergedMap.values());
+  }, [options, initialOptions]);
+
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => {
+        const strValue =
+          field.value !== undefined &&
+          field.value !== null &&
+          field.value !== ""
+            ? String(field.value)
+            : undefined;
+
         return (
           <FormItem className={className}>
             <FormLabel required={required}>{label}</FormLabel>
             <FormControl>
               <RemoteAutoCompleteSelect
-                options={options}
-                value={field.value || undefined}
+                options={allOptions}
+                value={strValue}
                 onChange={field.onChange}
                 onSearch={(kw) => setSearchKeyword(kw)}
                 placeholder={placeholder}

@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
-import { Check, Phone, Users, X } from "lucide-react";
+import { Check, Phone, Users } from "lucide-react";
 import { useState } from "react";
 import {
   SEARCH_QUANTITY_UNIT_LABELS,

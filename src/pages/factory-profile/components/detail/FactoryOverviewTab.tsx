@@ -10,17 +10,9 @@ import {
   Phone,
   Sprout,
   User,
-  Wrench,
 } from "lucide-react";
 import { LocationPickerMap } from "@/components/map/LocationPickerMap";
-import {
-  GENDER_LABELS,
-  PROCESSING_SERVICE_LABELS,
-  PRODUCT_GROUP_LABELS,
-  getProvinceName,
-  getWardName,
-  type Factory,
-} from "@/features/factory";
+import { GENDER_LABELS, type FactoryProfile } from "@/features/factory";
 import { DetailCard, DetailField } from "@/components/common/DetailCard";
 
 function Chips({ items }: { items: string[] }) {
@@ -39,17 +31,26 @@ function Chips({ items }: { items: string[] }) {
   );
 }
 
-export function FactoryOverviewTab({ factory: f }: { factory: Factory }) {
-  const hasGps =
-    f.location.latitude !== undefined && f.location.longitude !== undefined;
-  const address = [
-    f.location.address,
-    getWardName(f.location.provinceCode, f.location.wardCode),
-    getProvinceName(f.location.provinceCode),
-  ]
+export function FactoryOverviewTab({
+  factory: f,
+}: {
+  factory: FactoryProfile;
+}) {
+  const repName = f.representativeName;
+  const repGender = f.representativeGender;
+  const repPhone = f.representativePhone;
+  const repEmail = f.representativeEmail;
+
+  const lat = f.latitude;
+  const lng = f.longitude;
+  const hasGps = lat !== undefined && lng !== undefined;
+
+  const fullAddress = [f.address, f.ward, f.province]
     .filter(Boolean)
     .join(", ");
-  const activeMachines = f.machines.filter((m) => m.status === "ACTIVE").length;
+  const productGroupNames = (f.productGroups ?? []).map((p) => p.name);
+  const serviceNames = (f.processingServices ?? []).map((s) => s.name);
+  const certCount = f.certificates?.length ?? 0;
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-6">
@@ -62,52 +63,31 @@ export function FactoryOverviewTab({ factory: f }: { factory: Factory }) {
             </div>
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                {GENDER_LABELS[f.representative.gender]}
+                {repGender ? GENDER_LABELS[repGender] : "—"}
               </p>
-              <p className="truncate font-semibold text-slate-900">
-                {f.representative.fullName}
-              </p>
+              <p className="truncate font-semibold text-slate-900">{repName}</p>
             </div>
           </div>
           <ul className="mt-4 space-y-2 text-sm text-slate-700">
             <li className="flex items-center gap-2">
               <Phone className="h-4 w-4 shrink-0 text-slate-400" />
-              <a
-                href={`tel:${f.representative.phone}`}
-                className="hover:text-emerald-700"
-              >
-                {f.representative.phone}
+              <a href={`tel:${repPhone}`} className="hover:text-emerald-700">
+                {repPhone}
               </a>
             </li>
-            {f.representative.email && (
+            {repEmail && (
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 shrink-0 text-slate-400" />
                 <a
-                  href={`mailto:${f.representative.email}`}
+                  href={`mailto:${repEmail}`}
                   className="truncate hover:text-emerald-700"
                 >
-                  {f.representative.email}
+                  {repEmail}
                 </a>
               </li>
             )}
           </ul>
         </DetailCard>
-
-        {/* <DetailCard icon={Gauge} title="Tình trạng hồ sơ">
-          <div className="space-y-4">
-            <DetailField icon={Activity} label="Hoàn thiện hồ sơ" iconClassName="text-violet-500">
-              <span className={`text-xl font-bold tabular-nums ${f.completionPercent >= 100 ? "text-emerald-600" : "text-amber-600"}`}>{f.completionPercent}%</span>
-            </DetailField>
-            <DetailField icon={Award} label="Chỉ số 300 cơ sở" iconClassName="text-amber-500">
-              <KpiStatusBadge eligible={f.isKpiEligible} />
-            </DetailField>
-            {f.kpiEligibleAt && (
-              <DetailField icon={Calendar} label="Ngày đạt điều kiện">
-                <span className="tabular-nums">{dayjs(f.kpiEligibleAt).format("DD/MM/YYYY")}</span>
-              </DetailField>
-            )}
-          </div>
-        </DetailCard> */}
       </div>
 
       {/* Right column */}
@@ -126,19 +106,7 @@ export function FactoryOverviewTab({ factory: f }: { factory: Factory }) {
               )}
             </DetailField>
             <DetailField icon={Calendar} label="Năm thành lập">
-              {f.foundedYear}
-            </DetailField>
-            <DetailField
-              icon={Wrench}
-              label="Máy móc"
-              iconClassName="text-emerald-500"
-            >
-              <span className="text-xl font-bold text-emerald-600">
-                {activeMachines}
-              </span>
-              <span className="ml-1 text-sm font-normal text-slate-500">
-                / {f.machines.length} hoạt động
-              </span>
+              {f.foundedYear ?? "—"}
             </DetailField>
             <DetailField
               icon={Award}
@@ -146,7 +114,7 @@ export function FactoryOverviewTab({ factory: f }: { factory: Factory }) {
               iconClassName="text-violet-500"
             >
               <span className="text-xl font-bold text-violet-600">
-                {f.certifications.length}
+                {certCount}
               </span>
             </DetailField>
             <div className="col-span-2 md:col-span-4">
@@ -155,11 +123,7 @@ export function FactoryOverviewTab({ factory: f }: { factory: Factory }) {
                 label="Nhóm nông sản"
                 iconClassName="text-emerald-500"
               >
-                <Chips
-                  items={f.productGroupIds.map(
-                    (id) => PRODUCT_GROUP_LABELS[id] ?? id,
-                  )}
-                />
+                <Chips items={productGroupNames} />
               </DetailField>
             </div>
             <div className="col-span-2 md:col-span-4">
@@ -168,9 +132,7 @@ export function FactoryOverviewTab({ factory: f }: { factory: Factory }) {
                 label="Dịch vụ chế biến"
                 iconClassName="text-emerald-500"
               >
-                <Chips
-                  items={f.services.map((s) => PROCESSING_SERVICE_LABELS[s])}
-                />
+                <Chips items={serviceNames} />
               </DetailField>
             </div>
             <div className="col-span-2 md:col-span-4">
@@ -179,7 +141,7 @@ export function FactoryOverviewTab({ factory: f }: { factory: Factory }) {
                 label="Địa chỉ"
                 iconClassName="text-rose-500"
               >
-                <span className="font-medium">{address}</span>
+                <span className="font-medium">{fullAddress}</span>
               </DetailField>
             </div>
             {f.description && (
@@ -197,10 +159,7 @@ export function FactoryOverviewTab({ factory: f }: { factory: Factory }) {
         {hasGps && (
           <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm">
             <LocationPickerMap
-              value={{
-                latitude: f.location.latitude!,
-                longitude: f.location.longitude!,
-              }}
+              value={{ latitude: lat!, longitude: lng! }}
               className="h-72 sm:h-96"
             />
           </div>

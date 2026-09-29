@@ -17,8 +17,8 @@ export const processingServiceKeys = {
     [...processingServiceKeys.lists(), params] as const,
   detail: (id: string | number) =>
     [...processingServiceKeys.all, "detail", id] as const,
-  search: (keyword: string) =>
-    [...processingServiceKeys.all, "search", keyword] as const,
+  search: (keyword: string, size = 20) =>
+    [...processingServiceKeys.all, "search", keyword, size] as const,
 };
 
 const syncLabels = (items: ProcessingServiceItem[]) => {

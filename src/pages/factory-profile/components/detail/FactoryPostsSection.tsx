@@ -17,6 +17,7 @@ import {
   PROCESSING_SERVICE_LABELS,
   PRODUCT_GROUP_LABELS,
   type Factory,
+  type FactoryProfile,
 } from "@/features/factory";
 import { useSchedules, type ScheduleRow } from "@/features/processing-schedule";
 import { scheduleColumns } from "@/pages/processing-schedule/components/schedule-columns";
@@ -25,19 +26,37 @@ const fmt = new Intl.NumberFormat("vi-VN");
 const date = (d: string) => dayjs(d).format("DD/MM/YYYY");
 
 /** "Tin đăng" tab — the factory's open processing posts, searchable */
-export function FactoryPostsSection({ factory }: { factory: Factory }) {
+export function FactoryPostsSection({
+  factory,
+}: {
+  factory: Factory | FactoryProfile;
+}) {
   const [keyword, setKeyword] = useState("");
   const [viewing, setViewing] = useState<ScheduleRow | null>(null);
-  const query = useSchedules({ page: 0, size: 100, keyword, status: "ACTIVE", factoryId: factory.id });
+  const factoryIdStr = String(factory.id);
+  const query = useSchedules({
+    page: 0,
+    size: 100,
+    keyword,
+    status: "ACTIVE",
+    factoryId: factoryIdStr,
+  });
 
   // Farmer view: request counts and status are the factory's business — every row here is open
   const columns: Column<ScheduleRow>[] = [
-    ...scheduleColumns.filter((c) => c.key !== "connections" && c.key !== "displayStatus"),
+    ...scheduleColumns.filter(
+      (c) => c.key !== "connections" && c.key !== "displayStatus",
+    ),
     {
       key: "actions",
       label: "",
       render: (_, s) => (
-        <Button variant="outline" size="sm" className="h-7" onClick={() => setViewing(s)}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7"
+          onClick={() => setViewing(s)}
+        >
           <Eye className="mr-1 h-3.5 w-3.5" />
           Chi tiết
         </Button>
@@ -57,7 +76,11 @@ export function FactoryPostsSection({ factory }: { factory: Factory }) {
         columnToggleable={false}
         downloadable={false}
       />
-      <PostDetailDialog factory={factory} post={viewing} onClose={() => setViewing(null)} />
+      <PostDetailDialog
+        factory={factory}
+        post={viewing}
+        onClose={() => setViewing(null)}
+      />
     </>
   );
 }
@@ -71,9 +94,26 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function PostDetailDialog({ factory, post, onClose }: { factory: Factory; post: ScheduleRow | null; onClose: () => void }) {
+function PostDetailDialog({
+  factory,
+  post,
+  onClose,
+}: {
+  factory: Factory | FactoryProfile;
+  post: ScheduleRow | null;
+  onClose: () => void;
+}) {
   if (!post) return null;
-  const machine = factory.machines.find((m) => m.id === post.machineId);
+  const machine =
+    "machines" in factory && Array.isArray(factory.machines)
+      ? factory.machines.find((m) => m.id === post.machineId)
+      : undefined;
+
+  const repText =
+    "representativeName" in factory
+      ? `${factory.representativeName} · ${factory.representativePhone}`
+      : `${factory.representative.fullName} · ${factory.representative.phone}`;
+
   const chips = (items: string[]) =>
     items.length ? (
       <div className="flex flex-wrap gap-1">
@@ -89,13 +129,27 @@ function PostDetailDialog({ factory, post, onClose }: { factory: Factory; post: 
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>{post.note || `Nhận chế biến — ${post.machineName}`}</DialogTitle>
+          <DialogTitle>
+            {post.note || `Nhận chế biến — ${post.machineName}`}
+          </DialogTitle>
           <DialogDescription>{factory.name}</DialogDescription>
         </DialogHeader>
         <dl className="divide-y divide-slate-100">
           <Row label="Máy / dây chuyền">{post.machineName}</Row>
-          <Row label="Dịch vụ">{chips((machine?.functions ?? []).map((f) => PROCESSING_SERVICE_LABELS[f] ?? f))}</Row>
-          <Row label="Nhóm nông sản">{chips((machine?.productGroupIds ?? []).map((g) => PRODUCT_GROUP_LABELS[g] ?? g))}</Row>
+          <Row label="Dịch vụ">
+            {chips(
+              (machine?.functions ?? []).map(
+                (f) => PROCESSING_SERVICE_LABELS[f] ?? f,
+              ),
+            )}
+          </Row>
+          <Row label="Nhóm nông sản">
+            {chips(
+              (machine?.productGroupIds ?? []).map(
+                (g) => PRODUCT_GROUP_LABELS[g] ?? g,
+              ),
+            )}
+          </Row>
           <Row label="Lịch nhận">
             <span className="tabular-nums">
               {date(post.fromDate)} → {date(post.toDate)}
@@ -103,14 +157,15 @@ function PostDetailDialog({ factory, post, onClose }: { factory: Factory; post: 
           </Row>
           <Row label="Công suất tối đa nhận">
             <span className="tabular-nums">
-              {fmt.format(post.maxCapacity)} {CAPACITY_UNIT_LABELS[post.capacityUnit]}
+              {fmt.format(post.maxCapacity)}{" "}
+              {CAPACITY_UNIT_LABELS[post.capacityUnit]}
             </span>
           </Row>
           <Row label="Ghi chú">{post.note}</Row>
-          <Row label="Ngày đăng">{dayjs(post.createdAt).format("DD/MM/YYYY HH:mm")}</Row>
-          <Row label="Liên hệ">
-            {factory.representative.fullName} · {factory.representative.phone}
+          <Row label="Ngày đăng">
+            {dayjs(post.createdAt).format("DD/MM/YYYY HH:mm")}
           </Row>
+          <Row label="Liên hệ">{repText.trim() === "·" ? "—" : repText}</Row>
         </dl>
       </DialogContent>
     </Dialog>

@@ -1,60 +1,80 @@
 import { useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { useLocation, useParams } from "wouter";
 import { BackButton } from "@/components/common/BackButton";
+import {
+  DetailPageSkeleton,
+  NotFoundState,
+} from "@/components/common/PageState";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
 import {
-  toFactoryFormValues,
-  useFactory,
-  useUpdateFactory,
-  type FactoryFormValues,
+  fromFactoryProfileToFormValues,
+  toFactoryProfileSubmitInput,
+  useAdminFactoryProfile,
+  useMyFactoryProfile,
+  useSubmitFactoryProfile,
+  type FactoryProfileFormValues,
 } from "@/features/factory";
 import { useIsFactoryMember } from "@/features/viewer";
-import { DetailPageSkeleton, NotFoundState } from "@/components/common/PageState";
 import { FactoryStepperForm } from "./components/form/FactoryStepperForm";
 
 export default function FactoryEditPage() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { data: factory, isLoading, isError } = useFactory(id);
-  const updateFactory = useUpdateFactory();
   const isMember = useIsFactoryMember();
-  // Member has no list/detail pages — their profile lives at ROUTES.profile
+
+  // Member gets own profile via /api/factory/profile; Admin gets via /api/admin/factory/profiles/:id
+  const myProfileQuery = useMyFactoryProfile();
+  const adminProfileQuery = useAdminFactoryProfile(isMember ? undefined : id);
+
+  const profile = isMember ? myProfileQuery.data : adminProfileQuery.data;
+  const isLoading = isMember
+    ? myProfileQuery.isLoading
+    : adminProfileQuery.isLoading;
+  const isError = isMember ? myProfileQuery.isError : adminProfileQuery.isError;
+
+  const submitProfile = useSubmitFactoryProfile();
   const backTo = isMember ? ROUTES.profile : ROUTES.profileDetail(id);
 
-  const handleSubmit = async (values: FactoryFormValues) => {
+  const handleSubmit = async (values: FactoryProfileFormValues) => {
     try {
-      await updateFactory.mutateAsync({ id, values, submitForReview: isMember });
-      toast(
-        isMember
-          ? { title: "Đã gửi hồ sơ", description: "Hồ sơ đang chờ quản trị viên duyệt." }
-          : { title: "Thành công", description: "Đã cập nhật hồ sơ nhà máy." },
-      );
+      const payload = toFactoryProfileSubmitInput(values);
+      await submitProfile.mutateAsync(payload);
+      toast({
+        title: "Đã gửi hồ sơ",
+        description: "Hồ sơ nhà máy đã được gửi và đang chờ duyệt.",
+      });
       navigate(backTo);
     } catch (error) {
-      toast({ title: "Không thể lưu", description: (error as Error).message, variant: "destructive" });
+      toast({
+        title: "Không thể lưu",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
     }
   };
 
   return (
     <PageWrapper
-      title="Chỉnh sửa nhà máy"
-      description={factory?.name}
+      title="Chỉnh sửa hồ sơ nhà máy"
+      description={profile?.name}
       overflow="visible"
       actions={<BackButton to={backTo} />}
     >
       {isLoading ? (
         <DetailPageSkeleton />
-      ) : isError || !factory ? (
-        <NotFoundState message="Không tìm thấy nhà máy hoặc đã bị xóa." onBack={() => navigate(ROUTES.profile)} />
+      ) : isError || !profile ? (
+        <NotFoundState
+          message="Không tìm thấy hồ sơ nhà máy hoặc chưa được tạo."
+          onBack={() => navigate(ROUTES.profile)}
+        />
       ) : (
         <FactoryStepperForm
-          key={factory.id}
-          mode="edit"
-          defaultValues={toFactoryFormValues(factory)}
-          submitLabel={isMember ? "Gửi duyệt" : "Lưu thay đổi"}
-          isSubmitting={updateFactory.isPending}
+          key={String(profile.id)}
+          defaultValues={fromFactoryProfileToFormValues(profile)}
+          submitLabel="Gửi duyệt hồ sơ"
+          isSubmitting={submitProfile.isPending}
           onSubmit={handleSubmit}
           onCancel={() => navigate(backTo)}
         />

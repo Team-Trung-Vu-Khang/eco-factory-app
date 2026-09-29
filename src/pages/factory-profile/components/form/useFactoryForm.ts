@@ -1,10 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { factorySchema, type FactoryFormValues } from "@/features/factory";
+import {
+  factoryFormSchema,
+  type FactoryProfileFormValues,
+} from "@/features/factory";
 
-export function useFactoryForm(defaultValues: FactoryFormValues) {
-  return useForm<FactoryFormValues>({
-    resolver: zodResolver(factorySchema),
+export function useFactoryForm(defaultValues: FactoryProfileFormValues) {
+  return useForm<FactoryProfileFormValues>({
+    resolver: zodResolver(factoryFormSchema),
     defaultValues,
     mode: "onTouched",
   });

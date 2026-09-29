@@ -1,5 +1,4 @@
-import { FormSection, SelectField, TextField } from "@/components/form";
-import { CERTIFICATION_TYPE_OPTIONS } from "@/features/factory";
+import { FormSection, TextField } from "@/components/form";
 import { useCertificateFormContext } from "./useCertificateFormContext";
 
 export function InfoSection() {
@@ -8,38 +7,33 @@ export function InfoSection() {
   return (
     <FormSection title="Thông tin chứng nhận">
       <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-        <SelectField
+        <TextField
           control={control}
-          name="type"
+          name="certificateType"
           label="Loại chứng nhận"
           required
-          options={CERTIFICATION_TYPE_OPTIONS}
+          placeholder="VD: ATTP, HACCP, ISO 22000, VietGAP..."
+          className="sm:col-span-2"
         />
         <TextField
           control={control}
-          name="standardName"
-          label="Tên / tiêu chuẩn"
-          placeholder="VD: ISO 22000:2018"
-        />
-        <TextField
-          control={control}
-          name="number"
+          name="certificateNumber"
           label="Số chứng nhận"
-          required
+          placeholder="VD: ATTP-2024-001"
+          className="sm:col-span-2"
         />
         <TextField
           control={control}
           name="issuer"
           label="Đơn vị cấp"
-          placeholder="VD: QUACERT, SGS, Chi cục QLCL..."
-          required
+          placeholder="VD: Sở Nông nghiệp và Môi trường..."
+          className="sm:col-span-2"
         />
         <TextField
           control={control}
           name="issuedDate"
           label="Ngày cấp"
           type="date"
-          required
         />
         <TextField
           control={control}
