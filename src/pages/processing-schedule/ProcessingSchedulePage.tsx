@@ -16,7 +16,6 @@ import {
   type ScheduleFormValues,
   type ScheduleRow,
 } from "@/features/processing-schedule";
-import { useIsFactoryAdmin } from "@/features/viewer";
 import { useFactoryFilter } from "./components/useFactoryFilter";
 import { scheduleColumns } from "./components/schedule-columns";
 import { ScheduleForm } from "./components/ScheduleForm";
@@ -35,6 +34,9 @@ export default function ProcessingSchedulePage() {
   const create = useCreateSchedule();
   const update = useUpdateSchedule();
   const close = useCloseSchedule();
+  // Admin: every factory (filterable) · factory: its own posts only
+  const factoryFilter = useFactoryFilter();
+  const isAdmin = factoryFilter.isAdmin;
   const [factoryId, setFactoryId] = useState<string | undefined>();
   const [keyword, setKeyword] = useState("");
   const activeQuery = useSchedules({
@@ -42,7 +44,7 @@ export default function ProcessingSchedulePage() {
     size: 100,
     keyword,
     status: "ACTIVE",
-    factoryId,
+    factoryId: factoryFilter.scope(factoryId),
   });
   const active = activeQuery.data?.content ?? [];
 
@@ -52,8 +54,6 @@ export default function ProcessingSchedulePage() {
   };
 
   // Admin: view only — no editing / closing posts
-  const isAdmin = useIsFactoryAdmin();
-  const factoryFilter = useFactoryFilter();
   const columns: Column<ScheduleRow>[] = isAdmin
     ? scheduleColumns
     : [

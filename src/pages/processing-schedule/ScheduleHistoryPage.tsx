@@ -12,7 +12,6 @@ import {
   useSchedules,
   type ScheduleRow,
 } from "@/features/processing-schedule";
-import { useIsFactoryAdmin } from "@/features/viewer";
 import { useFactoryFilter } from "./components/useFactoryFilter";
 import {
   scheduleColumns,
@@ -26,13 +25,20 @@ export default function ScheduleHistoryPage() {
   const [keyword, setKeyword] = useState("");
   const [status, setStatus] = useState<string | undefined>();
   const [closing, setClosing] = useState<ScheduleRow | null>(null);
+  // Admin: every factory (filterable) · factory: its own posts only
+  const factoryOptions = useFactoryFilter();
+  const isAdmin = factoryOptions.isAdmin;
   const [factoryId, setFactoryId] = useState<string | undefined>();
-  const query = useSchedules({ page, size, keyword, status, factoryId });
+  const query = useSchedules({
+    page,
+    size,
+    keyword,
+    status,
+    factoryId: factoryOptions.scope(factoryId),
+  });
   const close = useCloseSchedule();
 
   // Admin: view only — no closing posts
-  const isAdmin = useIsFactoryAdmin();
-  const factoryOptions = useFactoryFilter();
   const columns: Column<ScheduleRow>[] = isAdmin
     ? scheduleColumns
     : [

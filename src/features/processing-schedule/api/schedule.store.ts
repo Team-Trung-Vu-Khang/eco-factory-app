@@ -40,7 +40,18 @@ let db: ProcessingSchedule[] = [
   { id: "s-26", factoryId: "f-7", machineId: "m-13", fromDate: d(-90), toDate: d(-30), maxCapacity: 60, capacityUnit: "TON_PER_MONTH", note: "", status: "OPEN", createdAt: at(-92) },
   { id: "s-27", factoryId: "f-9", machineId: "m-15", fromDate: d(-150), toDate: d(-60), maxCapacity: 1200, capacityUnit: "TON_PER_MONTH", note: "Dứa vụ xuân", status: "CLOSED", closedReason: "CONNECTED", closedAt: at(-70), createdAt: at(-152) },
   { id: "s-28", factoryId: "f-19", machineId: "m-36", fromDate: d(-100), toDate: d(-40), maxCapacity: 6000, capacityUnit: "TON_PER_MONTH", note: "", status: "CLOSED", closedReason: "MANUAL", closedAt: at(-45), createdAt: at(-101) },
-  { id: "s-29", factoryId: "f-3", machineId: "m-5", fromDate: d(-60), toDate: d(-10), maxCapacity: 30, capacityUnit: "TON_PER_MONTH", note: "Sấy chè vụ hè", status: "OPEN", createdAt: at(-61) },
+  // HTX Chè Shan tuyết Cao Bồ (f-1) — extra seasons for its history
+  { id: "s-30", factoryId: "f-1", machineId: "m-1", fromDate: d(-65), toDate: d(-8), maxCapacity: 22, capacityUnit: "TON_PER_MONTH", note: "Vụ chè hè", status: "CLOSED", closedReason: "CONNECTED", closedAt: at(-20), createdAt: at(-67, 8, 0) },
+  { id: "s-31", factoryId: "f-1", machineId: "m-2", fromDate: d(-60), toDate: d(-5), maxCapacity: 5, capacityUnit: "TON_PER_MONTH", note: "Sao hồng trà vụ hè", status: "OPEN", createdAt: at(-62, 9, 30) },
+  { id: "s-32", factoryId: "f-1", machineId: "m-2", fromDate: d(-130), toDate: d(-70), maxCapacity: 4, capacityUnit: "TON_PER_MONTH", note: "Bạch trà búp xuân", status: "CLOSED", closedReason: "MANUAL", closedAt: at(-90), createdAt: at(-132, 14, 0) },
+  { id: "s-33", factoryId: "f-1", machineId: "m-1", fromDate: d(-200), toDate: d(-140), maxCapacity: 18, capacityUnit: "TON_PER_MONTH", note: "Vụ chè đông", status: "OPEN", createdAt: at(-203, 7, 45) },
+  { id: "s-34", factoryId: "f-1", machineId: "m-2", fromDate: d(-210), toDate: d(-150), maxCapacity: 3, capacityUnit: "TON_PER_MONTH", note: "Chè xanh sao suốt Tết", status: "CLOSED", closedReason: "CONNECTED", closedAt: at(-160), createdAt: at(-212, 10, 15) },
+  { id: "s-35", factoryId: "f-1", machineId: "m-1", fromDate: d(-270), toDate: d(-215), maxCapacity: 20, capacityUnit: "TON_PER_MONTH", note: "Vụ chè thu năm trước", status: "CLOSED", closedReason: "CONNECTED", closedAt: at(-225), createdAt: at(-272, 8, 20) },
+  { id: "s-36", factoryId: "f-1", machineId: "m-2", fromDate: d(-290), toDate: d(-230), maxCapacity: 6, capacityUnit: "TON_PER_MONTH", note: "", status: "OPEN", createdAt: at(-291, 16, 0) },
+  { id: "s-37", factoryId: "f-1", machineId: "m-1", fromDate: d(-340), toDate: d(-285), maxCapacity: 15, capacityUnit: "TON_PER_MONTH", note: "Vụ chè hè năm trước", status: "CLOSED", closedReason: "MANUAL", closedAt: at(-300), createdAt: at(-342, 9, 0) },
+  { id: "s-38", factoryId: "f-1", machineId: "m-1", fromDate: d(45), toDate: d(110), maxCapacity: 24, capacityUnit: "TON_PER_MONTH", note: "Đặt trước vụ chè đông", status: "OPEN", createdAt: at(0, 11, 5) },
+  { id: "s-39", factoryId: "f-1", machineId: "m-2", fromDate: d(65), toDate: d(130), maxCapacity: 8, capacityUnit: "TON_PER_MONTH", note: "Hồng trà Tết, nhận theo đơn", status: "OPEN", createdAt: at(0, 11, 20) },
+  { id: "s-29",factoryId: "f-3", machineId: "m-5", fromDate: d(-60), toDate: d(-10), maxCapacity: 30, capacityUnit: "TON_PER_MONTH", note: "Sấy chè vụ hè", status: "OPEN", createdAt: at(-61) },
 ];
 
 export const scheduleStore = {
