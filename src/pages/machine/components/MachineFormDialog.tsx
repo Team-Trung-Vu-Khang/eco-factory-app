@@ -8,12 +8,13 @@ import {
   SelectField,
   TextField,
 } from "@/components/form";
-import { MACHINE_STATUS_OPTIONS, useCurrentFactory } from "@/features/factory";
 import { fetchProcessingServiceOptions } from "@/features/processing-service";
 import { fetchProductGroupOptions } from "@/features/product-group";
 import {
   EMPTY_MACHINE_DIALOG,
-  machineFormSchema,
+  MACHINE_CAPACITY_UNIT_OPTIONS,
+  MACHINE_STATUS_OPTIONS,
+  machineDialogSchema,
   type MachineDialogValues,
 } from "./machine-form-schema";
 
@@ -24,8 +25,6 @@ interface MachineFormDialogProps {
   initialValues?: MachineDialogValues;
   isSubmitting?: boolean;
   onSubmit: (values: MachineDialogValues) => void;
-  /** Factory for new machines — defaults to the current workspace's factory */
-  factoryId?: string;
 }
 
 export function MachineFormDialog({
@@ -34,27 +33,20 @@ export function MachineFormDialog({
   initialValues,
   isSubmitting,
   onSubmit,
-  factoryId: factoryIdProp,
 }: MachineFormDialogProps) {
   const isEdit = !!initialValues;
   const form = useForm<MachineDialogValues>({
-    resolver: zodResolver(machineFormSchema),
+    resolver: zodResolver(machineDialogSchema),
     defaultValues: EMPTY_MACHINE_DIALOG,
     mode: "onTouched",
   });
   const { control } = form;
-  const { factoryId: currentFactoryId } = useCurrentFactory();
-  const factoryId = factoryIdProp ?? currentFactoryId;
 
   useEffect(() => {
-    if (open)
-      form.reset(
-        initialValues ?? {
-          ...EMPTY_MACHINE_DIALOG,
-          factoryId: factoryId ?? "",
-        },
-      );
-  }, [open, initialValues, factoryId, form]);
+    if (open) {
+      form.reset(initialValues ?? EMPTY_MACHINE_DIALOG);
+    }
+  }, [open, initialValues, form]);
 
   return (
     <FormDialog
@@ -74,6 +66,7 @@ export function MachineFormDialog({
             name="name"
             label="Tên máy / dây chuyền"
             required
+            placeholder="VD: Máy sấy tháp liên hoàn"
           />
           <SelectField
             control={control}
@@ -84,25 +77,26 @@ export function MachineFormDialog({
           />
           <AsyncMultiSelectField
             control={control}
-            name="functions"
-            label="Dịch vụ"
+            name="processingServiceIds"
+            label="Dịch vụ chế biến"
             required
             fetchOptions={fetchProcessingServiceOptions}
             placeholder="Tìm kiếm và chọn dịch vụ..."
-            description="Dịch vụ máy thực hiện — dùng để tìm kiếm nhà máy"
+            description="Dịch vụ máy thực hiện"
             className="sm:col-span-2"
           />
           <CapacityField
             control={control}
             valueName="maxCapacity"
             unitName="capacityUnit"
+            unitOptions={MACHINE_CAPACITY_UNIT_OPTIONS}
             label="Công suất tối đa"
             required
           />
           <AsyncMultiSelectField
             control={control}
             name="productGroupIds"
-            label="Nhóm nông sản/sản phẩm"
+            label="Nhóm nông sản / sản phẩm"
             required
             fetchOptions={fetchProductGroupOptions}
             placeholder="Tìm kiếm và chọn nhóm nông sản..."

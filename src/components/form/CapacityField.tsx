@@ -12,7 +12,12 @@ import {
   SelectValue,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import type { ReactNode } from "react";
-import { useController, type Control, type FieldPath, type FieldValues } from "react-hook-form";
+import {
+  useController,
+  type Control,
+  type FieldPath,
+  type FieldValues,
+} from "react-hook-form";
 import { CAPACITY_UNIT_OPTIONS } from "@/features/factory";
 
 interface CapacityFieldProps<T extends FieldValues> {
@@ -25,7 +30,9 @@ interface CapacityFieldProps<T extends FieldValues> {
   /** Lock the unit, e.g. a schedule must use its machine's unit */
   unitDisabled?: boolean;
   /** Defaults to machine capacity units */
-  unitOptions?: { value: string; label: string }[];
+  unitOptions?:
+    | readonly { value: string; label: string }[]
+    | { value: string; label: string }[];
   className?: string;
 }
 
@@ -41,7 +48,10 @@ export function CapacityField<T extends FieldValues>({
   unitOptions = CAPACITY_UNIT_OPTIONS,
   className,
 }: CapacityFieldProps<T>) {
-  const { field: unit, fieldState: unitState } = useController({ control, name: unitName });
+  const { field: unit, fieldState: unitState } = useController({
+    control,
+    name: unitName,
+  });
 
   return (
     <FormField
@@ -61,9 +71,17 @@ export function CapacityField<T extends FieldValues>({
               ref={field.ref}
               onBlur={field.onBlur}
               value={field.value ?? ""}
-              onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)}
+              onChange={(e) =>
+                field.onChange(
+                  e.target.value === "" ? undefined : e.target.valueAsNumber,
+                )
+              }
             />
-            <Select value={unit.value || undefined} onValueChange={unit.onChange} disabled={unitDisabled}>
+            <Select
+              value={unit.value || undefined}
+              onValueChange={unit.onChange}
+              disabled={unitDisabled}
+            >
               <SelectTrigger
                 aria-label="Đơn vị công suất"
                 className={`w-28 shrink-0 bg-slate-50 ${unitState.error ? "border-destructive" : ""}`}
@@ -79,9 +97,15 @@ export function CapacityField<T extends FieldValues>({
               </SelectContent>
             </Select>
           </div>
-          {description && <FormDescription>{description}</FormDescription>}
+          {description ? (
+            <FormDescription>{description}</FormDescription>
+          ) : null}
           <FormMessage />
-          {!fieldState.error && unitState.error && <p className="text-sm font-medium text-destructive">{unitState.error.message}</p>}
+          {!fieldState.error && unitState.error ? (
+            <p className="text-sm font-medium text-destructive">
+              {unitState.error.message}
+            </p>
+          ) : null}
         </FormItem>
       )}
     />

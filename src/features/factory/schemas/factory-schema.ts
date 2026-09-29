@@ -8,16 +8,7 @@ import {
 const REQUIRED = "Trường này là bắt buộc.";
 const PHONE_REGEX = /^(0|\+84)\d{9,10}$/;
 
-const optionalNumber = z.preprocess(
-  (v) =>
-    v === "" ||
-    v === null ||
-    v === undefined ||
-    (typeof v === "number" && Number.isNaN(v))
-      ? undefined
-      : Number(v),
-  z.number().optional(),
-);
+const optionalNumber = z.number().nullish();
 
 // Processing windows are posted separately as "Lịch nhận chế biến" (processing-schedule)
 export const machineSchema = z.object({
@@ -69,7 +60,10 @@ export const factoryFormSchema = z
       .refine((v) => v !== "" && v !== undefined && v !== null, REQUIRED),
     taxCode: z.string().trim().optional(),
     foundedYear: optionalNumber.refine(
-      (y) => y === undefined || (y >= 1800 && y <= new Date().getFullYear()),
+      (y) =>
+        y === undefined ||
+        y === null ||
+        (y >= 1800 && y <= new Date().getFullYear()),
       "Năm không hợp lệ.",
     ),
     representativeName: z.string().trim().min(1, REQUIRED),
@@ -88,11 +82,11 @@ export const factoryFormSchema = z
     province: z.string().trim().min(1, REQUIRED),
     ward: z.string().trim().min(1, REQUIRED),
     latitude: optionalNumber.refine(
-      (v) => v === undefined || (v >= -90 && v <= 90),
+      (v) => v === undefined || v === null || (v >= -90 && v <= 90),
       "Vĩ độ không hợp lệ.",
     ),
     longitude: optionalNumber.refine(
-      (v) => v === undefined || (v >= -180 && v <= 180),
+      (v) => v === undefined || v === null || (v >= -180 && v <= 180),
       "Kinh độ không hợp lệ.",
     ),
 
@@ -199,7 +193,7 @@ export function toFactoryProfileSubmitInput(
     name: values.name.trim(),
     organizationTypeId: orgId,
     taxCode: values.taxCode?.trim() || undefined,
-    foundedYear: values.foundedYear,
+    foundedYear: values.foundedYear ?? undefined,
     representativeName: values.representativeName.trim(),
     representativeGender: values.representativeGender,
     representativePhone: values.representativePhone.trim(),
@@ -207,8 +201,8 @@ export function toFactoryProfileSubmitInput(
     address: values.address.trim(),
     province: values.province.trim(),
     ward: values.ward.trim(),
-    latitude: values.latitude,
-    longitude: values.longitude,
+    latitude: values.latitude ?? undefined,
+    longitude: values.longitude ?? undefined,
     productGroupIds: pGroupIds,
     processingServiceIds: pServiceIds,
     description: values.description.trim(),

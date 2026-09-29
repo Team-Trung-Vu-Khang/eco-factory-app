@@ -122,6 +122,10 @@ export const API_ENDPOINTS = {
       summary: "/api/factory/certificates/summary",
       detail: (id: string | number) => `/api/factory/certificates/${id}`,
     },
+    machines: {
+      base: "/api/factory/machines",
+      detail: (id: string | number) => `/api/factory/machines/${id}`,
+    },
   },
 
   // ─── QUẢN TRỊ HỆ THỐNG FACTORY (ADMIN DOMAIN) ─────────────────────
@@ -140,6 +144,10 @@ export const API_ENDPOINTS = {
         summary: "/api/admin/factory/certificates/summary",
         detail: (id: string | number) =>
           `/api/admin/factory/certificates/${id}`,
+      },
+      machines: {
+        base: "/api/admin/factory/machines",
+        detail: (id: string | number) => `/api/admin/factory/machines/${id}`,
       },
     },
   },

@@ -5,34 +5,38 @@ import {
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageWrapper from "@/components/common/PageWrapper";
+import { useFactoryOptions } from "@/features/factory";
 import {
-  useCurrentFactory,
-  useDeleteMachine,
-  useFactoryOptions,
-  useMachines,
-  useSaveMachine,
-  type MachineListParams,
-  type MachineRow,
-} from "@/features/factory";
+  useAdminDeleteFactoryMachine,
+  useAdminFactoryMachines,
+  useCreateFactoryMachine,
+  useDeleteFactoryMachine,
+  useFactoryMachines,
+  useUpdateFactoryMachine,
+  type FactoryMachineItem,
+  type FactoryMachineListParams,
+} from "@/features/machine";
+import { useProcessingServiceOptions } from "@/features/processing-service";
+import { useProductGroupOptions } from "@/features/product-group";
 import { useIsFactoryAdmin } from "@/features/viewer";
-import { factoryColumn, machineColumns, machineFilters } from "./components/machine-columns";
+import {
+  factoryColumn,
+  machineColumns,
+  machineFilters,
+} from "./components/machine-columns";
 import { MachineFormDialog } from "./components/MachineFormDialog";
 import type { MachineDialogValues } from "./components/machine-form-schema";
 
-type Filters = Pick<MachineListParams, "status" | "function" | "factoryId">;
-
-const toDialogValues = (m: MachineRow): MachineDialogValues => ({
-  factoryId: m.factoryId,
+const toDialogValues = (m: FactoryMachineItem): MachineDialogValues => ({
   id: m.id,
   name: m.name,
-  functions: m.functions,
-  productGroupIds: m.productGroupIds,
+  status: m.status,
+  processingServiceIds: (m.processingServices ?? []).map((s) => s.id),
   maxCapacity: m.maxCapacity,
   capacityUnit: m.capacityUnit,
-  status: m.status,
-  certificateIds: m.certificateIds ?? [],
+  productGroupIds: (m.productGroups ?? []).map((g) => g.id),
 });
 
 export default function MachinePage() {
@@ -40,28 +44,93 @@ export default function MachinePage() {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [keyword, setKeyword] = useState("");
-  const [filters, setFilters] = useState<Filters>({});
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
+  const [filters, setFilters] = useState<
+    Pick<
+      FactoryMachineListParams,
+      "status" | "processingServiceId" | "productGroupId" | "profileId"
+    >
+  >({});
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<MachineRow | null>(null);
-  const [deleting, setDeleting] = useState<MachineRow | null>(null);
+  const [editing, setEditing] = useState<FactoryMachineItem | null>(null);
+  const [deleting, setDeleting] = useState<FactoryMachineItem | null>(null);
 
-  // Admin: every factory (filterable) · member: their own factory only
+  // Search debounce 400ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedKeyword(keyword);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
   const isAdmin = useIsFactoryAdmin();
-  const { factoryId } = useCurrentFactory();
   const { options: factoryOptions } = useFactoryOptions();
-  const query = useMachines({
-    page,
-    size,
-    keyword,
-    ...filters,
-    factoryId: isAdmin ? filters.factoryId : factoryId,
-  });
-  const columns = isAdmin ? [factoryColumn, ...machineColumns] : machineColumns;
-  const tableFilters = isAdmin
-    ? [{ key: "factoryId", label: "Nhà máy", options: factoryOptions }, ...machineFilters]
-    : machineFilters;
-  const save = useSaveMachine();
-  const remove = useDeleteMachine();
+  const processingServiceOptions = useProcessingServiceOptions();
+  const productGroupOptions = useProductGroupOptions();
+
+  const queryParams: FactoryMachineListParams = useMemo(
+    () => ({
+      page,
+      size,
+      keyword: debouncedKeyword.trim() || undefined,
+      status: filters.status,
+      processingServiceId: filters.processingServiceId
+        ? Number(filters.processingServiceId)
+        : undefined,
+      productGroupId: filters.productGroupId
+        ? Number(filters.productGroupId)
+        : undefined,
+      profileId: filters.profileId ? Number(filters.profileId) : undefined,
+    }),
+    [page, size, debouncedKeyword, filters],
+  );
+
+  const memberQuery = useFactoryMachines(queryParams, { enabled: !isAdmin });
+  const adminQuery = useAdminFactoryMachines(queryParams, { enabled: isAdmin });
+  const query = isAdmin ? adminQuery : memberQuery;
+
+  const createMachine = useCreateFactoryMachine();
+  const updateMachine = useUpdateFactoryMachine();
+  const deleteMemberMachine = useDeleteFactoryMachine();
+  const deleteAdminMachine = useAdminDeleteFactoryMachine();
+
+  const isSubmitting = createMachine.isPending || updateMachine.isPending;
+  const isDeleting =
+    deleteMemberMachine.isPending || deleteAdminMachine.isPending;
+
+  const columns = useMemo(
+    () => (isAdmin ? [factoryColumn, ...machineColumns] : machineColumns),
+    [isAdmin],
+  );
+
+  const tableFilters = useMemo(
+    () => [
+      ...(isAdmin && factoryOptions.length
+        ? [{ key: "profileId", label: "Nhà máy", options: factoryOptions }]
+        : []),
+      ...machineFilters,
+      ...(processingServiceOptions.length
+        ? [
+            {
+              key: "processingServiceId",
+              label: "Dịch vụ",
+              options: processingServiceOptions,
+            },
+          ]
+        : []),
+      ...(productGroupOptions.length
+        ? [
+            {
+              key: "productGroupId",
+              label: "Nhóm nông sản",
+              options: productGroupOptions,
+            },
+          ]
+        : []),
+    ],
+    [isAdmin, factoryOptions, processingServiceOptions, productGroupOptions],
+  );
+
   const editingValues = useMemo(
     () => (editing ? toDialogValues(editing) : undefined),
     [editing],
@@ -74,19 +143,34 @@ export default function MachinePage() {
       variant: "destructive",
     });
 
-  const handleSubmit = async ({
-    factoryId,
-    ...values
-  }: MachineDialogValues) => {
+  const handleSubmit = async (values: MachineDialogValues) => {
     try {
-      await save.mutateAsync({ factoryId, values, machineId: editing?.id });
-      toast({
-        title: "Thành công",
-        description: editing
-          ? "Đã cập nhật máy / dây chuyền."
-          : "Đã thêm máy / dây chuyền.",
-      });
+      const payload = {
+        name: values.name.trim(),
+        status: values.status,
+        processingServiceIds: values.processingServiceIds.map((id) =>
+          Number(id),
+        ),
+        maxCapacity: values.maxCapacity,
+        capacityUnit: values.capacityUnit,
+        productGroupIds: values.productGroupIds.map((id) => Number(id)),
+      };
+
+      if (editing?.id) {
+        await updateMachine.mutateAsync({ id: editing.id, input: payload });
+        toast({
+          title: "Thành công",
+          description: `Đã cập nhật máy "${values.name}".`,
+        });
+      } else {
+        await createMachine.mutateAsync(payload);
+        toast({
+          title: "Thành công",
+          description: `Đã thêm máy "${values.name}".`,
+        });
+      }
       setFormOpen(false);
+      setEditing(null);
     } catch (error) {
       fail("Không thể lưu", error);
     }
@@ -95,31 +179,37 @@ export default function MachinePage() {
   const handleConfirmDelete = async () => {
     if (!deleting) return;
     try {
-      await remove.mutateAsync({
-        factoryId: deleting.factoryId,
-        machineId: deleting.id,
+      if (isAdmin) {
+        await deleteAdminMachine.mutateAsync(deleting.id);
+      } else {
+        await deleteMemberMachine.mutateAsync(deleting.id);
+      }
+      toast({
+        title: "Đã xóa",
+        description: `Đã xóa máy "${deleting.name}".`,
       });
-      toast({ title: "Đã xóa", description: `Đã xóa "${deleting.name}".` });
+      setDeleting(null);
     } catch (error) {
       fail("Không thể xóa", error);
     }
-    setDeleting(null);
   };
 
   return (
     <PageWrapper
       title="Máy & Dây chuyền"
-      description="Dịch vụ, công suất và lịch nhận chế biến của từng máy"
+      description="Quản lý danh sách thiết bị, dịch vụ chế biến và công suất của nhà máy"
       actions={
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Thêm máy
-        </Button>
+        !isAdmin ? (
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm máy
+          </Button>
+        ) : undefined
       }
     >
       <DataTable
@@ -127,7 +217,11 @@ export default function MachinePage() {
         data={query.data?.content ?? []}
         loading={query.isFetching}
         searchable
-        searchPlaceholder={isAdmin ? "Tìm theo tên máy, nhà máy..." : "Tìm theo tên máy..."}
+        searchPlaceholder={
+          isAdmin
+            ? "Tìm theo mã, tên máy, nhà máy..."
+            : "Tìm theo mã, tên máy..."
+        }
         onSearch={(v) => {
           setKeyword(v);
           setPage(0);
@@ -149,18 +243,25 @@ export default function MachinePage() {
           setPage(0);
         }}
         onIndexChange={(index) => setPage(Math.max(0, index - 1))}
-        onEdit={(m) => {
-          setEditing(m);
-          setFormOpen(true);
-        }}
+        onEdit={
+          !isAdmin
+            ? (m) => {
+                setEditing(m);
+                setFormOpen(true);
+              }
+            : undefined
+        }
         onDelete={setDeleting}
       />
 
       <MachineFormDialog
         open={formOpen}
-        onOpenChange={setFormOpen}
+        onOpenChange={(open) => {
+          setFormOpen(open);
+          if (!open) setEditing(null);
+        }}
         initialValues={editingValues}
-        isSubmitting={save.isPending}
+        isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
       />
 
@@ -168,8 +269,8 @@ export default function MachinePage() {
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
         onConfirm={handleConfirmDelete}
-        loading={remove.isPending}
-        description={`Xóa máy "${deleting?.name ?? ""}"?`}
+        loading={isDeleting}
+        description={`Bạn có chắc chắn muốn xóa máy "${deleting?.name ?? ""}" (Mã: ${deleting?.code ?? ""}) không?`}
       />
     </PageWrapper>
   );

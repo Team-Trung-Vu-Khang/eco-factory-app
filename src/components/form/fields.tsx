@@ -188,7 +188,7 @@ export function SelectField<T extends FieldValues>({
   placeholder = "Chọn...",
   onValueChange,
 }: BaseFieldProps<T> & {
-  options: Option[];
+  options: readonly Option[] | Option[];
   placeholder?: string;
   onValueChange?: (value: string) => void;
 }) {

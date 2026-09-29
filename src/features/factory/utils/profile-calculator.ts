@@ -5,12 +5,12 @@ export interface ProfileCalculable {
   representativeGender?: string;
   representativePhone?: string;
   taxCode?: string;
-  foundedYear?: number;
+  foundedYear?: number | null;
   province?: string;
   ward?: string;
   address?: string;
-  latitude?: number;
-  longitude?: number;
+  latitude?: number | null;
+  longitude?: number | null;
   productGroupIds?: (number | string)[];
   processingServiceIds?: (number | string)[];
   description?: string;
