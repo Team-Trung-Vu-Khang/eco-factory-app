@@ -54,7 +54,7 @@ export const scheduleApi = {
           (!params.status || s.displayStatus === params.status) &&
           (!params.factoryId || s.factoryId === params.factoryId) &&
           (!keyword ||
-            [s.machineName, s.factoryName].some((v) =>
+            [s.machineName, s.factoryName, s.note ?? ""].some((v) =>
               v.toLowerCase().includes(keyword),
             )),
       )

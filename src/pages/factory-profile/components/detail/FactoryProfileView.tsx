@@ -1,11 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { Award, Image, Info, Wrench } from "lucide-react";
+import { Award, Image, Info, Megaphone, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Factory } from "@/features/factory";
 import { ApprovalNotice } from "./ApprovalNotice";
 import { CertificationListSection } from "./CertificationListSection";
 import { FactoryDetailHeader } from "./FactoryDetailHeader";
 import { FactoryOverviewTab } from "./FactoryOverviewTab";
+import { FactoryPostsSection } from "./FactoryPostsSection";
 import { MachineListSection } from "./MachineListSection";
 import { PhotoGallerySection } from "./PhotoGallerySection";
 
@@ -15,6 +16,8 @@ const TABS = [
   { value: "certs", label: "Chứng nhận", icon: Award },
   { value: "photos", label: "Hình ảnh", icon: Image },
 ];
+/** Farmer (read-only) view also lists the factory's open posts */
+const POSTS_TAB = { value: "posts", label: "Tin đăng", icon: Megaphone };
 
 /** Full profile — admin detail page and the factory member's own profile */
 export function FactoryProfileView({
@@ -36,7 +39,7 @@ export function FactoryProfileView({
       <Tabs defaultValue="info" className="space-y-6">
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-1.5">
           <TabsList className="mx-auto flex h-auto w-max gap-1 bg-transparent p-0">
-            {TABS.map(({ value, label, icon: Icon }) => (
+            {(readOnly ? [...TABS, POSTS_TAB] : TABS).map(({ value, label, icon: Icon }) => (
               <TabsTrigger
                 key={value}
                 value={value}
@@ -60,6 +63,11 @@ export function FactoryProfileView({
         <TabsContent value="photos" className="mt-0">
           <PhotoGallerySection factory={factory} />
         </TabsContent>
+        {readOnly && (
+          <TabsContent value="posts" className="mt-0">
+            <FactoryPostsSection factory={factory} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
