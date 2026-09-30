@@ -1,3 +1,12 @@
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  CERTIFICATION_TYPE_OPTIONS,
+  organizationTypeApi,
+  organizationTypeKeys,
+} from "@/features/factory";
+import { useProvinceOptions } from "@/features/geo/hooks/use-geo";
+
 export const FACTORY_REVIEW_STATUS_OPTIONS = [
   { value: "PENDING_REVIEW", label: "Chờ duyệt" },
   { value: "APPROVED", label: "Đã duyệt" },
@@ -15,7 +24,7 @@ export const CERTIFICATE_STATUS_FILTER_OPTIONS = [
   { value: "EXPIRED", label: "Đã hết hạn" },
 ];
 
-export const factoryFilters = [
+const staticFilters = [
   {
     key: "reviewStatus",
     label: "Trạng thái duyệt",
@@ -32,3 +41,38 @@ export const factoryFilters = [
     options: CERTIFICATE_STATUS_FILTER_OPTIONS,
   },
 ];
+
+/** Static filters + catalog-backed ones (loại hình, tỉnh/thành, loại chứng nhận) */
+export function useFactoryFilters() {
+  const { data: orgTypes } = useQuery({
+    queryKey: organizationTypeKeys.lists(),
+    queryFn: organizationTypeApi.list,
+    staleTime: 1000 * 60 * 10,
+  });
+  const { options: provinceOptions } = useProvinceOptions();
+
+  return useMemo(
+    () => [
+      ...staticFilters,
+      {
+        key: "organizationTypeId",
+        label: "Loại hình",
+        options: (orgTypes ?? []).map((t) => ({
+          value: String(t.id),
+          label: t.name,
+        })),
+      },
+      {
+        key: "province",
+        label: "Tỉnh / Thành phố",
+        options: provinceOptions.map(({ value, label }) => ({ value, label })),
+      },
+      {
+        key: "certificateType",
+        label: "Loại chứng nhận",
+        options: CERTIFICATION_TYPE_OPTIONS,
+      },
+    ],
+    [orgTypes, provinceOptions],
+  );
+}

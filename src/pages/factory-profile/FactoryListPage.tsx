@@ -8,7 +8,7 @@ import { AppLoadingState } from "@/components/common/AppLoadingState";
 import { useFactoryMemberStatus } from "@/features/viewer";
 import MyFactoryProfilePage from "./MyFactoryProfilePage";
 import { factoryColumns } from "./components/list/factory-columns";
-import { factoryFilters } from "./components/list/factory-filters";
+import { useFactoryFilters } from "./components/list/factory-filters";
 import { useFactoryListPage } from "./hooks/useFactoryListPage";
 
 export default function FactoryListPage() {
@@ -19,6 +19,7 @@ export default function FactoryListPage() {
 
 function FactoryList() {
   const page = useFactoryListPage();
+  const factoryFilters = useFactoryFilters();
 
   return (
     <PageWrapper
