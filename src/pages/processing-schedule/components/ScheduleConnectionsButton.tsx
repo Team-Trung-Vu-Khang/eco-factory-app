@@ -45,7 +45,7 @@ export function ScheduleConnectionsButton({
       size: 100,
       scheduleId: schedule.id,
     },
-    { enabled: open },
+    { enabled: open, workspaceId: schedule.workspaceId },
   );
   const requests = data?.content ?? [];
   const requestCount = schedule.connectionRequestCount ?? 0;
@@ -64,6 +64,7 @@ export function ScheduleConnectionsButton({
       await acceptMutation.mutateAsync({
         id: resolving.request.id,
         resultNote: note || undefined,
+        workspaceId: schedule.workspaceId,
       });
       toast({
         title: "Đã xác nhận kết nối",

@@ -34,6 +34,7 @@ export const connectionApi = {
   // ─── Nhà máy (Factory) ──────────────────────────────────────────────────────────
   async getFactoryRequests(
     params: ConnectionListParams,
+    options?: { workspaceId?: number | string },
   ): Promise<PageResponse<ConnectionRequestItem>> {
     const { data } = await apiClient.get<PageResponse<ConnectionRequestItem>>(
       factoryEp.base,
@@ -45,6 +46,9 @@ export const connectionApi = {
           page: params.page,
           size: params.size,
         },
+        headers: options?.workspaceId
+          ? { "X-Workspace-Id": String(options.workspaceId) }
+          : undefined,
       },
     );
     return data;
@@ -52,9 +56,15 @@ export const connectionApi = {
 
   async getFactoryRequestById(
     id: number | string,
+    options?: { workspaceId?: number | string },
   ): Promise<ConnectionRequestItem> {
     const { data } = await apiClient.get<ConnectionRequestItem>(
       factoryEp.detail(id),
+      {
+        headers: options?.workspaceId
+          ? { "X-Workspace-Id": String(options.workspaceId) }
+          : undefined,
+      },
     );
     return data;
   },
@@ -62,10 +72,16 @@ export const connectionApi = {
   async acceptRequest(
     id: number | string,
     resultNote?: string,
+    options?: { workspaceId?: number | string },
   ): Promise<ConnectionRequestItem> {
     const { data } = await apiClient.post<ConnectionRequestItem>(
       factoryEp.accept(id),
       resultNote ? { resultNote: resultNote.trim() } : {},
+      {
+        headers: options?.workspaceId
+          ? { "X-Workspace-Id": String(options.workspaceId) }
+          : undefined,
+      },
     );
     return data;
   },
@@ -73,10 +89,16 @@ export const connectionApi = {
   async rejectRequest(
     id: number | string,
     reason?: string,
+    options?: { workspaceId?: number | string },
   ): Promise<ConnectionRequestItem> {
     const { data } = await apiClient.post<ConnectionRequestItem>(
       factoryEp.reject(id),
       reason ? { reason: reason.trim() } : {},
+      {
+        headers: options?.workspaceId
+          ? { "X-Workspace-Id": String(options.workspaceId) }
+          : undefined,
+      },
     );
     return data;
   },

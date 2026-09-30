@@ -25,11 +25,16 @@ export function useFactorySearch(params: FactorySearchParams | undefined) {
 /** Factory view: requests received on its schedules */
 export function useConnections(
   params: ConnectionListParams,
-  options?: { enabled?: boolean },
+  options?: { enabled?: boolean; workspaceId?: number | string },
 ) {
   return useQuery({
-    queryKey: connectionKeys.list(params),
-    queryFn: () => connectionApi.getFactoryRequests(params),
+    queryKey: options?.workspaceId
+      ? ([...connectionKeys.list(params), options.workspaceId] as const)
+      : connectionKeys.list(params),
+    queryFn: () =>
+      connectionApi.getFactoryRequests(params, {
+        workspaceId: options?.workspaceId,
+      }),
     placeholderData: keepPreviousData,
     enabled: options?.enabled,
   });
@@ -109,10 +114,12 @@ export function useAcceptConnectionRequest() {
     mutationFn: ({
       id,
       resultNote,
+      workspaceId,
     }: {
       id: number | string;
       resultNote?: string;
-    }) => connectionApi.acceptRequest(id, resultNote),
+      workspaceId?: number | string;
+    }) => connectionApi.acceptRequest(id, resultNote, { workspaceId }),
     onSuccess: invalidate,
   });
 }
@@ -121,8 +128,15 @@ export function useAcceptConnectionRequest() {
 export function useRejectConnectionRequest() {
   const invalidate = useInvalidateConnections();
   return useMutation({
-    mutationFn: ({ id, reason }: { id: number | string; reason?: string }) =>
-      connectionApi.rejectRequest(id, reason),
+    mutationFn: ({
+      id,
+      reason,
+      workspaceId,
+    }: {
+      id: number | string;
+      reason?: string;
+      workspaceId?: number | string;
+    }) => connectionApi.rejectRequest(id, reason, { workspaceId }),
     onSuccess: invalidate,
   });
 }
@@ -138,15 +152,17 @@ export const useResolveConnection = () => {
       id,
       status,
       note,
+      workspaceId,
     }: {
       id: number | string;
       status: "SUCCESS" | "FAILED" | "ACCEPTED" | "REJECTED";
       note?: string;
+      workspaceId?: number | string;
     }) => {
       if (status === "SUCCESS" || status === "ACCEPTED") {
-        return accept.mutateAsync({ id, resultNote: note });
+        return accept.mutateAsync({ id, resultNote: note, workspaceId });
       } else {
-        return reject.mutateAsync({ id, reason: note });
+        return reject.mutateAsync({ id, reason: note, workspaceId });
       }
     },
   };
