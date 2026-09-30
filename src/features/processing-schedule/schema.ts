@@ -1,32 +1,60 @@
 import { z } from "zod";
+import dayjs from "dayjs";
 
 const REQUIRED = "Trường này là bắt buộc.";
 
 export const scheduleSchema = z
   .object({
-    factoryId: z.string().min(1, REQUIRED),
-    /** One schedule is created per selected machine */
-    machineIds: z.array(z.string()).min(1, "Chọn ít nhất 1 máy / dây chuyền."),
-    fromDate: z.string().min(1, REQUIRED),
-    toDate: z.string().min(1, REQUIRED),
-    maxCapacity: z.number({ error: REQUIRED }).positive("Phải lớn hơn 0."),
-    capacityUnit: z.string().min(1, REQUIRED),
-    note: z.string().trim().optional(),
+    id: z.number().optional(),
+    title: z.string().trim().min(1, REQUIRED).max(255, "Tối đa 255 ký tự."),
+    machineId: z.union([z.string(), z.number()], {
+      error: REQUIRED,
+    }),
+    startDate: z.string().min(1, REQUIRED),
+    endDate: z.string().min(1, REQUIRED),
+    maxCapacity: z
+      .number({ error: REQUIRED })
+      .positive("Công suất phải lớn hơn 0.")
+      .refine((val) => {
+        const decimals = (val.toString().split(".")[1] || "").length;
+        return decimals <= 3;
+      }, "Tối đa 3 chữ số thập phân."),
+    capacityUnit: z.enum(["KG_PER_MONTH", "TONNE_PER_MONTH"], {
+      error: REQUIRED,
+    }),
+    note: z
+      .string()
+      .trim()
+      .max(1000, "Tối đa 1000 ký tự.")
+      .optional()
+      .nullable(),
   })
   .superRefine((s, ctx) => {
-    if (s.fromDate && s.toDate && s.toDate < s.fromDate) {
-      ctx.addIssue({ code: "custom", path: ["toDate"], message: "Ngày kết thúc phải sau ngày bắt đầu." });
+    const todayStr = dayjs().format("YYYY-MM-DD");
+    if (s.startDate && s.endDate && s.endDate < s.startDate) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["endDate"],
+        message: "Đến ngày không được trước Từ ngày.",
+      });
+    }
+    if (s.endDate && s.endDate < todayStr) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["endDate"],
+        message: "Đến ngày không được trước ngày hôm nay.",
+      });
     }
   });
 
 export type ScheduleFormValues = z.infer<typeof scheduleSchema>;
 
 export const EMPTY_SCHEDULE: ScheduleFormValues = {
-  factoryId: "",
-  machineIds: [],
-  fromDate: "",
-  toDate: "",
+  title: "",
+  machineId: "",
+  startDate: "",
+  endDate: "",
   maxCapacity: undefined as unknown as number,
-  capacityUnit: "",
+  capacityUnit: "KG_PER_MONTH",
   note: "",
 };

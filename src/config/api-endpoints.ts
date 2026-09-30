@@ -126,6 +126,35 @@ export const API_ENDPOINTS = {
       base: "/api/factory/machines",
       detail: (id: string | number) => `/api/factory/machines/${id}`,
     },
+    processingSchedules: {
+      base: "/api/factory/processing-schedules",
+      detail: (id: string | number) =>
+        `/api/factory/processing-schedules/${id}`,
+      close: (id: string | number) =>
+        `/api/factory/processing-schedules/${id}/close`,
+    },
+    connectionRequests: {
+      base: "/api/factory/connection-requests",
+      detail: (id: string | number) => `/api/factory/connection-requests/${id}`,
+      accept: (id: string | number) =>
+        `/api/factory/connection-requests/${id}/accept`,
+      reject: (id: string | number) =>
+        `/api/factory/connection-requests/${id}/reject`,
+    },
+    marketplace: {
+      processingSchedules: "/api/factory/marketplace/processing-schedules",
+      profiles: {
+        detail: (id: string | number) =>
+          `/api/factory/marketplace/profiles/${id}`,
+      },
+      connectionRequests: {
+        base: "/api/factory/marketplace/connection-requests",
+        detail: (id: string | number) =>
+          `/api/factory/marketplace/connection-requests/${id}`,
+        cancel: (id: string | number) =>
+          `/api/factory/marketplace/connection-requests/${id}/cancel`,
+      },
+    },
   },
 
   // ─── QUẢN TRỊ HỆ THỐNG FACTORY (ADMIN DOMAIN) ─────────────────────
@@ -148,6 +177,16 @@ export const API_ENDPOINTS = {
       machines: {
         base: "/api/admin/factory/machines",
         detail: (id: string | number) => `/api/admin/factory/machines/${id}`,
+      },
+      processingSchedules: {
+        base: "/api/admin/factory/processing-schedules",
+        detail: (id: string | number) =>
+          `/api/admin/factory/processing-schedules/${id}`,
+      },
+      connectionRequests: {
+        base: "/api/admin/factory/connection-requests",
+        detail: (id: string | number) =>
+          `/api/admin/factory/connection-requests/${id}`,
       },
     },
   },

@@ -19,6 +19,14 @@ export interface FactoryProfileRef {
   name: string;
 }
 
+export interface MachineOpenSchedule {
+  id: number;
+  startDate: string;
+  endDate: string;
+  maxCapacity: number;
+  capacityUnit: MachineCapacityUnit;
+}
+
 export interface FactoryMachineItem {
   id: number;
   workspaceId: number;
@@ -36,6 +44,8 @@ export interface FactoryMachineItem {
   updatedAt: string;
   /** Present on admin responses */
   profile?: FactoryProfileRef;
+  /** Open active schedules of the machine, sorted by startDate ascending */
+  openSchedules?: MachineOpenSchedule[];
 }
 
 export interface FactoryMachineInput {

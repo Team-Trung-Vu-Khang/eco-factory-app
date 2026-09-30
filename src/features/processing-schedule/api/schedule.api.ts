@@ -1,195 +1,102 @@
-import { factoryApi, type PageResponse } from "@/features/factory";
-import type { ScheduleStatus } from "../constants";
-import type { ScheduleFormValues } from "../schema";
+import { API_ENDPOINTS } from "@/config/api-endpoints";
+import { apiClient } from "@/lib/axios";
+import type { PageResponse } from "@/features/factory";
 import type {
-  ProcessingSchedule,
+  ProcessingScheduleItem,
+  ProcessingScheduleInput,
   ScheduleListParams,
-  ScheduleRow,
 } from "../types";
-import { isActiveSchedule, scheduleStore, today } from "./schedule.store";
 
 export const scheduleKeys = {
   all: ["processing-schedules"] as const,
   list: (params: ScheduleListParams) =>
     [...scheduleKeys.all, "list", params] as const,
+  adminList: (params: ScheduleListParams) =>
+    [...scheduleKeys.all, "adminList", params] as const,
+  detail: (id: number | string) => [...scheduleKeys.all, "detail", id] as const,
 };
 
-// ─── In-memory mock ─────────────────────────────────────────────────────────
-// TODO: replace with apiClient calls, e.g. apiClient.post("/api/factory/processing-schedules", values)
-
-const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
-
-export const displayStatus = (
-  s: ProcessingSchedule,
-  on = today(),
-): ScheduleStatus => (isActiveSchedule(s, on) ? "ACTIVE" : "EXPIRED");
-
-async function machineIndex() {
-  const { content } = await factoryApi.listMachines({ page: 0, size: 100 });
-  return new Map(content.map((m) => [m.id, m]));
-}
-
-async function toRows(items: ProcessingSchedule[]): Promise<ScheduleRow[]> {
-  const machines = await machineIndex();
-  return items.map((s) => ({
-    ...s,
-    displayStatus: displayStatus(s),
-    factoryName: machines.get(s.machineId)?.factoryName ?? "—",
-    machineName: machines.get(s.machineId)?.name ?? "—",
-  }));
-}
-
-const overlaps = (
-  a: { fromDate: string; toDate: string },
-  b: { fromDate: string; toDate: string },
-) => a.fromDate <= b.toDate && b.fromDate <= a.toDate;
+const ep = API_ENDPOINTS.factory.processingSchedules;
+const adminEp = API_ENDPOINTS.admin.factory.processingSchedules;
 
 export const scheduleApi = {
-  async list(params: ScheduleListParams): Promise<PageResponse<ScheduleRow>> {
-    await delay();
-    const keyword = params.keyword?.trim().toLowerCase();
-    const rows = (await toRows(scheduleStore.all()))
-      .filter(
-        (s) =>
-          (!params.status || s.displayStatus === params.status) &&
-          (!params.factoryId || s.factoryId === params.factoryId) &&
-          (!keyword ||
-            [s.machineName, s.factoryName, s.note ?? ""].some((v) =>
-              v.toLowerCase().includes(keyword),
-            )),
-      )
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    const start = params.page * params.size;
-    return {
-      content: rows.slice(start, start + params.size),
-      totalElements: rows.length,
-      totalPages: Math.max(1, Math.ceil(rows.length / params.size)),
-      page: params.page,
-      size: params.size,
-    };
+  async list(
+    params: ScheduleListParams,
+  ): Promise<PageResponse<ProcessingScheduleItem>> {
+    const { data } = await apiClient.get<PageResponse<ProcessingScheduleItem>>(
+      ep.base,
+      {
+        params: {
+          page: params.page,
+          size: params.size,
+          keyword: params.keyword?.trim() || undefined,
+          status: params.status || undefined,
+          machineId: params.machineId || undefined,
+        },
+      },
+    );
+    return data;
   },
 
-  /** Posts a processing window for each selected machine — all-or-nothing */
-  async create({
-    machineIds,
-    ...values
-  }: ScheduleFormValues): Promise<ProcessingSchedule[]> {
-    await delay();
-    const machines = await machineIndex();
-    for (const machineId of machineIds) {
-      const machine = machines.get(machineId);
-      if (!machine) throw new Error("Không tìm thấy máy / dây chuyền.");
-      if (machine.status !== "ACTIVE")
-        throw new Error(
-          `"${machine.name}" đang không hoạt động, không thể đăng lịch.`,
-        );
-      // Only comparable when both use the same unit
-      if (
-        values.capacityUnit === machine.capacityUnit &&
-        values.maxCapacity > machine.maxCapacity
-      ) {
-        throw new Error(
-          `Công suất nhận vượt công suất tối đa của "${machine.name}".`,
-        );
-      }
-      const clash = scheduleStore
-        .all()
-        .find(
-          (s) =>
-            s.machineId === machineId &&
-            s.status === "OPEN" &&
-            s.toDate >= today() &&
-            overlaps(s, values),
-        );
-      if (clash)
-        throw new Error(
-          `"${machine.name}" đã có lịch đang mở trùng khoảng thời gian này.`,
-        );
-    }
+  async getById(id: number | string): Promise<ProcessingScheduleItem> {
+    const { data } = await apiClient.get<ProcessingScheduleItem>(ep.detail(id));
+    return data;
+  },
 
-    const createdAt = new Date().toISOString();
-    const created: ProcessingSchedule[] = machineIds.map((machineId) => ({
-      ...values,
-      machineId,
-      capacityUnit: values.capacityUnit as ProcessingSchedule["capacityUnit"],
-      status: "OPEN",
-      id: crypto.randomUUID(),
-      createdAt,
-    }));
-    scheduleStore.set([...created, ...scheduleStore.all()]);
-    return created;
+  async create(
+    payload: ProcessingScheduleInput,
+  ): Promise<ProcessingScheduleItem> {
+    const { data } = await apiClient.post<ProcessingScheduleItem>(
+      ep.base,
+      payload,
+    );
+    return data;
   },
 
   async update(
-    id: string,
-    values: ScheduleFormValues,
-  ): Promise<ProcessingSchedule> {
-    await delay();
-    const prev = scheduleStore.all().find((s) => s.id === id);
-    if (!prev) throw new Error("Không tìm thấy tin đăng.");
-
-    const machines = await machineIndex();
-    const machineId = values.machineIds[0] ?? prev.machineId;
-    const machine = machines.get(machineId);
-    if (!machine) throw new Error("Không tìm thấy máy / dây chuyền.");
-    if (machine.status !== "ACTIVE")
-      throw new Error(
-        `"${machine.name}" đang không hoạt động, không thể cập nhật lịch.`,
-      );
-
-    if (
-      values.capacityUnit === machine.capacityUnit &&
-      values.maxCapacity > machine.maxCapacity
-    ) {
-      throw new Error(
-        `Công suất nhận vượt công suất tối đa của "${machine.name}".`,
-      );
-    }
-
-    const clash = scheduleStore
-      .all()
-      .find(
-        (s) =>
-          s.id !== id &&
-          s.machineId === machineId &&
-          s.status === "OPEN" &&
-          s.toDate >= today() &&
-          overlaps(s, values),
-      );
-    if (clash)
-      throw new Error(
-        `"${machine.name}" đã có lịch đang mở khác trùng khoảng thời gian này.`,
-      );
-
-    const updated: ProcessingSchedule = {
-      ...prev,
-      ...values,
-      machineId,
-      capacityUnit: values.capacityUnit as ProcessingSchedule["capacityUnit"],
-    };
-
-    scheduleStore.set(
-      scheduleStore.all().map((s) => (s.id === id ? updated : s)),
+    id: number | string,
+    payload: ProcessingScheduleInput,
+  ): Promise<ProcessingScheduleItem> {
+    const { data } = await apiClient.put<ProcessingScheduleItem>(
+      ep.detail(id),
+      payload,
     );
-    return updated;
+    return data;
   },
 
-  async close(
-    id: string,
-    reason: "MANUAL" | "CONNECTED" = "MANUAL",
-  ): Promise<void> {
-    await delay(200);
-    scheduleStore.set(
-      scheduleStore.all().map((s) =>
-        s.id === id && s.status === "OPEN"
-          ? {
-              ...s,
-              status: "CLOSED",
-              closedReason: reason,
-              closedAt: new Date().toISOString(),
-            }
-          : s,
-      ),
+  async close(id: number | string): Promise<ProcessingScheduleItem> {
+    const { data } = await apiClient.post<ProcessingScheduleItem>(ep.close(id));
+    return data;
+  },
+
+  // Admin APIs
+  async adminList(
+    params: ScheduleListParams,
+  ): Promise<PageResponse<ProcessingScheduleItem>> {
+    const { data } = await apiClient.get<PageResponse<ProcessingScheduleItem>>(
+      adminEp.base,
+      {
+        params: {
+          page: params.page,
+          size: params.size,
+          keyword: params.keyword?.trim() || undefined,
+          status: params.status || undefined,
+          machineId: params.machineId || undefined,
+          profileId: params.profileId || params.factoryId || undefined,
+        },
+      },
     );
+    return data;
+  },
+
+  async adminGetById(id: number | string): Promise<ProcessingScheduleItem> {
+    const { data } = await apiClient.get<ProcessingScheduleItem>(
+      adminEp.detail(id),
+    );
+    return data;
+  },
+
+  async adminDelete(id: number | string): Promise<void> {
+    await apiClient.delete(adminEp.detail(id));
   },
 };

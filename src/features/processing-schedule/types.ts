@@ -1,27 +1,59 @@
-import type { CapacityUnit } from "@/features/factory";
-import type { ScheduleStatus } from "./constants";
+import type {
+  MachineCapacityUnit,
+  ProcessingServiceRef,
+  ProductGroupRef,
+  FactoryProfileRef,
+} from "@/features/machine";
 
-export interface ProcessingSchedule {
-  id: string;
-  factoryId: string;
-  machineId: string;
-  fromDate: string;
-  toDate: string;
-  maxCapacity: number;
-  capacityUnit: CapacityUnit;
-  note?: string;
-  /** Stored status; display status is derived on read — CLOSED or toDate in the past = EXPIRED */
-  status: "OPEN" | "CLOSED";
-  /** CONNECTED = admin confirmed a successful connection (spec: đóng tin để không matching nữa) */
-  closedReason?: "MANUAL" | "CONNECTED";
-  closedAt?: string;
-  createdAt: string;
+export type ScheduleBackendStatus = "OPEN" | "EXPIRED" | "CLOSED";
+export type ScheduleDisplayStatus = "OPEN" | "EXPIRED" | "CLOSED" | "ACTIVE";
+
+export interface ScheduleMachineRef {
+  id: number;
+  code: string;
+  name: string;
+  status?: string;
+  maxCapacity?: number;
+  capacityUnit?: MachineCapacityUnit;
+  maxCapacityKgPerMonth?: number;
+  processingServices?: ProcessingServiceRef[];
+  productGroups?: ProductGroupRef[];
 }
 
-export interface ScheduleRow extends ProcessingSchedule {
-  displayStatus: ScheduleStatus;
-  factoryName: string;
-  machineName: string;
+export interface ProcessingScheduleItem {
+  id: number;
+  workspaceId: number;
+  profileId: number;
+  profile?: FactoryProfileRef;
+  machineId?: number;
+  machine: ScheduleMachineRef;
+  title: string;
+  startDate: string;
+  endDate: string;
+  maxCapacity: number;
+  capacityUnit: MachineCapacityUnit;
+  maxCapacityKgPerMonth?: number;
+  note?: string | null;
+  connectionRequestCount: number;
+  status: ScheduleBackendStatus;
+  createdByUserId?: number;
+  closedAt?: string | null;
+  closedByUserId?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ProcessingSchedule = ProcessingScheduleItem;
+export type ScheduleRow = ProcessingScheduleItem;
+
+export interface ProcessingScheduleInput {
+  machineId: number;
+  title: string;
+  startDate: string;
+  endDate: string;
+  maxCapacity: number;
+  capacityUnit: MachineCapacityUnit;
+  note?: string;
 }
 
 export interface ScheduleListParams {
@@ -29,5 +61,7 @@ export interface ScheduleListParams {
   size: number;
   keyword?: string;
   status?: string;
-  factoryId?: string;
+  machineId?: number;
+  profileId?: number;
+  factoryId?: string | number;
 }

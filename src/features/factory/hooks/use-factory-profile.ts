@@ -28,11 +28,14 @@ export function useAdminFactoryProfiles(params: AdminFactoryProfileListParams) {
   });
 }
 
-export function useAdminFactoryProfile(id: string | number | undefined) {
+export function useAdminFactoryProfile(
+  id: string | number | undefined,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: factoryProfileKeys.detail(id ?? ""),
     queryFn: () => factoryProfileApi.adminGet(id!),
-    enabled: id !== undefined && id !== "",
+    enabled: (options?.enabled ?? true) && id !== undefined && id !== "",
   });
 }
 

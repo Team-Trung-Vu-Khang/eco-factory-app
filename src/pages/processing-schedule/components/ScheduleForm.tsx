@@ -6,49 +6,40 @@ import { useForm, useWatch } from "react-hook-form";
 import {
   CapacityField,
   FormSection,
-  MultiSelectField,
-  SearchSelectField,
+  SelectField,
   TextareaField,
   TextField,
 } from "@/components/form";
 import {
   CAPACITY_UNIT_LABELS,
-  useFactoryOptions,
-  useMachines,
-} from "@/features/factory";
+  MACHINE_CAPACITY_UNIT_OPTIONS,
+  useFactoryMachines,
+  type FactoryMachineItem,
+} from "@/features/machine";
 import {
   EMPTY_SCHEDULE,
   scheduleSchema,
   type ScheduleFormValues,
   type ScheduleRow,
 } from "@/features/processing-schedule";
-import { useProcessingServiceOptions } from "@/features/processing-service";
-import { useProductGroupOptions } from "@/features/product-group";
 
 const fmt = new Intl.NumberFormat("vi-VN");
 
-const unique = (ids: string[]) => [...new Set(ids)];
-
 function ReadonlyTags({
   label,
-  ids,
-  options,
+  items,
 }: {
   label: string;
-  ids: string[];
-  options: { value: string; label: string }[];
+  items: Array<{ id: number; name: string }>;
 }) {
-  const nameOf = (id: string) =>
-    options.find((o) => o.value === id)?.label ?? id;
   return (
-    // Phones: hidden until a machine is picked — the placeholder only adds height
-    <div className={`space-y-2 ${ids.length ? "" : "hidden! sm:block!"}`}>
+    <div className={`space-y-2 ${items.length ? "" : "hidden! sm:block!"}`}>
       <p className="text-sm font-medium text-slate-700">{label}</p>
       <div className="flex min-h-9 flex-wrap items-center gap-1">
-        {ids.length ? (
-          ids.map((id) => (
-            <Badge key={id} variant="secondary" className="font-normal">
-              {nameOf(id)}
+        {items.length ? (
+          items.map((item) => (
+            <Badge key={item.id} variant="secondary" className="font-normal">
+              {item.name}
             </Badge>
           ))
         ) : (
@@ -61,7 +52,7 @@ function ReadonlyTags({
 
 interface ScheduleFormProps {
   /** Pre-select a machine, e.g. from the machines page */
-  machineId?: string;
+  machineId?: string | number;
   editingSchedule?: ScheduleRow | null;
   isSubmitting?: boolean;
   onSubmit: (values: ScheduleFormValues) => Promise<boolean>;
@@ -81,41 +72,44 @@ export function ScheduleForm({
     mode: "onTouched",
   });
   const { control, setValue } = form;
-  const [factoryId, selectedMachineIds] = useWatch({
+  const selectedMachineId = useWatch({
     control,
-    name: ["factoryId", "machineIds"],
+    name: "machineId",
   });
 
-  const { options: factoryOptions } = useFactoryOptions();
-  const { data: machines } = useMachines({
+  const { data: machinesData } = useFactoryMachines({
     page: 0,
     size: 100,
     status: "ACTIVE",
   });
-  const allMachines = useMemo(() => machines?.content ?? [], [machines]);
-  const machineOptions = allMachines
-    .filter((m) => m.factoryId === factoryId)
-    .map((m) => ({ value: m.id, label: m.name }));
-  const selectedMachines = useMemo(
-    () => allMachines.filter((m) => selectedMachineIds?.includes(m.id)),
-    [allMachines, selectedMachineIds],
+  const allMachines = useMemo(
+    () => machinesData?.content ?? [],
+    [machinesData],
   );
-  const firstMachine = selectedMachines[0];
-  const serviceOptions = useProcessingServiceOptions();
-  const productGroupOptions = useProductGroupOptions();
-  const serviceIds = unique(selectedMachines.flatMap((m) => m.functions));
-  const productGroupIds = unique(
-    selectedMachines.flatMap((m) => m.productGroupIds),
+
+  const machineOptions = useMemo(
+    () =>
+      allMachines.map((m: FactoryMachineItem) => ({
+        value: String(m.id),
+        label: `${m.name} (${m.code})`,
+      })),
+    [allMachines],
+  );
+
+  const selectedMachine = useMemo(
+    () => allMachines.find((m) => String(m.id) === String(selectedMachineId)),
+    [allMachines, selectedMachineId],
   );
 
   // Sync when editing schedule changes
   useEffect(() => {
     if (editingSchedule) {
       form.reset({
-        factoryId: editingSchedule.factoryId,
-        machineIds: [editingSchedule.machineId],
-        fromDate: editingSchedule.fromDate,
-        toDate: editingSchedule.toDate,
+        id: editingSchedule.id,
+        title: editingSchedule.title,
+        machineId: editingSchedule.machine.id,
+        startDate: editingSchedule.startDate,
+        endDate: editingSchedule.endDate,
         maxCapacity: editingSchedule.maxCapacity,
         capacityUnit: editingSchedule.capacityUnit,
         note: editingSchedule.note ?? "",
@@ -123,32 +117,25 @@ export function ScheduleForm({
     }
   }, [editingSchedule, form]);
 
-  // Deep link: ?machineId= selects the machine and its factory (only if not editing)
+  // Deep link: ?machineId= selects the machine (only if not editing)
   useEffect(() => {
-    if (editingSchedule) return;
-    const target = allMachines.find((m) => m.id === machineId);
-    if (target && !form.getValues("machineIds").length) {
-      setValue("factoryId", target.factoryId);
-      setValue("machineIds", [target.id]);
+    if (editingSchedule || !machineId) return;
+    const target = allMachines.find((m) => String(m.id) === String(machineId));
+    if (target && !form.getValues("machineId")) {
+      setValue("machineId", target.id);
     }
   }, [machineId, allMachines, form, setValue, editingSchedule]);
 
-  // Changing factory drops machines from the previous one
+  // Default the unit and title to the selected machine
   useEffect(() => {
-    const ids = form.getValues("machineIds");
-    const kept = ids.filter((id) =>
-      allMachines.some((m) => m.id === id && m.factoryId === factoryId),
-    );
-    if (kept.length !== ids.length) setValue("machineIds", kept);
-  }, [factoryId, allMachines, form, setValue]);
-
-  // Default the unit to the first machine's; the user can still change it
-  useEffect(() => {
-    if (firstMachine && !editingSchedule)
-      setValue("capacityUnit", firstMachine.capacityUnit, {
-        shouldValidate: form.formState.isSubmitted,
-      });
-  }, [firstMachine, setValue, form, editingSchedule]);
+    if (selectedMachine && !editingSchedule) {
+      if (!form.getValues("capacityUnit")) {
+        setValue("capacityUnit", selectedMachine.capacityUnit, {
+          shouldValidate: form.formState.isSubmitted,
+        });
+      }
+    }
+  }, [selectedMachine, setValue, form, editingSchedule]);
 
   const handleCancel = () => {
     form.reset(EMPTY_SCHEDULE);
@@ -156,8 +143,22 @@ export function ScheduleForm({
   };
 
   const submit = form.handleSubmit(async (values) => {
+    // Validate capacity does not exceed machine's maximum capacity if comparable
+    if (selectedMachine) {
+      if (
+        values.capacityUnit === selectedMachine.capacityUnit &&
+        values.maxCapacity > selectedMachine.maxCapacity
+      ) {
+        form.setError("maxCapacity", {
+          type: "custom",
+          message: `Công suất nhận không được vượt quá công suất tối đa của máy (${fmt.format(selectedMachine.maxCapacity)} ${CAPACITY_UNIT_LABELS[selectedMachine.capacityUnit]}).`,
+        });
+        return;
+      }
+    }
+
     if (await onSubmit(values)) {
-      form.reset({ ...EMPTY_SCHEDULE, factoryId: values.factoryId });
+      form.reset(EMPTY_SCHEDULE);
     }
   });
 
@@ -175,49 +176,46 @@ export function ScheduleForm({
           }
           description={
             editingSchedule
-              ? `Đang chỉnh sửa lịch đăng cho máy "${editingSchedule.machineName}"`
+              ? `Đang chỉnh sửa lịch đăng cho máy "${editingSchedule.machine.name}"`
               : "Máy chỉ xuất hiện trong tìm kiếm của nông hộ khi có lịch đang mở"
           }
         >
           <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
-            <SearchSelectField
+            <TextField
               control={control}
-              name="factoryId"
-              label="Nhà máy"
+              name="title"
+              label="Tiêu đề tin"
+              placeholder="VD: Nhận sấy chè Shan tuyết vụ thu"
               required
-              options={factoryOptions}
+              className="sm:col-span-2"
             />
-            <MultiSelectField
+            <SelectField
               control={control}
-              name="machineIds"
+              name="machineId"
               label="Máy / dây chuyền"
               required
-              disabled={!factoryId}
               options={machineOptions}
-              placeholder={
-                factoryId ? "Chọn máy đang hoạt động..." : "Chọn nhà máy trước"
-              }
+              placeholder="Chọn máy đang hoạt động..."
+              className="sm:col-span-2"
             />
             <ReadonlyTags
               label="Dịch vụ"
-              ids={serviceIds}
-              options={serviceOptions}
+              items={selectedMachine?.processingServices ?? []}
             />
             <ReadonlyTags
               label="Nhóm nông sản/sản phẩm"
-              ids={productGroupIds}
-              options={productGroupOptions}
+              items={selectedMachine?.productGroups ?? []}
             />
             <TextField
               control={control}
-              name="fromDate"
+              name="startDate"
               label="Từ ngày"
               type="date"
               required
             />
             <TextField
               control={control}
-              name="toDate"
+              name="endDate"
               label="Đến ngày"
               type="date"
               required
@@ -226,16 +224,12 @@ export function ScheduleForm({
               control={control}
               valueName="maxCapacity"
               unitName="capacityUnit"
+              unitOptions={MACHINE_CAPACITY_UNIT_OPTIONS}
               label="Công suất tối đa nhận"
               required
               description={
-                selectedMachines.length
-                  ? `Áp dụng cho từng máy. Công suất tối đa: ${selectedMachines
-                      .map(
-                        (m) =>
-                          `${m.name} ${fmt.format(m.maxCapacity)} ${CAPACITY_UNIT_LABELS[m.capacityUnit]}`,
-                      )
-                      .join("; ")}`
+                selectedMachine
+                  ? `Công suất tối đa của máy: ${fmt.format(selectedMachine.maxCapacity)} ${CAPACITY_UNIT_LABELS[selectedMachine.capacityUnit]}`
                   : undefined
               }
             />

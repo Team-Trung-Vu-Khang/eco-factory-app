@@ -1,6 +1,6 @@
 import { Button, Form } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Loader2, Search } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
   AsyncMultiSelectField,
@@ -15,59 +15,49 @@ import {
   MATERIAL_CONDITION_OPTIONS,
   type MaterialCondition,
 } from "@/features/demand/constants";
-import {
-  SEARCH_QUANTITY_UNIT_OPTIONS,
-  type FactorySearchParams,
-  type SearchQuantityUnit,
-} from "@/features/connection";
-import { CROP_OPTIONS } from "@/features/crop";
-import {
-  CERTIFICATION_TYPE_NAMED_OPTIONS,
-  PROVINCES,
-} from "@/features/factory";
+import type { FactorySearchParams } from "@/features/connection";
+import { CROP_OPTIONS, getCropName } from "@/features/crop";
+import { CERTIFICATION_TYPE_NAMED_OPTIONS } from "@/features/factory";
+import { useProvinceOptions, useWardOptions } from "@/features/geo";
+import { MACHINE_CAPACITY_UNIT_OPTIONS } from "@/features/machine";
 import { fetchProductGroupOptions } from "@/features/product-group";
 import { fetchProcessingServiceOptions } from "@/features/processing-service";
 import { searchSession } from "../search-session";
 
 interface FilterValues {
-  provinceCode: string;
-  wardCode: string;
-  functions: string[];
-  cropIds: string[];
+  province: string;
+  ward: string;
+  processingServiceIds: string[];
+  crops: string[];
   productGroupIds: string[];
-  quantity?: number;
-  quantityUnit: SearchQuantityUnit;
-  requiredCertifications: string[];
+  maxCapacity?: number;
+  capacityUnit: "KG_PER_MONTH" | "TONNE_PER_MONTH";
+  certificateTypes: string[];
   materialCondition: MaterialCondition | "";
-  packagingRequirements: string;
-  technicalRequirements: string;
+  packagingRequirement: string;
+  technicalRequirement: string;
+  message: string;
 }
 
 const EMPTY: FilterValues = {
-  provinceCode: "",
-  wardCode: "",
-  functions: [],
-  cropIds: [],
+  province: "",
+  ward: "",
+  processingServiceIds: [],
+  crops: [],
   productGroupIds: [],
-  quantity: undefined,
-  quantityUnit: "KG",
-  requiredCertifications: [],
+  maxCapacity: undefined,
+  capacityUnit: "KG_PER_MONTH",
+  certificateTypes: [],
   materialCondition: "",
-  packagingRequirements: "",
-  technicalRequirements: "",
+  packagingRequirement: "",
+  technicalRequirement: "",
+  message: "",
 };
-const PROVINCE_OPTIONS = PROVINCES.map((p) => ({
-  value: p.code,
-  label: p.name,
-}));
 
 interface SearchFiltersProps {
-  /** admin: khu vực, dịch vụ, nhóm nông sản, chứng nhận · member: + nguyên liệu, sản lượng */
   mode: "admin" | "member";
   searching?: boolean;
-  /** Lists matching factories — member connects per result row */
   onSearch: (params: FactorySearchParams) => void;
-  /** "Xóa bộ lọc" — also clears the results */
   onReset?: () => void;
 }
 
@@ -79,42 +69,60 @@ export function SearchFilters({
 }: SearchFiltersProps) {
   const storeKey = `${mode}:form`;
   const form = useForm<FilterValues>({
-    defaultValues: { ...EMPTY, ...searchSession.read<Partial<FilterValues>>(storeKey) },
+    defaultValues: {
+      ...EMPTY,
+      ...searchSession.read<Partial<FilterValues>>(storeKey),
+    },
   });
-  // Persist as the user types — restored when they come back from a detail page
-  useEffect(() => {
-    const sub = form.watch((values) => searchSession.write(storeKey, values));
-    return () => sub.unsubscribe();
-  }, [form, storeKey]);
-  const { control, setValue } = form;
-  const isAdmin = mode === "admin";
-  const provinceCode = useWatch({ control, name: "provinceCode" });
-  // Ward depends on province
-  const prevProvince = useRef(provinceCode);
-  useEffect(() => {
-    if (prevProvince.current !== provinceCode) setValue("wardCode", "");
-    prevProvince.current = provinceCode;
-  }, [provinceCode, setValue]);
 
-  const wardOptions = (
-    PROVINCES.find((p) => p.code === provinceCode)?.wards ?? []
-  ).map((w) => ({ value: w.code, label: w.name }));
+  const { control, setValue, watch } = form;
+
+  useEffect(() => {
+    const sub = watch((values) => searchSession.write(storeKey, values));
+    return () => sub.unsubscribe();
+  }, [watch, storeKey]);
+  const isAdmin = mode === "admin";
+  const provinceName = useWatch({ control, name: "province" });
+
+  const { options: provinceOptions, provinces } = useProvinceOptions();
+
+  const currentProvince = useMemo(
+    () =>
+      provinces.find(
+        (p) =>
+          p.name === provinceName ||
+          p.fullName === provinceName ||
+          p.code === provinceName,
+      ),
+    [provinces, provinceName],
+  );
+
+  const { options: wardOptions } = useWardOptions(currentProvince?.code);
+
+  const prevProvince = useRef(provinceName);
+  useEffect(() => {
+    if (prevProvince.current !== provinceName) setValue("ward", "");
+    prevProvince.current = provinceName;
+  }, [provinceName, setValue]);
 
   const toParams = (v: FilterValues): FactorySearchParams => ({
-    provinceCode: v.provinceCode || undefined,
-    wardCode: v.wardCode || undefined,
-    functions: v.functions,
-    requiredCertifications: v.requiredCertifications,
-    ...(isAdmin
-      ? { cropIds: [], productGroupIds: v.productGroupIds }
-      : {
-          cropIds: v.cropIds,
-          quantity: v.quantity,
-          quantityUnit: v.quantity ? v.quantityUnit : undefined,
-          materialCondition: v.materialCondition || undefined,
-          packagingRequirements: v.packagingRequirements.trim() || undefined,
-          technicalRequirements: v.technicalRequirements.trim() || undefined,
-        }),
+    province: v.province || undefined,
+    ward: v.ward || undefined,
+    processingServiceIds: v.processingServiceIds?.length
+      ? v.processingServiceIds.map(Number)
+      : undefined,
+    crops: v.crops?.length
+      ? v.crops.map((c) => getCropName(c) || c)
+      : undefined,
+    maxCapacity: v.maxCapacity,
+    capacityUnit: v.maxCapacity ? v.capacityUnit : undefined,
+    certificateTypes: v.certificateTypes?.length
+      ? v.certificateTypes
+      : undefined,
+    materialCondition: v.materialCondition || undefined,
+    packagingRequirement: v.packagingRequirement?.trim() || undefined,
+    technicalRequirement: v.technicalRequirement?.trim() || undefined,
+    message: v.message?.trim() || undefined,
   });
 
   const submit = form.handleSubmit((v) => onSearch(toParams(v)));
@@ -132,18 +140,18 @@ export function SearchFilters({
           <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
             <SearchSelectField
               control={control}
-              name="provinceCode"
+              name="province"
               label="Tỉnh/Thành phố"
-              options={PROVINCE_OPTIONS}
+              options={provinceOptions}
               placeholder="Tất cả"
             />
             <SearchSelectField
               control={control}
-              name="wardCode"
+              name="ward"
               label="Xã/Phường"
               options={wardOptions}
-              disabled={!provinceCode}
-              placeholder={provinceCode ? "Tất cả" : "Chọn tỉnh trước"}
+              disabled={!provinceName}
+              placeholder={provinceName ? "Tất cả" : "Chọn tỉnh trước"}
             />
           </div>
         </FormSection>
@@ -154,7 +162,7 @@ export function SearchFilters({
           <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
             <AsyncMultiSelectField
               control={control}
-              name="functions"
+              name="processingServiceIds"
               label="Dịch vụ"
               fetchOptions={fetchProcessingServiceOptions}
               placeholder="Tất cả dịch vụ"
@@ -171,7 +179,7 @@ export function SearchFilters({
               <>
                 <MultiSelectField
                   control={control}
-                  name="cropIds"
+                  name="crops"
                   label="Nguyên liệu (cây trồng)"
                   options={CROP_OPTIONS}
                   placeholder="VD: Xoài, Sầu riêng..."
@@ -179,22 +187,21 @@ export function SearchFilters({
                 />
                 <CapacityField
                   control={control}
-                  valueName="quantity"
-                  unitName="quantityUnit"
+                  valueName="maxCapacity"
+                  unitName="capacityUnit"
                   label="Sản lượng"
-                  unitOptions={SEARCH_QUANTITY_UNIT_OPTIONS}
+                  unitOptions={MACHINE_CAPACITY_UNIT_OPTIONS}
                   description="Chỉ hiện máy có công suất đủ xử lý trong thời gian nhận chế biến"
                 />
               </>
             )}
             <MultiSelectField
               control={control}
-              name="requiredCertifications"
+              name="certificateTypes"
               label="Chứng nhận của cơ sở"
               options={CERTIFICATION_TYPE_NAMED_OPTIONS}
               placeholder="Không yêu cầu"
               description="Nhà máy phải có đủ các chứng nhận còn hiệu lực"
-              // Member: sits beside "Sản lượng"
               className={isAdmin ? "md:col-span-2" : undefined}
             />
             {!isAdmin && (
@@ -209,24 +216,31 @@ export function SearchFilters({
                 />
                 <TextareaField
                   control={control}
-                  name="packagingRequirements"
+                  name="packagingRequirement"
                   label="Yêu cầu đóng gói"
                   rows={2}
                   placeholder="VD: Túi hút chân không 500g"
                 />
                 <TextareaField
                   control={control}
-                  name="technicalRequirements"
+                  name="technicalRequirement"
                   label="Yêu cầu kỹ thuật đặc biệt"
                   rows={2}
                   placeholder="VD: Sấy lạnh dưới 40°C"
+                />
+                <TextareaField
+                  control={control}
+                  name="message"
+                  label="Lời nhắn"
+                  rows={2}
+                  placeholder="VD: Giao hàng trong ngày..."
+                  className="md:col-span-2"
                 />
               </>
             )}
           </div>
         </FormSection>
 
-        {/* Phones: stacked full-width, primary action on top */}
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
           <Button
             type="button"
@@ -238,10 +252,7 @@ export function SearchFilters({
           >
             Xóa bộ lọc
           </Button>
-          <Button
-            type="submit"
-            disabled={searching}
-          >
+          <Button type="submit" disabled={searching}>
             {searching ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (

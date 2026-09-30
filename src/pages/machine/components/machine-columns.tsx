@@ -1,4 +1,5 @@
 import { Badge, type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import dayjs from "dayjs";
 import { Link } from "wouter";
 import { ROUTES } from "@/config/routes";
 import type {
@@ -9,6 +10,7 @@ import type {
 import { MACHINE_STATUS_OPTIONS } from "./machine-form-schema";
 
 const fmt = new Intl.NumberFormat("vi-VN");
+const date = (d: string) => dayjs(d).format("DD/MM/YYYY");
 
 export const MACHINE_STATUS_CONFIG: Record<
   MachineStatus,
@@ -41,7 +43,7 @@ export const factoryColumn: Column<FactoryMachineItem> = {
     <div className="min-w-44">
       {m.profile ? (
         <Link
-          href={ROUTES.profileDetail(m.profile.id)}
+          href={ROUTES.profileDetail(String(m.profile.id))}
           className="font-medium text-slate-900 hover:text-emerald-700 hover:underline"
         >
           {m.profile.name}
@@ -111,6 +113,34 @@ export const machineColumns: Column<FactoryMachineItem>[] = [
         </span>
       </span>
     ),
+  },
+  {
+    key: "openSchedules",
+    label: "Lịch nhận chế biến",
+    render: (_, m) => {
+      const schedules = m.openSchedules ?? [];
+      if (!schedules.length) {
+        return <span className="text-sm text-slate-400">Chưa có lịch</span>;
+      }
+      return (
+        <div className="flex flex-col gap-1 min-w-44">
+          {schedules.map((s) => (
+            <div
+              key={s.id}
+              className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800 border border-emerald-200 whitespace-nowrap"
+            >
+              <span className="tabular-nums font-medium">
+                {date(s.startDate)} → {date(s.endDate)}
+              </span>
+              <span className="text-slate-500">
+                ({fmt.format(s.maxCapacity)}{" "}
+                {CAPACITY_UNIT_LABELS[s.capacityUnit] ?? s.capacityUnit})
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    },
   },
   {
     key: "status",

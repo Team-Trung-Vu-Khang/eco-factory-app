@@ -5,10 +5,12 @@ import {
   useToast,
   type Column,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearch } from "wouter";
 import PageWrapper from "@/components/common/PageWrapper";
 import {
+  useAdminDeleteSchedule,
+  useAdminSchedules,
   useCloseSchedule,
   useCreateSchedule,
   useSchedules,
@@ -27,6 +29,7 @@ export default function ProcessingSchedulePage() {
     new URLSearchParams(useSearch()).get("machineId") ?? undefined;
   const formRef = useRef<HTMLDivElement>(null);
   const [closing, setClosing] = useState<ScheduleRow | null>(null);
+  const [deleting, setDeleting] = useState<ScheduleRow | null>(null);
   const [editingSchedule, setEditingSchedule] = useState<ScheduleRow | null>(
     null,
   );
@@ -34,35 +37,57 @@ export default function ProcessingSchedulePage() {
   const create = useCreateSchedule();
   const update = useUpdateSchedule();
   const close = useCloseSchedule();
+  const remove = useAdminDeleteSchedule();
+
   // Admin: every factory (filterable) · factory: its own posts only
   const factoryFilter = useFactoryFilter();
   const isAdmin = factoryFilter.isAdmin;
   const [factoryId, setFactoryId] = useState<string | undefined>();
   const [keyword, setKeyword] = useState("");
-  const activeQuery = useSchedules({
-    page: 0,
-    size: 100,
-    keyword,
-    status: "ACTIVE",
-    factoryId: factoryFilter.scope(factoryId),
-  });
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(10);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedKeyword(keyword);
+      setPage(0);
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [keyword]);
+
+  const queryParams = {
+    page,
+    size,
+    keyword: debouncedKeyword.trim() || undefined,
+    status: "OPEN",
+    profileId: factoryFilter.scope(factoryId)
+      ? Number(factoryFilter.scope(factoryId))
+      : undefined,
+  };
+
+  const memberQuery = useSchedules(queryParams, { enabled: !isAdmin });
+  const adminQuery = useAdminSchedules(queryParams, { enabled: isAdmin });
+  const activeQuery = isAdmin ? adminQuery : memberQuery;
   const active = activeQuery.data?.content ?? [];
+  const totalElements = activeQuery.data?.totalElements ?? active.length;
+  const totalPages = activeQuery.data?.totalPages ?? 1;
 
   const handleEditClick = (s: ScheduleRow) => {
     setEditingSchedule(s);
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Admin: view only — no editing / closing posts
-  const columns: Column<ScheduleRow>[] = isAdmin
-    ? scheduleColumns
-    : [
-        ...scheduleColumns,
-        {
-          key: "actions",
-          label: "",
-          render: (_, s) => (
-            <div className="flex items-center justify-end gap-1.5">
+  // Actions column
+  const columns: Column<ScheduleRow>[] = [
+    ...scheduleColumns,
+    {
+      key: "actions",
+      label: "",
+      render: (_, s) => (
+        <div className="flex items-center justify-end gap-1.5">
+          {!isAdmin ? (
+            <>
               <Button
                 variant="outline"
                 size="sm"
@@ -79,27 +104,48 @@ export default function ProcessingSchedulePage() {
               >
                 Đóng tin
               </Button>
-            </div>
-          ),
-        },
-      ];
+            </>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+              onClick={() => setDeleting(s)}
+            >
+              Xóa
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   const handleSubmit = async (values: ScheduleFormValues) => {
     try {
+      const payload = {
+        title: values.title,
+        machineId: Number(values.machineId),
+        startDate: values.startDate,
+        endDate: values.endDate,
+        maxCapacity: values.maxCapacity,
+        capacityUnit: values.capacityUnit,
+        note: values.note || undefined,
+      };
+
       if (editingSchedule) {
-        await update.mutateAsync({ id: editingSchedule.id, values });
+        await update.mutateAsync({ id: editingSchedule.id, values: payload });
         toast({
           title: "Đã cập nhật tin đăng",
-          description: `Lịch nhận chế biến cho "${editingSchedule.machineName}" đã được cập nhật thành công.`,
+          description: `Lịch nhận chế biến cho "${editingSchedule.machine?.name ?? ""}" đã được cập nhật thành công.`,
         });
         setEditingSchedule(null);
         return true;
       }
 
-      await create.mutateAsync(values);
+      await create.mutateAsync(payload);
       toast({
         title: "Đã đăng tin",
-        description: `${values.machineIds.length} máy / dây chuyền đã sẵn sàng nhận chế biến trong khoảng thời gian này.`,
+        description: "Lịch nhận chế biến đã sẵn sàng nhận kết nối từ nông hộ.",
       });
       return true;
     } catch (error) {
@@ -120,32 +166,47 @@ export default function ProcessingSchedulePage() {
       description="Đăng lịch nhận chế biến theo từng đợt cho máy / dây chuyền"
     >
       <div className="space-y-6">
-        <div ref={formRef}>
-          <ScheduleForm
-            machineId={machineId}
-            editingSchedule={editingSchedule}
-            isSubmitting={create.isPending || update.isPending}
-            onSubmit={handleSubmit}
-            onCancelEdit={() => setEditingSchedule(null)}
-          />
-        </div>
+        {!isAdmin && (
+          <div ref={formRef}>
+            <ScheduleForm
+              machineId={machineId}
+              editingSchedule={editingSchedule}
+              isSubmitting={create.isPending || update.isPending}
+              onSubmit={handleSubmit}
+              onCancelEdit={() => setEditingSchedule(null)}
+            />
+          </div>
+        )}
 
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-slate-900">
-            Tin đang mở ({active.length})
+            Tin đang mở ({totalElements})
           </h2>
           <DataTable
             columns={columns}
             data={active}
             loading={activeQuery.isFetching}
             searchable
-            searchPlaceholder="Tìm theo máy, nhà máy..."
-            onSearch={setKeyword}
+            searchPlaceholder="Tìm theo máy, nhà máy, tiêu đề..."
+            onSearch={(val) => {
+              setKeyword(val);
+              setPage(0);
+            }}
             // Admin sees every factory's posts — filter by factory
             filters={isAdmin ? [factoryFilter.filter] : undefined}
-            onFilterChange={(_key, value) =>
-              setFactoryId(value && value !== "all" ? value : undefined)
-            }
+            onFilterChange={(_key, value) => {
+              setFactoryId(value && value !== "all" ? value : undefined);
+              setPage(0);
+            }}
+            pageSize={size}
+            currentIndex={page + 1}
+            totalElements={totalElements}
+            totalPages={totalPages}
+            onPageSize={(s) => {
+              setSize(s);
+              setPage(0);
+            }}
+            onIndexChange={(index) => setPage(Math.max(0, index - 1))}
             columnToggleable={false}
             downloadable={false}
           />
@@ -157,16 +218,49 @@ export default function ProcessingSchedulePage() {
         onOpenChange={(o) => !o && setClosing(null)}
         onConfirm={async () => {
           if (!closing) return;
-          await close.mutateAsync(closing.id);
-          toast({
-            title: "Đã đóng tin",
-            description: `${closing.machineName} không còn nhận kết nối mới.`,
-          });
-          setClosing(null);
+          try {
+            await close.mutateAsync(closing.id);
+            toast({
+              title: "Đã đóng tin",
+              description: `${closing.machine?.name ?? "Máy"} không còn nhận kết nối mới.`,
+            });
+            setClosing(null);
+          } catch (error) {
+            toast({
+              title: "Không thể đóng tin",
+              description: (error as Error).message,
+              variant: "destructive",
+            });
+          }
         }}
         loading={close.isPending}
         title="Đóng tin đăng?"
-        description={`Đóng lịch nhận chế biến của "${closing?.machineName ?? ""}"? Nông hộ sẽ không tìm thấy lịch này nữa.`}
+        description={`Đóng lịch nhận chế biến của "${closing?.machine?.name ?? ""}"? Nông hộ sẽ không tìm thấy lịch này nữa.`}
+      />
+
+      <DeleteDialog
+        open={!!deleting}
+        onOpenChange={(o) => !o && setDeleting(null)}
+        onConfirm={async () => {
+          if (!deleting) return;
+          try {
+            await remove.mutateAsync(deleting.id);
+            toast({
+              title: "Đã xóa tin đăng",
+              description: `Đã xóa lịch nhận chế biến của "${deleting.machine?.name ?? ""}".`,
+            });
+            setDeleting(null);
+          } catch (error) {
+            toast({
+              title: "Không thể xóa tin",
+              description: (error as Error).message,
+              variant: "destructive",
+            });
+          }
+        }}
+        loading={remove.isPending}
+        title="Xóa tin đăng?"
+        description={`Xóa vĩnh viễn lịch nhận chế biến của "${deleting?.machine?.name ?? ""}" khỏi hệ thống?`}
       />
     </PageWrapper>
   );

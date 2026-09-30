@@ -3,7 +3,11 @@ import { ArrowLeft } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
-import { useAdminFactoryProfile } from "@/features/factory";
+import {
+  useAdminFactoryProfile,
+  type FactoryProfile,
+} from "@/features/factory";
+import { useMarketplaceProfile } from "@/features/connection";
 import { useIsFactoryAdmin } from "@/features/viewer";
 import { FactoryProfileView } from "./components/detail/FactoryProfileView";
 import { ReviewActions } from "./components/detail/ReviewActions";
@@ -15,8 +19,15 @@ import {
 export default function FactoryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
-  const { data: factory, isLoading, isError } = useAdminFactoryProfile(id);
   const isAdmin = useIsFactoryAdmin();
+
+  const adminQuery = useAdminFactoryProfile(id, { enabled: isAdmin && !!id });
+  const marketQuery = useMarketplaceProfile(id, { enabled: !isAdmin && !!id });
+
+  const query = isAdmin ? adminQuery : marketQuery;
+  const factory = query.data as unknown as FactoryProfile | undefined;
+  const { isLoading, isError } = query;
+
   const goBack = () =>
     window.history.length > 1
       ? window.history.back()

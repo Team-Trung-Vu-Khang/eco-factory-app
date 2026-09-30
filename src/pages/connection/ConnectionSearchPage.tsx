@@ -4,53 +4,81 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
-import { useConnectFactories, useFactorySearch, type ConnectFactoriesInput, type FactorySearchParams } from "@/features/connection";
-import { useCurrentFarmer, useIsFactoryAdmin } from "@/features/viewer";
+import {
+  useCreateConnectionRequest,
+  useFactorySearch,
+  type FactorySearchParams,
+  type MarketplaceScheduleItem,
+} from "@/features/connection";
+import { useIsFactoryAdmin } from "@/features/viewer";
 import { FactoryResultTable } from "./components/FactoryResultTable";
 import { SearchFilters } from "./components/SearchFilters";
 import { searchSession } from "./search-session";
 
-type ConnectTarget = NonNullable<ConnectFactoriesInput["target"]>;
-
 export default function ConnectionSearchPage() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const farmer = useCurrentFarmer();
   const isAdmin = useIsFactoryAdmin();
   const mode = isAdmin ? "admin" : "member";
+
   // Last search survives going to a factory detail page and back.
-  // Keyed by mode: roles load async, so the view can switch after mount.
-  const [byMode, setByMode] = useState<Partial<Record<string, FactorySearchParams | undefined>>>({});
-  const params = mode in byMode ? byMode[mode] : searchSession.read<FactorySearchParams>(`${mode}:params`);
+  const [byMode, setByMode] = useState<
+    Partial<Record<string, FactorySearchParams | undefined>>
+  >({});
+  const params =
+    mode in byMode
+      ? byMode[mode]
+      : searchSession.read<FactorySearchParams>(`${mode}:params`);
+
   const setParams = (next?: FactorySearchParams) => {
     setByMode((prev) => ({ ...prev, [mode]: next }));
     searchSession.write(`${mode}:params`, next);
   };
 
   const search = useFactorySearch(params);
-  const connect = useConnectFactories();
-  const results = search.data ?? [];
+  const connectMutation = useCreateConnectionRequest();
+  const results = search.data?.content ?? [];
+  const totalElements = search.data?.totalElements ?? results.length;
 
-  const [connectingKey, setConnectingKey] = useState<string>();
+  const [connectingId, setConnectingId] = useState<number>();
 
-  const handleConnect = async (target: ConnectTarget) => {
+  const handleConnect = async (schedule: MarketplaceScheduleItem) => {
     if (!params) return;
-    setConnectingKey(`${target.factory.id}-${target.machine.id}`);
+    setConnectingId(schedule.id);
     try {
-      await connect.mutateAsync({ farmer, criteria: params, target });
+      await connectMutation.mutateAsync({
+        scheduleId: schedule.id,
+        crops: params.crops,
+        processingServiceIds: params.processingServiceIds,
+        maxCapacity: params.maxCapacity,
+        capacityUnit: params.capacityUnit,
+        materialCondition: params.materialCondition,
+        packagingRequirement: params.packagingRequirement,
+        technicalRequirement: params.technicalRequirement,
+        message: params.message,
+      });
+
       toast({
         title: "Đã gửi yêu cầu kết nối",
-        description: `Đã gửi tới ${target.factory.name} — ${target.machine.name}.`,
+        description: `Đã gửi yêu cầu tới ${schedule.profile.name} — ${schedule.machine.name}.`,
         action: (
-          <Button size="sm" variant="outline" onClick={() => navigate(ROUTES.connectionHistory)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate(ROUTES.connectionHistory)}
+          >
             Xem lịch sử
           </Button>
         ),
       });
     } catch (error) {
-      toast({ title: "Không thể gửi yêu cầu", description: (error as Error).message, variant: "destructive" });
+      toast({
+        title: "Không thể gửi yêu cầu",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
     } finally {
-      setConnectingKey(undefined);
+      setConnectingId(undefined);
     }
   };
 
@@ -68,35 +96,49 @@ export default function ConnectionSearchPage() {
         <SearchFilters
           key={isAdmin ? "admin" : "member"}
           mode={isAdmin ? "admin" : "member"}
-          searching={search.isFetching} onSearch={setParams} onReset={() => setParams(undefined)}
+          searching={search.isFetching}
+          onSearch={setParams}
+          onReset={() => setParams(undefined)}
         />
 
         {!params ? (
-          <p className="py-10 text-center text-sm text-slate-500">Bấm "Xem nhà máy phù hợp" để xem danh sách nhà máy theo điều kiện đã nhập.</p>
+          <p className="py-10 text-center text-sm text-slate-500">
+            Bấm "Xem nhà máy phù hợp" để xem danh sách nhà máy theo điều kiện đã
+            nhập.
+          </p>
         ) : search.isLoading ? (
           <div className="space-y-3">
             {[0, 1].map((i) => (
-              <div key={i} className="h-36 animate-pulse rounded-2xl bg-slate-100" />
+              <div
+                key={i}
+                className="h-36 animate-pulse rounded-2xl bg-slate-100"
+              />
             ))}
           </div>
         ) : (
           <section className="space-y-3">
             <div className="flex items-baseline justify-between gap-4">
-              <h2 className="text-sm font-semibold text-slate-900">{results.length} nhà máy phù hợp</h2>
-              <Link href={ROUTES.connectionHistory} className="text-sm text-emerald-700 hover:underline">
+              <h2 className="text-sm font-semibold text-slate-900">
+                {totalElements} nhà máy phù hợp
+              </h2>
+              <Link
+                href={ROUTES.connectionHistory}
+                className="text-sm text-emerald-700 hover:underline"
+              >
                 Lịch sử kết nối
               </Link>
             </div>
             {results.length === 0 ? (
               <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-10 text-center text-sm text-slate-500">
                 <SearchX className="h-5 w-5" />
-                Chưa có nhà máy đang nhận chế biến phù hợp. Thử mở rộng phạm vi hoặc bỏ bớt điều kiện.
+                Chưa có nhà máy đang nhận chế biến phù hợp. Thử mở rộng phạm vi
+                hoặc bỏ bớt điều kiện.
               </div>
             ) : (
               <FactoryResultTable
                 results={results}
                 mode={isAdmin ? "admin" : "member"}
-                connectingKey={connectingKey}
+                connectingId={connectingId}
                 onConnect={handleConnect}
               />
             )}
