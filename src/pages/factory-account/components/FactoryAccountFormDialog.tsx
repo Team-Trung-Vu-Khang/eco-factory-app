@@ -1,28 +1,35 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { SearchSelectField, SelectField, TextField } from "@/components/form";
-import { useFactoryOptions } from "@/features/factory";
+import { AsyncSearchSelectField, TextField } from "@/components/form";
 import {
   EMPTY_FACTORY_ACCOUNT,
-  FACTORY_ACCOUNT_ROLE_OPTIONS,
   factoryAccountSchema,
   type FactoryAccountFormValues,
 } from "@/features/factory-account";
+import { fetchWorkspaceOptions } from "@/features/workspace";
 
 interface FactoryAccountFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** undefined = create */
   initialValues?: FactoryAccountFormValues;
+  /** Initial selected workspace label for edit mode */
+  initialWorkspaceOption?: { value: string; label: string };
   isSubmitting?: boolean;
   onSubmit: (values: FactoryAccountFormValues) => void;
 }
 
-export function FactoryAccountFormDialog({ open, onOpenChange, initialValues, isSubmitting, onSubmit }: FactoryAccountFormDialogProps) {
+export function FactoryAccountFormDialog({
+  open,
+  onOpenChange,
+  initialValues,
+  initialWorkspaceOption,
+  isSubmitting,
+  onSubmit,
+}: FactoryAccountFormDialogProps) {
   const isEdit = !!initialValues;
-  const { options: factoryOptions } = useFactoryOptions();
   const form = useForm<FactoryAccountFormValues>({
     resolver: zodResolver(factoryAccountSchema),
     defaultValues: EMPTY_FACTORY_ACCOUNT,
@@ -31,14 +38,19 @@ export function FactoryAccountFormDialog({ open, onOpenChange, initialValues, is
   const { control } = form;
 
   useEffect(() => {
-    if (open) form.reset(initialValues ?? EMPTY_FACTORY_ACCOUNT);
+    if (open) {
+      form.reset(initialValues ?? EMPTY_FACTORY_ACCOUNT);
+    }
   }, [open, initialValues, form]);
 
-  const submit = form.handleSubmit((values) => {
-    if (!isEdit && !values.password) {
-      form.setError("password", { message: "Trường này là bắt buộc." });
-      return;
+  const initialOptions = useMemo(() => {
+    if (initialWorkspaceOption && initialWorkspaceOption.value) {
+      return [initialWorkspaceOption];
     }
+    return [];
+  }, [initialWorkspaceOption]);
+
+  const submit = form.handleSubmit((values) => {
     onSubmit(values);
   });
 
@@ -46,8 +58,10 @@ export function FactoryAccountFormDialog({ open, onOpenChange, initialValues, is
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={isEdit ? "Chỉnh sửa tài khoản" : "Tạo tài khoản nhà máy"}
-      description="Tài khoản đăng nhập MEVI Factories và nhà máy được gán"
+      title={
+        isEdit ? "Chỉnh sửa tài khoản chủ nhà máy" : "Tạo tài khoản chủ nhà máy"
+      }
+      description="Tài khoản đăng nhập MEVI và nhà máy (workspace) được gán quyền quản lý"
       submitLabel={isEdit ? "Lưu thay đổi" : "Tạo tài khoản"}
       loading={isSubmitting}
       size="lg"
@@ -55,26 +69,55 @@ export function FactoryAccountFormDialog({ open, onOpenChange, initialValues, is
     >
       <Form {...form}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <TextField control={control} name="name" label="Họ và tên" required className="sm:col-span-2" />
-          <TextField control={control} name="phone" label="Số điện thoại" type="tel" required />
-          <TextField control={control} name="email" label="Email" type="email" />
-          <SearchSelectField
+          <TextField
             control={control}
-            name="factoryId"
-            label="Nhà máy"
+            name="fullName"
+            label="Họ và tên"
             required
-            options={factoryOptions}
             className="sm:col-span-2"
           />
-          <SelectField control={control} name="role" label="Vai trò" required options={FACTORY_ACCOUNT_ROLE_OPTIONS} className="sm:col-span-2" />
-          <TextField control={control} name="username" label="Tên đăng nhập" required />
+          <TextField
+            control={control}
+            name="phoneNumber"
+            label="Số điện thoại"
+            type="tel"
+            required
+            disabled={isEdit}
+            description={
+              isEdit
+                ? "Số điện thoại là tên đăng nhập, không thể thay đổi sau khi tạo."
+                : "SĐT di động VN (dùng làm tên đăng nhập hệ thống)."
+            }
+          />
+          <TextField
+            control={control}
+            name="email"
+            label="Email"
+            type="email"
+            description="Địa chỉ email nhận thông báo (tùy chọn)."
+          />
+          <AsyncSearchSelectField
+            control={control}
+            name="workspaceId"
+            label="Nhà máy được gán"
+            required
+            fetchOptions={fetchWorkspaceOptions}
+            initialOptions={initialOptions}
+            placeholder="Tìm & chọn nhà máy..."
+            searchPlaceholder="Gõ tên hoặc mã nhà máy để tìm..."
+            className="sm:col-span-2"
+          />
           <TextField
             control={control}
             name="password"
-            label={isEdit ? "Mật khẩu mới" : "Mật khẩu"}
+            label={isEdit ? "Mật khẩu mới (tùy chọn)" : "Mật khẩu (tùy chọn)"}
             type="password"
-            required={!isEdit}
-            description={isEdit ? "Để trống nếu không đổi mật khẩu" : undefined}
+            className="sm:col-span-2"
+            description={
+              isEdit
+                ? "Để trống nếu giữ nguyên mật khẩu cũ. Đổi mật khẩu sẽ đăng xuất tất cả phiên đăng nhập hiện có."
+                : "Để trống hệ thống sẽ đặt mật khẩu mặc định (người dùng đổi khi đăng nhập lần đầu)."
+            }
           />
         </div>
       </Form>

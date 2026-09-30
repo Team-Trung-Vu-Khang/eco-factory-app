@@ -5,3 +5,5 @@ export function getSelectedWorkspaceIdFromStorage(): string | null {
   const value = sessionStorage.getItem(SELECTED_WORKSPACE_STORAGE_KEY);
   return value || null;
 }
+
+export * from "./api/workspace.api";

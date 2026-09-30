@@ -159,7 +159,17 @@ export const API_ENDPOINTS = {
 
   // ─── QUẢN TRỊ HỆ THỐNG FACTORY (ADMIN DOMAIN) ─────────────────────
   admin: {
+    users: {
+      base: "/api/admin/users",
+      detail: (userId: string | number) => `/api/admin/users/${userId}`,
+      status: (userId: string | number) => `/api/admin/users/${userId}/status`,
+    },
     factory: {
+      accounts: {
+        base: "/api/admin/factory/accounts",
+        detail: (userId: string | number) =>
+          `/api/admin/factory/accounts/${userId}`,
+      },
       profiles: {
         base: "/api/admin/factory/profiles",
         detail: (id: string | number) => `/api/admin/factory/profiles/${id}`,

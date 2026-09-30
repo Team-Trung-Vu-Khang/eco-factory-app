@@ -1,82 +1,84 @@
+import { API_ENDPOINTS } from "@/config/api-endpoints";
 import type { PageResponse } from "@/features/factory";
-import type { FactoryAccountFormValues } from "../schema";
-import type { FactoryAccount, FactoryAccountListParams, FactoryAccountStatus } from "../types";
+import { apiClient } from "@/lib/axios";
+import type {
+  AdminCreateUserInput,
+  AdminFactoryAccountItem,
+  AdminUpdateUserInput,
+  FactoryAccountListParams,
+  FactoryAccountStatus,
+} from "../types";
 
 export const factoryAccountKeys = {
   all: ["factory-accounts"] as const,
   lists: () => [...factoryAccountKeys.all, "list"] as const,
-  list: (params: FactoryAccountListParams) => [...factoryAccountKeys.lists(), params] as const,
+  list: (params: FactoryAccountListParams) =>
+    [...factoryAccountKeys.lists(), params] as const,
+  detail: (id: string | number) =>
+    [...factoryAccountKeys.all, "detail", String(id)] as const,
 };
 
-// ─── In-memory mock ─────────────────────────────────────────────────────────
-// TODO: replace with apiClient calls, e.g. apiClient.get("/api/factory/accounts", { params })
-
-const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms));
-const now = () => new Date().toISOString();
-
-let db: FactoryAccount[] = [
-  { id: "a1", name: "Nguyễn Văn An", username: "an.nguyen", phone: "0912000111", email: "an@mevi.vn", factoryId: "f-1", role: "OWNER", status: "ACTIVE", createdAt: now() },
-  { id: "a2", name: "Lê Thị Bình", username: "binh.le", phone: "0987222333", factoryId: "f-1", role: "MANAGER", status: "ACTIVE", createdAt: now() },
-  { id: "a3", name: "Trần Văn Cường", username: "cuong.tran", phone: "0903444555", factoryId: "f-2", role: "STAFF", status: "SUSPENDED", createdAt: now() },
-];
-
-const normalize = (s: string) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase();
-
-const assertUniqueUsername = (username: string, exceptId?: string) => {
-  if (db.some((a) => a.username.toLowerCase() === username.toLowerCase() && a.id !== exceptId))
-    throw new Error("Tên đăng nhập đã tồn tại.");
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const toStored = ({ password: _pw, email, ...rest }: FactoryAccountFormValues) => ({ ...rest, email: email || undefined });
+const adminAccountEp = API_ENDPOINTS.admin.factory.accounts;
+const adminUserEp = API_ENDPOINTS.admin.users;
 
 export const factoryAccountApi = {
-  async list(params: FactoryAccountListParams): Promise<PageResponse<FactoryAccount>> {
-    await delay();
-    const q = normalize(params.keyword?.trim() ?? "");
-    const filtered = db.filter(
-      (a) =>
-        (!q || normalize(`${a.name} ${a.username} ${a.phone}`).includes(q)) &&
-        (!params.status || a.status === params.status) &&
-        (!params.factoryId || a.factoryId === params.factoryId),
+  /** Danh sách tài khoản MEVI (mặc định roleCode = MEVI_FACTORY_MEMBER cho chủ nhà máy) */
+  async list(
+    params: FactoryAccountListParams,
+  ): Promise<PageResponse<AdminFactoryAccountItem>> {
+    const { data } = await apiClient.get<PageResponse<AdminFactoryAccountItem>>(
+      adminAccountEp.base,
+      {
+        params: {
+          page: params.page,
+          size: params.size,
+          keyword: params.keyword?.trim() || undefined,
+          status: params.status || undefined,
+          workspaceId: params.workspaceId || undefined,
+          roleCode: params.roleCode || "MEVI_FACTORY_MEMBER",
+          profileStatus: params.profileStatus || undefined,
+        },
+      },
     );
-    const start = params.page * params.size;
-    return {
-      content: filtered.slice(start, start + params.size),
-      totalElements: filtered.length,
-      totalPages: Math.max(1, Math.ceil(filtered.length / params.size)),
-      page: params.page,
-      size: params.size,
-    };
+    return data;
   },
 
-  async create(values: FactoryAccountFormValues): Promise<FactoryAccount> {
-    await delay();
-    if (!values.password) throw new Error("Vui lòng nhập mật khẩu.");
-    assertUniqueUsername(values.username);
-    const created: FactoryAccount = { ...toStored(values), id: crypto.randomUUID(), status: "ACTIVE", createdAt: now() };
-    db = [created, ...db];
-    return created;
+  /** Chi tiết tài khoản một chủ nhà máy */
+  async getDetail(userId: string | number): Promise<AdminFactoryAccountItem> {
+    const { data } = await apiClient.get<AdminFactoryAccountItem>(
+      adminAccountEp.detail(userId),
+    );
+    return data;
   },
 
-  async update(id: string, values: FactoryAccountFormValues): Promise<FactoryAccount> {
-    await delay();
-    const prev = db.find((a) => a.id === id);
-    if (!prev) throw new Error("Không tìm thấy tài khoản.");
-    assertUniqueUsername(values.username, id);
-    const updated = { ...prev, ...toStored(values) };
-    db = db.map((a) => (a.id === id ? updated : a));
-    return updated;
+  /** Tạo tài khoản chủ nhà máy gán vào workspace */
+  async create(
+    payload: AdminCreateUserInput,
+  ): Promise<AdminFactoryAccountItem> {
+    const { data } = await apiClient.post<AdminFactoryAccountItem>(
+      adminUserEp.base,
+      payload,
+    );
+    return data;
   },
 
-  async setStatus(id: string, status: FactoryAccountStatus): Promise<void> {
-    await delay(200);
-    db = db.map((a) => (a.id === id ? { ...a, status } : a));
+  /** Cập nhật thông tin tài khoản chủ nhà máy & đổi workspace roles */
+  async update(
+    userId: string | number,
+    payload: AdminUpdateUserInput,
+  ): Promise<AdminFactoryAccountItem> {
+    const { data } = await apiClient.put<AdminFactoryAccountItem>(
+      adminUserEp.detail(userId),
+      payload,
+    );
+    return data;
   },
 
-  async remove(id: string): Promise<void> {
-    await delay();
-    db = db.filter((a) => a.id !== id);
+  /** Đổi trạng thái tài khoản: active / inactive */
+  async setStatus(
+    userId: string | number,
+    status: FactoryAccountStatus,
+  ): Promise<void> {
+    await apiClient.put(adminUserEp.status(userId), { status });
   },
 };
