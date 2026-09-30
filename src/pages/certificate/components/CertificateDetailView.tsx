@@ -12,6 +12,7 @@ import {
 import type { ReactNode } from "react";
 import { DetailCard, DetailField } from "@/components/common/DetailCard";
 import type { Certificate } from "@/features/certificate";
+import { useIsFactoryAdmin } from "@/features/viewer";
 import {
   CERTIFICATION_ISSUER_LABELS,
   CERTIFICATION_TYPE_LABELS,
@@ -30,6 +31,8 @@ export function CertificateDetailView({
   actions?: ReactNode;
 }) {
   const { nameOf } = useFactoryOptions();
+  // Member only sees own factory's certificates — factory block is redundant
+  const isAdmin = useIsFactoryAdmin();
   const certTitle =
     (CERTIFICATION_TYPE_LABELS as Record<string, string>)[c.certificateType] ??
     c.certificateType;
@@ -61,25 +64,30 @@ export function CertificateDetailView({
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-6">
-        <DetailCard icon={FactoryIcon} title="Nhà máy / Cơ sở">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
-              <FactoryIcon className="h-6 w-6" />
+        <DetailCard
+          icon={isAdmin ? FactoryIcon : ScrollText}
+          title={isAdmin ? "Nhà máy / Cơ sở" : "Phạm vi chứng nhận"}
+        >
+          {isAdmin && (
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                <FactoryIcon className="h-6 w-6" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                  Nhà máy
+                </p>
+                <p className="font-semibold text-slate-900">
+                  {c.profile?.name ??
+                    nameOf(String(c.workspaceId ?? c.profileId ?? ""))}
+                </p>
+                {c.profile?.code && (
+                  <p className="text-xs text-slate-500">Mã: {c.profile.code}</p>
+                )}
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                Nhà máy
-              </p>
-              <p className="font-semibold text-slate-900">
-                {c.profile?.name ??
-                  nameOf(String(c.workspaceId ?? c.profileId ?? ""))}
-              </p>
-              {c.profile?.code && (
-                <p className="text-xs text-slate-500">Mã: {c.profile.code}</p>
-              )}
-            </div>
-          </div>
-          <div className="mt-5 space-y-4">
+          )}
+          <div className={isAdmin ? "mt-5 space-y-4" : "space-y-4"}>
             <DetailField icon={ScrollText} label="Mô tả phạm vi">
               <p className="whitespace-pre-line text-sm font-normal text-slate-700">
                 {c.scopeDescription || "Chưa có mô tả phạm vi"}

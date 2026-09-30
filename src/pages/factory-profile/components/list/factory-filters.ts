@@ -5,7 +5,6 @@ import {
   organizationTypeApi,
   organizationTypeKeys,
 } from "@/features/factory";
-import { useProvinceOptions } from "@/features/geo/hooks/use-geo";
 
 export const FACTORY_REVIEW_STATUS_OPTIONS = [
   { value: "PENDING_REVIEW", label: "Chờ duyệt" },
@@ -42,14 +41,13 @@ const staticFilters = [
   },
 ];
 
-/** Static filters + catalog-backed ones (loại hình, tỉnh/thành, loại chứng nhận) */
+/** Static filters + catalog-backed ones (loại hình, loại chứng nhận) */
 export function useFactoryFilters() {
   const { data: orgTypes } = useQuery({
     queryKey: organizationTypeKeys.lists(),
     queryFn: organizationTypeApi.list,
     staleTime: 1000 * 60 * 10,
   });
-  const { options: provinceOptions } = useProvinceOptions();
 
   return useMemo(
     () => [
@@ -63,16 +61,11 @@ export function useFactoryFilters() {
         })),
       },
       {
-        key: "province",
-        label: "Tỉnh / Thành phố",
-        options: provinceOptions.map(({ value, label }) => ({ value, label })),
-      },
-      {
         key: "certificateType",
         label: "Loại chứng nhận",
         options: CERTIFICATION_TYPE_OPTIONS,
       },
     ],
-    [orgTypes, provinceOptions],
+    [orgTypes],
   );
 }

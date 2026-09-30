@@ -32,7 +32,7 @@ export default function CertificateEditPage() {
   return (
     <PageWrapper
       title="Chỉnh sửa chứng nhận"
-      description={certificate?.number}
+      description={certificate?.certificateNumber}
       overflow="visible"
       actions={<BackButton to={ROUTES.certificateDetail(id)} />}
     >

@@ -4,30 +4,47 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useIsFactoryAdmin } from "@/features/viewer";
 import { certificateApi, certificateKeys } from "../api/certificate.api";
 import type { CertificateFormValues } from "../schemas/certificate-schema";
 import type { CertificateListParams } from "../types";
 
+// Admin → /api/admin/factory/certificates (system-wide) · member → /api/factory/certificates (own workspace)
+
 export function useCertificates(params: CertificateListParams) {
+  const isAdmin = useIsFactoryAdmin();
   return useQuery({
-    queryKey: certificateKeys.list(params),
-    queryFn: () => certificateApi.list(params),
+    queryKey: isAdmin
+      ? certificateKeys.adminList(params)
+      : certificateKeys.list(params),
+    queryFn: () =>
+      isAdmin ? certificateApi.adminList(params) : certificateApi.list(params),
     placeholderData: keepPreviousData,
   });
 }
 
 export function useCertificate(id: string | number | undefined) {
+  const isAdmin = useIsFactoryAdmin();
   return useQuery({
-    queryKey: certificateKeys.detail(id ?? ""),
-    queryFn: () => certificateApi.get(id!),
+    queryKey: isAdmin
+      ? certificateKeys.adminDetail(id ?? "")
+      : certificateKeys.detail(id ?? ""),
+    queryFn: () =>
+      isAdmin ? certificateApi.adminGet(id!) : certificateApi.get(id!),
     enabled: id !== undefined && id !== "",
   });
 }
 
-export function useCertificateSummary() {
+export function useCertificateSummary(profileId?: number | string) {
+  const isAdmin = useIsFactoryAdmin();
   return useQuery({
-    queryKey: certificateKeys.summary(),
-    queryFn: certificateApi.summary,
+    queryKey: isAdmin
+      ? certificateKeys.adminSummary(profileId)
+      : certificateKeys.summary(),
+    queryFn: () =>
+      isAdmin
+        ? certificateApi.adminSummary(profileId)
+        : certificateApi.summary(),
   });
 }
 
@@ -60,8 +77,10 @@ export function useUpdateCertificate() {
 
 export function useDeleteCertificate() {
   const invalidate = useInvalidate();
+  const isAdmin = useIsFactoryAdmin();
   return useMutation({
-    mutationFn: (id: string | number) => certificateApi.remove(id),
+    mutationFn: (id: string | number) =>
+      isAdmin ? certificateApi.adminRemove(id) : certificateApi.remove(id),
     onSuccess: invalidate,
   });
 }
@@ -77,7 +96,7 @@ export function useAdminCertificates(params: CertificateListParams) {
 
 export function useAdminCertificateSummary(profileId?: number | string) {
   return useQuery({
-    queryKey: certificateKeys.summary(profileId),
+    queryKey: certificateKeys.adminSummary(profileId),
     queryFn: () => certificateApi.adminSummary(profileId),
   });
 }

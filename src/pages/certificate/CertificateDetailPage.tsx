@@ -25,7 +25,7 @@ export default function CertificateDetailPage() {
           actions={
             <>
               <BackButton to={ROUTES.certificates} label="Quay lại" />
-              <Button onClick={() => navigate(ROUTES.certificateEdit(certificate.id))}>
+              <Button onClick={() => navigate(ROUTES.certificateEdit(String(certificate.id)))}>
               <Pencil className="mr-2 h-4 w-4" />
                 Chỉnh sửa
               </Button>

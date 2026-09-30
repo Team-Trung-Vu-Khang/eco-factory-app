@@ -17,6 +17,10 @@ export const certificateKeys = {
     [...certificateKeys.all, "summary", profileId ?? "all"] as const,
   detail: (id: string | number) =>
     [...certificateKeys.all, "detail", String(id)] as const,
+  adminSummary: (profileId?: number | string) =>
+    [...certificateKeys.all, "admin-summary", profileId ?? "all"] as const,
+  adminDetail: (id: string | number) =>
+    [...certificateKeys.all, "admin-detail", String(id)] as const,
   adminLists: () => [...certificateKeys.all, "admin-list"] as const,
   adminList: (params: CertificateListParams) =>
     [...certificateKeys.adminLists(), params] as const,

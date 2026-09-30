@@ -1,13 +1,24 @@
-import { Button, DataTable, DeleteDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  Button,
+  DataTable,
+  DeleteDialog,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
+import { useIsFactoryAdmin } from "@/features/viewer";
 import { certificateColumns } from "./components/certificate-columns";
-import { certificateFilters } from "./components/certificate-filters";
+import { useCertificateFilters } from "./components/certificate-filters";
 import { CertificateStats } from "./components/CertificateStats";
 import { useCertificatePage } from "./hooks/useCertificatePage";
 
 export default function CertificatePage() {
   const page = useCertificatePage();
+  const isAdmin = useIsFactoryAdmin();
+  const certificateFilters = useCertificateFilters();
+  // Member only sees own factory's certificates — "Nhà máy" column is redundant
+  const columns = isAdmin
+    ? certificateColumns
+    : certificateColumns.filter((c) => c.key !== "profileId");
 
   return (
     <PageWrapper
@@ -21,9 +32,9 @@ export default function CertificatePage() {
       }
     >
       <div className="space-y-6">
-        <CertificateStats />
+        <CertificateStats data={page.summary} />
         <DataTable
-          columns={certificateColumns}
+          columns={columns}
           data={page.data}
           loading={page.loading}
           searchable
@@ -48,7 +59,7 @@ export default function CertificatePage() {
         onOpenChange={(open) => !open && page.setDeleting(null)}
         onConfirm={page.handleConfirmDelete}
         loading={page.isDeleting}
-        description={`Bạn có chắc chắn muốn xóa chứng nhận "${page.deleting?.number ?? ""}"?`}
+        description={`Bạn có chắc chắn muốn xóa chứng nhận "${page.deleting?.certificateNumber ?? ""}"?`}
       />
     </PageWrapper>
   );

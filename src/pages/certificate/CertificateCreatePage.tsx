@@ -15,7 +15,7 @@ export default function CertificateCreatePage() {
     try {
       const created = await createCertificate.mutateAsync(values);
       toast({ title: "Thành công", description: "Đã thêm chứng nhận." });
-      navigate(ROUTES.certificateDetail(created.id));
+      navigate(ROUTES.certificateDetail(String(created.id)));
     } catch (error) {
       toast({ title: "Không thể lưu", description: (error as Error).message, variant: "destructive" });
     }

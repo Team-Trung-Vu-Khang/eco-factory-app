@@ -5,11 +5,12 @@ import { ROUTES } from "@/config/routes";
 import {
   useDeleteCertificate,
   useCertificates,
+  useCertificateSummary,
   type Certificate,
   type CertificateListParams,
 } from "@/features/certificate";
 
-type Filters = Pick<CertificateListParams, "type" | "validity">;
+type Filters = Pick<CertificateListParams, "status" | "profileId">;
 
 export function useCertificatePage() {
   const [, navigate] = useLocation();
@@ -22,19 +23,28 @@ export function useCertificatePage() {
 
   const query = useCertificates({ page, size, keyword, ...filters });
   const deleteMutation = useDeleteCertificate();
+  const summary = useCertificateSummary(filters.profileId);
 
   const handleConfirmDelete = async () => {
     if (!deleting) return;
     try {
       await deleteMutation.mutateAsync(deleting.id);
-      toast({ title: "Đã xóa", description: `Đã xóa chứng nhận ${deleting.number}.` });
+      toast({
+        title: "Đã xóa",
+        description: `Đã xóa chứng nhận ${deleting.certificateNumber ?? ""}.`,
+      });
       setDeleting(null);
     } catch (error) {
-      toast({ title: "Không thể xóa", description: (error as Error).message, variant: "destructive" });
+      toast({
+        title: "Không thể xóa",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
     }
   };
 
   return {
+    summary: summary.data,
     data: query.data?.content ?? [],
     totalElements: query.data?.totalElements,
     totalPages: query.data?.totalPages,
@@ -51,12 +61,15 @@ export function useCertificatePage() {
       setPage(0);
     },
     handleFilterChange: (key: string, value: string) => {
-      setFilters((prev) => ({ ...prev, [key]: value && value !== "all" ? value : undefined }));
+      setFilters((prev) => ({
+        ...prev,
+        [key]: value && value !== "all" ? value : undefined,
+      }));
       setPage(0);
     },
     goCreate: () => navigate(ROUTES.certificateCreate),
-    goView: (c: Certificate) => navigate(ROUTES.certificateDetail(c.id)),
-    goEdit: (c: Certificate) => navigate(ROUTES.certificateEdit(c.id)),
+    goView: (c: Certificate) => navigate(ROUTES.certificateDetail(String(c.id))),
+    goEdit: (c: Certificate) => navigate(ROUTES.certificateEdit(String(c.id))),
     deleting,
     setDeleting,
     isDeleting: deleteMutation.isPending,
