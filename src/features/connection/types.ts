@@ -125,7 +125,6 @@ export interface ConnectionRequestItem {
   };
   profile?: FactoryProfileRef;
   factoryWorkspaceId?: number;
-  farmWorkspaceId?: number;
   contactName?: string | null;
   contactPhone?: string | null;
   crops?: string[];
@@ -171,5 +170,5 @@ export interface ConnectionListParams {
   status?: string;
   scheduleId?: number;
   profileId?: number;
-  farmWorkspaceId?: number;
+  requestedByUserId?: number;
 }

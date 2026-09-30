@@ -30,6 +30,9 @@ const factoryEp = API_ENDPOINTS.factory.connectionRequests;
 const adminEp = API_ENDPOINTS.admin.factory.connectionRequests;
 const marketEp = API_ENDPOINTS.factory.marketplace;
 
+/** Marketplace APIs are user-scoped: no X-Workspace-Id, no role check */
+const noWorkspace = { skipWorkspaceHeader: true };
+
 export const connectionApi = {
   // ─── Nhà máy (Factory) ──────────────────────────────────────────────────────────
   async getFactoryRequests(
@@ -113,7 +116,7 @@ export const connectionApi = {
         params: {
           profileId: params.profileId || undefined,
           scheduleId: params.scheduleId || undefined,
-          farmWorkspaceId: params.farmWorkspaceId || undefined,
+          requestedByUserId: params.requestedByUserId || undefined,
           keyword: params.keyword?.trim() || undefined,
           status: params.status || undefined,
           page: params.page,
@@ -158,6 +161,7 @@ export const connectionApi = {
         paramsSerializer: {
           indexes: null, // crops=A&crops=B
         },
+        headers: noWorkspace,
       },
     );
     return data;
@@ -168,6 +172,7 @@ export const connectionApi = {
   ): Promise<MarketplaceProfileDetail> {
     const { data } = await apiClient.get<MarketplaceProfileDetail>(
       marketEp.profiles.detail(id),
+      { headers: noWorkspace },
     );
     return data;
   },
@@ -178,6 +183,7 @@ export const connectionApi = {
     const { data } = await apiClient.post<ConnectionRequestItem>(
       marketEp.connectionRequests.base,
       payload,
+      { headers: noWorkspace },
     );
     return data;
   },
@@ -194,6 +200,7 @@ export const connectionApi = {
           page: params.page,
           size: params.size,
         },
+        headers: noWorkspace,
       },
     );
     return data;
@@ -204,6 +211,8 @@ export const connectionApi = {
   ): Promise<ConnectionRequestItem> {
     const { data } = await apiClient.post<ConnectionRequestItem>(
       marketEp.connectionRequests.cancel(id),
+      undefined,
+      { headers: noWorkspace },
     );
     return data;
   },
