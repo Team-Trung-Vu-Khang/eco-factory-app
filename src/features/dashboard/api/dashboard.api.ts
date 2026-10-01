@@ -1,81 +1,79 @@
-import type { FactoryDashboard } from "../types";
+import { API_ENDPOINTS } from "@/config/api-endpoints";
+import { apiClient } from "@/lib/axios";
+import type {
+  AdminFactoryCatalogChartParams,
+  AdminFactoryCatalogChartResponse,
+  AdminFactoryConnectionChartParams,
+  AdminFactoryConnectionChartResponse,
+  AdminFactoryDashboardSummaryResponse,
+} from "../types";
 
 export const dashboardKeys = {
-  all: ["factory-dashboard"] as const,
+  all: ["admin-factory-dashboard"] as const,
+  summary: () => [...dashboardKeys.all, "summary"] as const,
+  connectionChart: (params?: AdminFactoryConnectionChartParams) =>
+    [...dashboardKeys.all, "connection-chart", params] as const,
+  processingServiceChart: (params: AdminFactoryCatalogChartParams) =>
+    [...dashboardKeys.all, "processing-service-chart", params] as const,
+  productGroupChart: (params: AdminFactoryCatalogChartParams) =>
+    [...dashboardKeys.all, "product-group-chart", params] as const,
 };
 
-// TODO: replace with apiClient.get("/api/factory/dashboard") when the API is ready
-const MOCK_DASHBOARD: FactoryDashboard = {
-  stats: {
-    overview: {
-      totalViews: 128,
-      totalConnectionRequests: 17,
-      totalSuccessfulConnections: 11,
-    },
-    latestPost: {
-      id: "p1",
-      title: "Nhận sấy lạnh nông sản",
-      availableCapacity: 4.5,
-      capacityUnit: "tấn/ngày",
-      views: 42,
-      connectionRequests: 6,
-      successfulConnections: 2,
-    },
-  },
-  profile: {
-    completionPercent: 80,
-    isKpiEligible: false,
-    kpiEligibleAt: null,
-    checklist: [
-      { key: "basic", label: "Thông tin cơ bản", done: true },
-      { key: "representative", label: "Người đại diện", done: true },
-      { key: "location", label: "Địa điểm & vị trí bản đồ", done: true },
-      { key: "activity", label: "Nông sản & dịch vụ chế biến", done: true },
-      { key: "machines", label: "Máy móc & công suất khả dụng", done: false },
-      { key: "photos", label: "Ảnh đại diện cơ sở", done: false },
-    ],
-  },
-  monthlyDemands: [
-    { month: "T4", received: 3, connected: 1 },
-    { month: "T5", received: 5, connected: 2 },
-    { month: "T6", received: 4, connected: 2 },
-    { month: "T7", received: 8, connected: 3 },
-    { month: "T8", received: 7, connected: 1 },
-    { month: "T9", received: 10, connected: 2 },
-  ],
-  serviceGroupStats: [
-    { name: "Sấy", requests: 9, connected: 4 },
-    { name: "Sơ chế", requests: 6, connected: 3 },
-    { name: "Nghiền", requests: 4, connected: 2 },
-    { name: "Đóng gói", requests: 5, connected: 1 },
-    { name: "Bảo quản", requests: 3, connected: 1 },
-  ],
-  productGroupStats: [
-    { name: "Chè", requests: 7, connected: 3 },
-    { name: "Trái cây", requests: 6, connected: 2 },
-    { name: "Dược liệu", requests: 5, connected: 3 },
-    { name: "Rau củ", requests: 4, connected: 2 },
-  ],
-  machines: [
-    { id: "m1", name: "Máy sấy lạnh", unit: "kg/ngày", maxCapacity: 3000, availableCapacity: 1200, status: "ACTIVE" },
-    { id: "m2", name: "Dây chuyền sơ chế rau củ", unit: "kg/ngày", maxCapacity: 5000, availableCapacity: 2500, status: "ACTIVE" },
-    { id: "m3", name: "Máy nghiền bột", unit: "kg/ngày", maxCapacity: 2000, availableCapacity: 800, status: "ACTIVE" },
-    { id: "m4", name: "Máy đóng gói hút chân không", unit: "kg/ngày", maxCapacity: 2000, availableCapacity: 0, status: "MAINTENANCE" },
-  ],
-  recentDemands: [
-    { id: "d1", requesterName: "Nguyễn Thị Hoa", productName: "Chè Shan tuyết", quantity: 800, unit: "kg", services: ["DRYING", "PACKAGING"], provinceName: "Hà Giang", distanceKm: 18, status: "SENT", createdAt: "2026-09-24T08:30:00Z" },
-    { id: "d2", requesterName: "HTX Bưởi Đoan Hùng", productName: "Bưởi", quantity: 2, unit: "tấn", services: ["SORTING", "STORAGE"], provinceName: "Phú Thọ", distanceKm: 42, status: "RESPONDED", createdAt: "2026-09-22T02:10:00Z" },
-    { id: "d3", requesterName: "Lò Thị Mai", productName: "Gừng", quantity: 500, unit: "kg", services: ["DRYING", "GRINDING"], provinceName: "Lào Cai", distanceKm: 65, status: "NEGOTIATING", createdAt: "2026-09-20T07:45:00Z" },
-    { id: "d4", requesterName: "Trần Thị Lan", productName: "Dứa", quantity: 1.5, unit: "tấn", services: ["PRE_PROCESSING", "PRESSING"], provinceName: "Ninh Bình", distanceKm: null, status: "CONNECTED", createdAt: "2026-09-15T04:00:00Z" },
-    { id: "d5", requesterName: "Hoàng Thị Thu", productName: "Cà gai leo", quantity: 300, unit: "kg", services: ["DRYING"], provinceName: "Hòa Bình", distanceKm: 30, status: "COMPLETED", createdAt: "2026-09-08T09:20:00Z" },
-  ],
-};
-
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const adminDashboardEp = API_ENDPOINTS.admin.factory.dashboard;
 
 export const dashboardApi = {
-  get: async (): Promise<FactoryDashboard> => {
-    await delay(500);
-    return MOCK_DASHBOARD;
+  async getSummary(): Promise<AdminFactoryDashboardSummaryResponse> {
+    const { data } = await apiClient.get<AdminFactoryDashboardSummaryResponse>(
+      adminDashboardEp.summary,
+    );
+    return data;
+  },
+
+  async getConnectionChart(
+    params?: AdminFactoryConnectionChartParams,
+  ): Promise<AdminFactoryConnectionChartResponse> {
+    const { data } = await apiClient.get<AdminFactoryConnectionChartResponse>(
+      adminDashboardEp.connectionChart,
+      {
+        params: {
+          periodType: params?.periodType || undefined,
+          fromDate: params?.fromDate || undefined,
+          toDate: params?.toDate || undefined,
+        },
+      },
+    );
+    return data;
+  },
+
+  async getProcessingServiceChart(
+    params: AdminFactoryCatalogChartParams,
+  ): Promise<AdminFactoryCatalogChartResponse> {
+    const { data } = await apiClient.get<AdminFactoryCatalogChartResponse>(
+      adminDashboardEp.processingServiceChart,
+      {
+        params: {
+          fromDate: params.fromDate,
+          toDate: params.toDate,
+          limit: params.limit ?? 5,
+        },
+      },
+    );
+    return data;
+  },
+
+  async getProductGroupChart(
+    params: AdminFactoryCatalogChartParams,
+  ): Promise<AdminFactoryCatalogChartResponse> {
+    const { data } = await apiClient.get<AdminFactoryCatalogChartResponse>(
+      adminDashboardEp.productGroupChart,
+      {
+        params: {
+          fromDate: params.fromDate,
+          toDate: params.toDate,
+          limit: params.limit ?? 5,
+        },
+      },
+    );
+    return data;
   },
 };

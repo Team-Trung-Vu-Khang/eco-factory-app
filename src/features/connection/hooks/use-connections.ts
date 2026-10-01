@@ -69,11 +69,12 @@ export function useMyConnectionRequests(
 /** Marketplace profile detail */
 export function useMarketplaceProfile(
   id?: number | string,
-  options?: { enabled?: boolean },
+  options?: { scheduleId?: number | string; enabled?: boolean },
 ) {
   return useQuery({
-    queryKey: connectionKeys.marketplaceProfile(id!),
-    queryFn: () => connectionApi.getMarketplaceProfile(id!),
+    queryKey: connectionKeys.marketplaceProfile(id!, options?.scheduleId),
+    queryFn: () =>
+      connectionApi.getMarketplaceProfile(id!, options?.scheduleId),
     enabled: options?.enabled ?? !!id,
   });
 }

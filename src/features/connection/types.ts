@@ -139,6 +139,11 @@ export interface ConnectionRequestItem {
   status: ConnectionStatus;
   requestedAt?: string;
   requestedByUserId?: number;
+  requesterProfile?: {
+    province?: string | null;
+    commune?: string | null;
+    operatingArea?: string | null;
+  } | null;
   respondedAt?: string | null;
   respondedByUserId?: number | null;
   rejectReason?: string | null;
@@ -171,4 +176,5 @@ export interface ConnectionListParams {
   scheduleId?: number;
   profileId?: number;
   requestedByUserId?: number;
+  sort?: "REQUESTED_AT" | "RESPONDED_AT" | string;
 }

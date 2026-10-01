@@ -22,8 +22,8 @@ export const connectionKeys = {
     [...connectionKeys.all, "search", params] as const,
   detail: (id: number | string) =>
     [...connectionKeys.all, "detail", id] as const,
-  marketplaceProfile: (id: number | string) =>
-    [...connectionKeys.all, "marketplaceProfile", id] as const,
+  marketplaceProfile: (id: number | string, scheduleId?: number | string) =>
+    [...connectionKeys.all, "marketplaceProfile", id, scheduleId] as const,
 };
 
 const factoryEp = API_ENDPOINTS.factory.connectionRequests;
@@ -119,6 +119,7 @@ export const connectionApi = {
           requestedByUserId: params.requestedByUserId || undefined,
           keyword: params.keyword?.trim() || undefined,
           status: params.status || undefined,
+          sort: params.sort || undefined,
           page: params.page,
           size: params.size,
         },
@@ -155,6 +156,11 @@ export const connectionApi = {
           certificateTypes: params.certificateTypes?.length
             ? params.certificateTypes
             : undefined,
+          materialCondition: params.materialCondition?.trim() || undefined,
+          packagingRequirement:
+            params.packagingRequirement?.trim() || undefined,
+          technicalRequirement:
+            params.technicalRequirement?.trim() || undefined,
           page: params.page ?? 0,
           size: params.size ?? 20,
         },
@@ -169,10 +175,16 @@ export const connectionApi = {
 
   async getMarketplaceProfile(
     id: number | string,
+    scheduleId?: number | string,
   ): Promise<MarketplaceProfileDetail> {
     const { data } = await apiClient.get<MarketplaceProfileDetail>(
       marketEp.profiles.detail(id),
-      { headers: noWorkspace },
+      {
+        params: {
+          scheduleId: scheduleId || undefined,
+        },
+        headers: noWorkspace,
+      },
     );
     return data;
   },

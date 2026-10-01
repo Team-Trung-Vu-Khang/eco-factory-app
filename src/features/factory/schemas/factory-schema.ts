@@ -1,9 +1,6 @@
 import { z } from "zod";
 import type { FactoryProfile, FactoryProfileSubmitInput } from "../types";
-import {
-  calculateCompletenessPercent,
-  calculateProgram300Eligible,
-} from "../utils/profile-calculator";
+import { calculateCompletenessPercent } from "../utils/profile-calculator";
 
 const REQUIRED = "Trường này là bắt buộc.";
 const PHONE_REGEX = /^(0|\+84)\d{9,10}$/;
@@ -212,12 +209,10 @@ export function toFactoryProfileSubmitInput(
   };
 
   const completenessPercent = calculateCompletenessPercent(partialPayload);
-  const program300Eligible = calculateProgram300Eligible(partialPayload);
 
   return {
     ...partialPayload,
     completenessPercent,
-    program300Eligible,
   };
 }
 

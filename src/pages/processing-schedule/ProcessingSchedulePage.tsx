@@ -251,9 +251,20 @@ export default function ProcessingSchedulePage() {
             });
             setDeleting(null);
           } catch (error) {
+            const err = error as {
+              status?: number;
+              response?: { status?: number };
+            };
+            const is409 =
+              err?.status === 409 ||
+              err?.response?.status === 409 ||
+              (error as Error)?.message?.includes("đang được sử dụng");
+
             toast({
               title: "Không thể xóa tin",
-              description: (error as Error).message,
+              description: is409
+                ? "Lịch nhận chế biến đang có yêu cầu kết nối liên quan. Vui lòng đóng lịch thay vì xóa."
+                : (error as Error).message,
               variant: "destructive",
             });
           }

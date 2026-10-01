@@ -155,7 +155,6 @@ export interface FactoryProfile {
   certificates: ProfileCertificateItem[];
   images: ProfileImageItem[];
   completenessPercent: number;
-  program300Eligible: boolean;
   reviewStatus: FactoryReviewStatus;
   submittedAt?: string | null;
   submittedByUserId?: number | null;
@@ -202,7 +201,6 @@ export interface FactoryProfileSubmitInput {
     sizeBytes?: number;
   }>;
   completenessPercent: number;
-  program300Eligible: boolean;
 }
 
 export interface AdminFactoryProfileListParams {
@@ -212,7 +210,6 @@ export interface AdminFactoryProfileListParams {
   reviewStatus?: FactoryReviewStatus;
   organizationTypeId?: number | string;
   province?: string;
-  program300Eligible?: boolean;
   certificateType?: string;
   certificateStatus?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED";
 }

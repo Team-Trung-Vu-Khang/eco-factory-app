@@ -136,12 +136,21 @@ export default function MachinePage() {
     [editing],
   );
 
-  const fail = (title: string, error: unknown) =>
+  const fail = (title: string, error: unknown) => {
+    const err = error as { status?: number; response?: { status?: number } };
+    const is409 =
+      err?.status === 409 ||
+      err?.response?.status === 409 ||
+      (error as Error)?.message?.includes("đang được sử dụng");
+
     toast({
       title,
-      description: (error as Error).message,
+      description: is409
+        ? "Máy đang có lịch nhận chế biến hoặc dữ liệu liên quan. Vui lòng chuyển trạng thái máy sang tạm dừng hoặc xóa các lịch nhận chế biến trước."
+        : (error as Error).message,
       variant: "destructive",
     });
+  };
 
   const handleSubmit = async (values: MachineDialogValues) => {
     try {

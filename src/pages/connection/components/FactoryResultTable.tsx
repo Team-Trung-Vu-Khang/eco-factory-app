@@ -116,7 +116,7 @@ export function FactoryResultTable({
                   <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
                     <Button size="sm" variant="outline" className="h-8" asChild>
                       <Link
-                        href={ROUTES.profileDetail(item.profile.id.toString())}
+                        href={`${ROUTES.profileDetail(item.profile.id.toString())}?scheduleId=${item.id}`}
                       >
                         <Building2 className="mr-1 h-3.5 w-3.5" />
                         Hồ sơ nhà máy

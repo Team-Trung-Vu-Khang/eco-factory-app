@@ -44,9 +44,6 @@ export function useFactoryListPage() {
         delete (next as Record<string, unknown>)[key];
         return next;
       }
-      if (key === "program300Eligible") {
-        return { ...prev, program300Eligible: value === "true" };
-      }
       return { ...prev, [key]: value };
     });
     setPage(0);

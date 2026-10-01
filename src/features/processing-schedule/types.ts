@@ -35,6 +35,7 @@ export interface ProcessingScheduleItem {
   maxCapacityKgPerMonth?: number;
   note?: string | null;
   connectionRequestCount: number;
+  totalViews?: number;
   status: ScheduleBackendStatus;
   createdByUserId?: number;
   closedAt?: string | null;

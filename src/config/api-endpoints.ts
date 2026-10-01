@@ -165,6 +165,13 @@ export const API_ENDPOINTS = {
       status: (userId: string | number) => `/api/admin/users/${userId}/status`,
     },
     factory: {
+      dashboard: {
+        summary: "/api/admin/factory/dashboard/summary",
+        connectionChart: "/api/admin/factory/dashboard/connection-chart",
+        processingServiceChart:
+          "/api/admin/factory/dashboard/processing-service-chart",
+        productGroupChart: "/api/admin/factory/dashboard/product-group-chart",
+      },
       accounts: {
         base: "/api/admin/factory/accounts",
         detail: (userId: string | number) =>

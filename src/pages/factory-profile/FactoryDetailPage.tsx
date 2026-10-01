@@ -21,8 +21,17 @@ export default function FactoryDetailPage() {
   const [, navigate] = useLocation();
   const isAdmin = useIsFactoryAdmin();
 
+  const scheduleId =
+    typeof window !== "undefined"
+      ? (new URLSearchParams(window.location.search).get("scheduleId") ??
+        undefined)
+      : undefined;
+
   const adminQuery = useAdminFactoryProfile(id, { enabled: isAdmin && !!id });
-  const marketQuery = useMarketplaceProfile(id, { enabled: !isAdmin && !!id });
+  const marketQuery = useMarketplaceProfile(id, {
+    scheduleId,
+    enabled: !isAdmin && !!id,
+  });
 
   const query = isAdmin ? adminQuery : marketQuery;
   const factory = query.data as unknown as FactoryProfile | undefined;

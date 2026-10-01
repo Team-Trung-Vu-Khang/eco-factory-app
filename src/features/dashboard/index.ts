@@ -1,4 +1,9 @@
-export { useFactoryDashboard } from "./hooks/use-factory-dashboard";
+export {
+  useAdminDashboardSummary,
+  useAdminConnectionChart,
+  useAdminProcessingServiceChart,
+  useAdminProductGroupChart,
+} from "./hooks/use-dashboard";
 export { StatCard } from "./components/StatCard";
 export { ProfileStatusCard } from "./components/ProfileStatusCard";
 export { DemandTrendChart } from "./components/DemandTrendChart";

@@ -69,7 +69,6 @@ export const factoryProfileApi = {
           reviewStatus: params.reviewStatus || undefined,
           organizationTypeId: params.organizationTypeId || undefined,
           province: params.province?.trim() || undefined,
-          program300Eligible: params.program300Eligible,
           certificateType: params.certificateType?.trim() || undefined,
           certificateStatus: params.certificateStatus || undefined,
         },

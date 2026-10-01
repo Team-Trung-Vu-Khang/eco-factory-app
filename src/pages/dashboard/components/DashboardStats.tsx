@@ -1,32 +1,48 @@
-import { Eye, Gauge, Handshake, Inbox } from "lucide-react";
-import { StatCard, type DashboardStats as Stats } from "@/features/dashboard";
+import { Eye, Gauge, Handshake, Inbox, Calendar } from "lucide-react";
+import { StatCard } from "@/features/dashboard";
+import type { AdminFactoryDashboardSummaryResponse } from "@/features/dashboard";
+import type { ProcessingScheduleItem } from "@/features/processing-schedule";
+import { CAPACITY_UNIT_LABELS } from "@/features/machine";
+import dayjs from "dayjs";
 
 const GRID = "grid gap-2 sm:gap-4! [&>*]:min-w-0";
 
-export function DashboardStats({ stats }: { stats: Stats }) {
-  const { overview, latestPost } = stats;
+interface DashboardStatsProps {
+  summary?: AdminFactoryDashboardSummaryResponse;
+  latestSchedule?: ProcessingScheduleItem | null;
+}
 
+export function DashboardStats({
+  summary,
+  latestSchedule,
+}: DashboardStatsProps) {
   return (
     <div className="space-y-5 sm:space-y-6!">
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-slate-900">Tổng quan</h2>
-        <div className={`${GRID} grid-cols-3`}>
+        <div className={`${GRID} grid-cols-1 sm:grid-cols-3!`}>
           <StatCard
             icon={Eye}
             label="Tổng lượt xem thông tin"
-            value={overview.totalViews}
+            value={summary?.totalProfileViews?.toLocaleString("vi-VN") ?? 0}
             hint="mỗi đơn vị tối đa 1 lần/ngày"
           />
           <StatCard
             icon={Inbox}
             label="Tổng lượt nhận yêu cầu kết nối"
-            value={overview.totalConnectionRequests}
+            value={
+              summary?.totalConnectionRequests?.toLocaleString("vi-VN") ?? 0
+            }
             hint="mỗi đơn vị tối đa 1 yêu cầu/bài đăng"
           />
           <StatCard
             icon={Handshake}
             label="Tổng lượt kết nối thành công"
-            value={overview.totalSuccessfulConnections}
+            value={
+              summary?.totalAcceptedConnectionRequests?.toLocaleString(
+                "vi-VN",
+              ) ?? 0
+            }
             hint="mỗi đơn vị tối đa 1 thành công/bài đăng"
           />
         </div>
@@ -34,34 +50,52 @@ export function DashboardStats({ stats }: { stats: Stats }) {
 
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-slate-900">
-          Bài đăng mới nhất
-          {latestPost && (
+          Lịch nhận chế biến mới nhất
+          {latestSchedule && (
             <span className="ml-2 font-normal text-slate-500">
-              · {latestPost.title}
+              · {latestSchedule.title}
             </span>
           )}
         </h2>
-        {latestPost ? (
-          <div className={`${GRID} grid-cols-2 xl:grid-cols-4!`}>
+        {latestSchedule ? (
+          <div
+            className={`${GRID} grid-cols-1 sm:grid-cols-2! xl:grid-cols-4!`}
+          >
             <StatCard
               icon={Gauge}
-              label="Công suất khả dụng"
-              value={`${latestPost.availableCapacity} ${latestPost.capacityUnit}`}
+              label="Công suất nhận chế biến"
+              value={`${latestSchedule.maxCapacity?.toLocaleString("vi-VN")} ${
+                CAPACITY_UNIT_LABELS[latestSchedule.capacityUnit] ||
+                latestSchedule.capacityUnit ||
+                ""
+              }`}
             />
-            <StatCard icon={Eye} label="Xem thông tin" value={latestPost.views} />
+            <StatCard
+              icon={Eye}
+              label="Lượt xem thông tin"
+              value={latestSchedule.totalViews?.toLocaleString("vi-VN") ?? 0}
+            />
             <StatCard
               icon={Inbox}
-              label="Nhận yêu cầu kết nối"
-              value={latestPost.connectionRequests}
+              label="Yêu cầu kết nối"
+              value={
+                latestSchedule.connectionRequestCount?.toLocaleString(
+                  "vi-VN",
+                ) ?? 0
+              }
             />
             <StatCard
-              icon={Handshake}
-              label="Kết nối thành công"
-              value={latestPost.successfulConnections}
+              icon={Calendar}
+              label="Thời gian áp dụng"
+              value={`${dayjs(latestSchedule.startDate).format("DD/MM/YYYY")} - ${dayjs(
+                latestSchedule.endDate,
+              ).format("DD/MM/YYYY")}`}
             />
           </div>
         ) : (
-          <p className="text-sm text-slate-500">Chưa có bài đăng nào.</p>
+          <p className="text-sm text-slate-500">
+            Chưa có lịch nhận chế biến nào.
+          </p>
         )}
       </section>
     </div>
