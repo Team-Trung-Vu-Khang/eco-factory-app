@@ -21,18 +21,19 @@ export default function ConnectionSearchPage() {
   const isAdmin = useIsFactoryAdmin();
   const mode = isAdmin ? "admin" : "member";
 
-  // Last search survives going to a factory detail page and back.
-  const [byMode, setByMode] = useState<
-    Partial<Record<string, FactorySearchParams | undefined>>
-  >({});
-  const params =
-    mode in byMode
-      ? byMode[mode]
-      : searchSession.read<FactorySearchParams>(`${mode}:params`);
+  const [params, setParams] = useState<FactorySearchParams | undefined>(() =>
+    searchSession.read<FactorySearchParams>(`${mode}:params`),
+  );
 
-  const setParams = (next?: FactorySearchParams) => {
-    setByMode((prev) => ({ ...prev, [mode]: next }));
-    searchSession.write(`${mode}:params`, next);
+  const handleSearch = (nextParams: FactorySearchParams) => {
+    setParams(nextParams);
+    searchSession.write(`${mode}:params`, nextParams);
+  };
+
+  const handleReset = () => {
+    setParams(undefined);
+    searchSession.clear(`${mode}:params`);
+    searchSession.clear(`${mode}:form`);
   };
 
   const search = useFactorySearch(params);
@@ -97,8 +98,8 @@ export default function ConnectionSearchPage() {
           key={isAdmin ? "admin" : "member"}
           mode={isAdmin ? "admin" : "member"}
           searching={search.isFetching}
-          onSearch={setParams}
-          onReset={() => setParams(undefined)}
+          onSearch={handleSearch}
+          onReset={handleReset}
         />
 
         {!params ? (

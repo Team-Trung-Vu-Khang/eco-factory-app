@@ -24,7 +24,7 @@ import { fetchProductGroupOptions } from "@/features/product-group";
 import { fetchProcessingServiceOptions } from "@/features/processing-service";
 import { searchSession } from "../search-session";
 
-interface FilterValues {
+export interface FilterValues {
   province: string;
   ward: string;
   processingServiceIds: string[];
@@ -39,7 +39,7 @@ interface FilterValues {
   message: string;
 }
 
-const EMPTY: FilterValues = {
+export const EMPTY_SEARCH_FILTER_VALUES: FilterValues = {
   province: "",
   ward: "",
   processingServiceIds: [],
@@ -57,7 +57,7 @@ const EMPTY: FilterValues = {
 interface SearchFiltersProps {
   mode: "admin" | "member";
   searching?: boolean;
-  onSearch: (params: FactorySearchParams) => void;
+  onSearch: (params: FactorySearchParams, formValues: FilterValues) => void;
   onReset?: () => void;
 }
 
@@ -70,17 +70,12 @@ export function SearchFilters({
   const storeKey = `${mode}:form`;
   const form = useForm<FilterValues>({
     defaultValues: {
-      ...EMPTY,
+      ...EMPTY_SEARCH_FILTER_VALUES,
       ...searchSession.read<Partial<FilterValues>>(storeKey),
     },
   });
 
-  const { control, setValue, watch } = form;
-
-  useEffect(() => {
-    const sub = watch((values) => searchSession.write(storeKey, values));
-    return () => sub.unsubscribe();
-  }, [watch, storeKey]);
+  const { control, setValue } = form;
   const isAdmin = mode === "admin";
   const provinceName = useWatch({ control, name: "province" });
 
@@ -125,7 +120,10 @@ export function SearchFilters({
     message: v.message?.trim() || undefined,
   });
 
-  const submit = form.handleSubmit((v) => onSearch(toParams(v)));
+  const submit = form.handleSubmit((v) => {
+    searchSession.write(storeKey, v);
+    onSearch(toParams(v), v);
+  });
 
   return (
     <Form {...form}>
@@ -246,7 +244,8 @@ export function SearchFilters({
             type="button"
             variant="ghost"
             onClick={() => {
-              form.reset(EMPTY);
+              form.reset(EMPTY_SEARCH_FILTER_VALUES);
+              searchSession.clear(storeKey);
               onReset?.();
             }}
           >

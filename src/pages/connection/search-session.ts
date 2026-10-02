@@ -13,10 +13,23 @@ export const searchSession = {
   },
   write(key: string, value: unknown) {
     try {
-      if (value === undefined) sessionStorage.removeItem(`connection-search:${key}`);
-      else sessionStorage.setItem(`connection-search:${key}`, JSON.stringify(value));
+      if (value === undefined || value === null) {
+        sessionStorage.removeItem(`connection-search:${key}`);
+      } else {
+        sessionStorage.setItem(
+          `connection-search:${key}`,
+          JSON.stringify(value),
+        );
+      }
     } catch {
       // storage unavailable — just don't persist
+    }
+  },
+  clear(key: string) {
+    try {
+      sessionStorage.removeItem(`connection-search:${key}`);
+    } catch {
+      // ignore
     }
   },
 };

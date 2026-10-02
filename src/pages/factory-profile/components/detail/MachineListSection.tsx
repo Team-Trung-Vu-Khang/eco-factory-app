@@ -1,6 +1,7 @@
 import {
   Button,
   DeleteDialog,
+  Input,
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import {
@@ -8,11 +9,13 @@ import {
   Layers,
   Pencil,
   Plus,
+  Search,
   Sprout,
   Trash2,
   Wrench,
+  X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DetailCard, DetailField } from "@/components/common/DetailCard";
 import type { FactoryProfile } from "@/features/factory";
 import {
@@ -89,13 +92,23 @@ export function MachineListSection({
   const isAdmin = useIsFactoryAdmin();
   const profileId = factory?.id ? Number(factory.id) : undefined;
 
+  const [keyword, setKeyword] = useState("");
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedKeyword(keyword);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
   // Member gets own factory machines; Admin gets machines scoped to profileId
   const memberQuery = useFactoryMachines(
-    { page: 0, size: 100 },
+    { keyword: debouncedKeyword, page: 0, size: 100 },
     { enabled: !isAdmin && !readOnly },
   );
   const adminQuery = useAdminFactoryMachines(
-    { profileId, page: 0, size: 100 },
+    { profileId, keyword: debouncedKeyword, page: 0, size: 100 },
     { enabled: isAdmin && !!profileId },
   );
 
@@ -195,20 +208,60 @@ export function MachineListSection({
 
   return (
     <div className="space-y-4">
-      {!readOnly && (
-        <div className="flex justify-end">
-          <Button onClick={() => openForm(null)}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            placeholder="Tìm theo tên máy, mã máy..."
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            className="pl-10 pr-8"
+          />
+          {keyword && (
+            <button
+              type="button"
+              onClick={() => setKeyword("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600"
+              aria-label="Xóa tìm kiếm"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        {!readOnly && (
+          <Button onClick={() => openForm(null)} className="shrink-0">
             <Plus className="mr-2 h-4 w-4" />
             Thêm máy
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
-      {machines.length === 0 ? (
+      {query.isLoading ? (
+        <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="h-48 animate-pulse rounded-xl border border-slate-200 bg-slate-50"
+            />
+          ))}
+        </div>
+      ) : machines.length === 0 ? (
         <DetailCard icon={Wrench} title={title}>
           <p className="text-sm text-slate-500">
-            Chưa có máy móc / dây chuyền nào được khai báo cho cơ sở này.
+            {debouncedKeyword
+              ? `Không tìm thấy máy móc phù hợp với từ khóa "${debouncedKeyword}".`
+              : "Chưa có máy móc / dây chuyền nào được khai báo cho cơ sở này."}
           </p>
+          {debouncedKeyword && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setKeyword("")}
+              className="mt-3 text-xs"
+            >
+              Xóa tìm kiếm
+            </Button>
+          )}
         </DetailCard>
       ) : (
         <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
