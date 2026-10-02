@@ -63,6 +63,6 @@ export interface FactoryMachineListParams {
   processingServiceId?: number;
   productGroupId?: number;
   profileId?: number;
-  page: number;
-  size: number;
+  page?: number;
+  size?: number;
 }

@@ -1,7 +1,7 @@
 import {
-  Button,
-  DataTable /*, DeleteDialog */,
+  Button /*, DeleteDialog */,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { DataTable } from "@/components/common/DataTable";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
 import { AppLoadingState } from "@/components/common/AppLoadingState";

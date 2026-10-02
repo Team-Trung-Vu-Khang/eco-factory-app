@@ -1,10 +1,9 @@
 import {
   Button,
-  DataTable,
   DeleteDialog,
   useToast,
-  type Column,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { DataTable, type Column } from "@/components/common/DataTable";
 import { useEffect, useState } from "react";
 import PageWrapper from "@/components/common/PageWrapper";
 import {

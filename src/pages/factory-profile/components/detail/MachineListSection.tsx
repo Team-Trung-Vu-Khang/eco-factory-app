@@ -3,12 +3,9 @@ import {
   DeleteDialog,
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import dayjs from "dayjs";
 import {
-  CalendarRange,
   Gauge,
   Layers,
-  PackageCheck,
   Pencil,
   Plus,
   Sprout,
@@ -16,31 +13,51 @@ import {
   Wrench,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import {
-  useDeleteMachine,
-  useMachines,
-  useSaveMachine,
-  type Machine,
-  CAPACITY_UNIT_LABELS,
-  MACHINE_STATUS_LABELS,
-  PROCESSING_SERVICE_LABELS,
-  PRODUCT_GROUP_LABELS,
-  type Factory,
-  type FactoryProfile,
-} from "@/features/factory";
 import { DetailCard, DetailField } from "@/components/common/DetailCard";
+import type { FactoryProfile } from "@/features/factory";
+import {
+  useAdminDeleteFactoryMachine,
+  useAdminFactoryMachines,
+  useCreateFactoryMachine,
+  useDeleteFactoryMachine,
+  useFactoryMachines,
+  useUpdateFactoryMachine,
+  type FactoryMachineInput,
+  type FactoryMachineItem,
+} from "@/features/machine";
+import { useIsFactoryAdmin } from "@/features/viewer";
 import { MachineFormDialog } from "@/pages/machine/components/MachineFormDialog";
 import type { MachineDialogValues } from "@/pages/machine/components/machine-form-schema";
 
 const fmt = new Intl.NumberFormat("vi-VN");
-const date = (d?: string) => (d ? dayjs(d).format("DD/MM/YYYY") : "…");
+
+const CAPACITY_UNIT_LABELS: Record<string, string> = {
+  KG_PER_MONTH: "kg/tháng",
+  TONNE_PER_MONTH: "tấn/tháng",
+};
+
+const STATUS_META: Record<string, { label: string; className: string }> = {
+  ACTIVE: {
+    label: "Đang hoạt động",
+    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  },
+  MAINTENANCE: {
+    label: "Bảo trì",
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+  },
+  PAUSED: {
+    label: "Tạm dừng",
+    className: "border-slate-200 bg-slate-100 text-slate-600",
+  },
+};
 
 function Chips({ items, className }: { items: string[]; className: string }) {
+  if (!items.length) return <span className="text-xs text-slate-400">—</span>;
   return (
     <div className="flex flex-wrap gap-1.5">
-      {items.map((t) => (
+      {items.map((t, idx) => (
         <span
-          key={t}
+          key={`${t}-${idx}`}
           className={`rounded-md border px-2 py-0.5 text-xs font-medium ${className}`}
         >
           {t}
@@ -50,80 +67,105 @@ function Chips({ items, className }: { items: string[]; className: string }) {
   );
 }
 
-const toDialogValues = (
-  factoryId: string,
-  m: Machine,
-): MachineDialogValues => ({
-  factoryId,
+const toDialogValues = (m: FactoryMachineItem): MachineDialogValues => ({
   id: m.id,
   name: m.name,
-  functions: m.functions,
-  productGroupIds: m.productGroupIds,
+  status: m.status,
+  processingServiceIds: (m.processingServices ?? []).map((s) => s.id),
   maxCapacity: m.maxCapacity,
   capacityUnit: m.capacityUnit,
-  status: m.status,
-  certificateIds: m.certificateIds ?? [],
+  productGroupIds: (m.productGroups ?? []).map((g) => g.id),
 });
 
-/** `readOnly`: viewing another factory — no add / edit / delete */
+/** `readOnly`: viewing another factory / farmer view — no add / edit / delete */
 export function MachineListSection({
   factory,
   readOnly,
 }: {
-  factory: Factory | FactoryProfile;
+  factory: FactoryProfile;
   readOnly?: boolean;
 }) {
-  const factoryIdStr = String(factory.id);
-  const { data: machinesData } = useMachines({
-    page: 0,
-    size: 100,
-    factoryId: factoryIdStr,
-  });
-  const machines =
-    "machines" in factory && Array.isArray(factory.machines)
-      ? factory.machines
-      : (machinesData?.content ?? []);
-  const title = `Máy móc & công suất (${machines.length} máy)`;
   const { toast } = useToast();
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<Machine | null>(null);
-  const [deleting, setDeleting] = useState<Machine | null>(null);
-  const save = useSaveMachine();
-  const remove = useDeleteMachine();
-  const editingValues = useMemo(
-    () => (editing ? toDialogValues(factoryIdStr, editing) : undefined),
-    [editing, factoryIdStr],
+  const isAdmin = useIsFactoryAdmin();
+  const profileId = factory?.id ? Number(factory.id) : undefined;
+
+  // Member gets own factory machines; Admin gets machines scoped to profileId
+  const memberQuery = useFactoryMachines(
+    { page: 0, size: 100 },
+    { enabled: !isAdmin && !readOnly },
+  );
+  const adminQuery = useAdminFactoryMachines(
+    { profileId, page: 0, size: 100 },
+    { enabled: isAdmin && !!profileId },
   );
 
-  const fail = (title: string, error: unknown) =>
+  const query = isAdmin ? adminQuery : memberQuery;
+  const machines = query.data?.content ?? [];
+  const title = `Máy móc & công suất (${machines.length} máy)`;
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<FactoryMachineItem | null>(null);
+  const [deleting, setDeleting] = useState<FactoryMachineItem | null>(null);
+
+  const createMachine = useCreateFactoryMachine();
+  const updateMachine = useUpdateFactoryMachine();
+  const deleteMemberMachine = useDeleteFactoryMachine();
+  const deleteAdminMachine = useAdminDeleteFactoryMachine();
+
+  const editingValues = useMemo(
+    () => (editing ? toDialogValues(editing) : undefined),
+    [editing],
+  );
+
+  const fail = (titleMsg: string, error: unknown) => {
+    const err = error as { status?: number; response?: { status?: number } };
+    const is409 =
+      err?.status === 409 ||
+      err?.response?.status === 409 ||
+      (error as Error)?.message?.includes("đang được sử dụng");
+
     toast({
-      title,
-      description: (error as Error).message,
+      title: titleMsg,
+      description: is409
+        ? "Máy đang có lịch nhận chế biến hoặc dữ liệu liên quan. Vui lòng chuyển trạng thái máy sang tạm dừng hoặc xóa các lịch nhận chế biến trước."
+        : (error as Error).message,
       variant: "destructive",
     });
+  };
 
-  const openForm = (machine: Machine | null) => {
+  const openForm = (machine: FactoryMachineItem | null) => {
     setEditing(machine);
     setFormOpen(true);
   };
 
-  const handleSubmit = async ({
-    factoryId,
-    ...values
-  }: MachineDialogValues) => {
+  const handleSubmit = async (values: MachineDialogValues) => {
     try {
-      await save.mutateAsync({
-        factoryId: factoryId || factoryIdStr,
-        values,
-        machineId: editing?.id,
-      });
-      toast({
-        title: "Thành công",
-        description: editing
-          ? "Đã cập nhật máy / dây chuyền."
-          : "Đã thêm máy / dây chuyền.",
-      });
+      const payload: FactoryMachineInput = {
+        name: values.name.trim(),
+        status: values.status,
+        processingServiceIds: values.processingServiceIds.map((id) =>
+          Number(id),
+        ),
+        maxCapacity: values.maxCapacity,
+        capacityUnit: values.capacityUnit,
+        productGroupIds: values.productGroupIds.map((id) => Number(id)),
+      };
+
+      if (editing?.id) {
+        await updateMachine.mutateAsync({ id: editing.id, input: payload });
+        toast({
+          title: "Thành công",
+          description: `Đã cập nhật máy "${values.name}".`,
+        });
+      } else {
+        await createMachine.mutateAsync(payload);
+        toast({
+          title: "Thành công",
+          description: `Đã thêm máy "${values.name}".`,
+        });
+      }
       setFormOpen(false);
+      setEditing(null);
     } catch (error) {
       fail("Không thể lưu", error);
     }
@@ -132,20 +174,24 @@ export function MachineListSection({
   const handleConfirmDelete = async () => {
     if (!deleting) return;
     try {
-      await remove.mutateAsync({
-        factoryId: factoryIdStr,
-        machineId: deleting.id,
+      if (isAdmin) {
+        await deleteAdminMachine.mutateAsync(deleting.id);
+      } else {
+        await deleteMemberMachine.mutateAsync(deleting.id);
+      }
+      toast({
+        title: "Đã xóa",
+        description: `Đã xóa máy "${deleting.name}".`,
       });
-      toast({ title: "Đã xóa", description: `Đã xóa "${deleting.name}".` });
+      setDeleting(null);
     } catch (error) {
       fail("Không thể xóa", error);
     }
-    setDeleting(null);
   };
 
-  const isEmpty =
-    ("offersExternalCapacity" in factory && !factory.offersExternalCapacity) ||
-    machines.length === 0;
+  const isSaving = createMachine.isPending || updateMachine.isPending;
+  const isDeleting =
+    deleteMemberMachine.isPending || deleteAdminMachine.isPending;
 
   return (
     <div className="space-y-4">
@@ -158,17 +204,27 @@ export function MachineListSection({
         </div>
       )}
 
-      {isEmpty ? (
+      {machines.length === 0 ? (
         <DetailCard icon={Wrench} title={title}>
           <p className="text-sm text-slate-500">
-            Cơ sở chưa cung cấp năng lực chế biến cho bên ngoài.
+            Chưa có máy móc / dây chuyền nào được khai báo cho cơ sở này.
           </p>
         </DetailCard>
       ) : (
         <div className="grid gap-5 xl:grid-cols-2 xl:gap-6">
           {machines.map((m) => {
-            const active = m.status === "ACTIVE";
-            const unit = CAPACITY_UNIT_LABELS[m.capacityUnit];
+            const statusInfo = STATUS_META[m.status] ?? {
+              label: m.status,
+              className: "border-slate-200 bg-slate-100 text-slate-700",
+            };
+            const unit = CAPACITY_UNIT_LABELS[m.capacityUnit] ?? m.capacityUnit;
+            const serviceNames = (m.processingServices ?? []).map(
+              (s) => s.name,
+            );
+            const productGroupNames = (m.productGroups ?? []).map(
+              (g) => g.name,
+            );
+
             return (
               <section
                 key={m.id}
@@ -179,21 +235,19 @@ export function MachineListSection({
                     <Wrench className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                      Máy móc
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                        {m.code || "MÁY MÓC"}
+                      </p>
+                    </div>
                     <h3 className="truncate text-base font-semibold text-slate-900 sm:text-lg">
                       {m.name}
                     </h3>
                   </div>
                   <span
-                    className={`shrink-0 rounded-md border px-2 py-0.5 text-xs font-semibold ${
-                      active
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                        : "border-amber-200 bg-amber-50 text-amber-700"
-                    }`}
+                    className={`shrink-0 rounded-md border px-2 py-0.5 text-xs font-semibold ${statusInfo.className}`}
                   >
-                    {MACHINE_STATUS_LABELS[m.status]}
+                    {statusInfo.label}
                   </span>
                   {!readOnly && (
                     <div className="flex shrink-0 gap-1">
@@ -220,83 +274,46 @@ export function MachineListSection({
                 </header>
 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-5 p-4 sm:p-5">
-                  <DetailField
-                    icon={Gauge}
-                    label="Công suất tối đa"
-                    iconClassName="text-blue-500"
-                  >
-                    <span className="text-xl font-bold text-slate-900 tabular-nums">
-                      {fmt.format(m.maxCapacity)}
-                    </span>
-                    <span className="ml-1 text-sm font-normal text-slate-500">
-                      {unit}
-                    </span>
-                  </DetailField>
-                  <DetailField
-                    icon={PackageCheck}
-                    label="Đang nhận"
-                    iconClassName="text-emerald-500"
-                  >
-                    {m.availableCapacity > 0 ? (
-                      <>
-                        <span className="text-xl font-bold text-emerald-600 tabular-nums">
-                          {fmt.format(m.availableCapacity)}
-                        </span>
-                        <span className="ml-1 text-sm font-normal text-slate-500">
-                          {
-                            CAPACITY_UNIT_LABELS[
-                              m.availableUnit ?? m.capacityUnit
-                            ]
-                          }
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-sm font-normal text-slate-400">
-                        Chưa đăng lịch
+                  <div className="col-span-2">
+                    <DetailField
+                      icon={Gauge}
+                      label="Công suất tối đa"
+                      iconClassName="text-blue-500"
+                    >
+                      <span className="text-xl font-bold text-slate-900 tabular-nums">
+                        {fmt.format(m.maxCapacity)}
                       </span>
-                    )}
-                  </DetailField>
+                      <span className="ml-1 text-sm font-normal text-slate-500">
+                        {unit}
+                      </span>
+                    </DetailField>
+                  </div>
+
                   <div className="col-span-2">
                     <DetailField
                       icon={Layers}
-                      label="Dịch vụ"
+                      label="Dịch vụ chế biến"
                       iconClassName="text-emerald-500"
                     >
                       <Chips
-                        items={m.functions.map(
-                          (f) => PROCESSING_SERVICE_LABELS[f],
-                        )}
+                        items={serviceNames}
                         className="border-emerald-100 bg-emerald-50 text-emerald-700"
                       />
                     </DetailField>
                   </div>
+
                   <div className="col-span-2">
                     <DetailField
                       icon={Sprout}
-                      label="Nhóm nông sản"
+                      label="Nhóm nông sản / sản phẩm"
                       iconClassName="text-lime-600"
                     >
                       <Chips
-                        items={m.productGroupIds.map(
-                          (id) => PRODUCT_GROUP_LABELS[id] ?? id,
-                        )}
+                        items={productGroupNames}
                         className="border-lime-100 bg-lime-50 text-lime-700"
                       />
                     </DetailField>
                   </div>
-                  {m.availableCapacity > 0 && (
-                    <div className="col-span-2">
-                      <DetailField
-                        icon={CalendarRange}
-                        label="Lịch nhận chế biến"
-                        iconClassName="text-violet-500"
-                      >
-                        <span className="text-sm font-medium tabular-nums">
-                          {date(m.availableFrom)} → {date(m.availableTo)}
-                        </span>
-                      </DetailField>
-                    </div>
-                  )}
                 </div>
               </section>
             );
@@ -308,8 +325,7 @@ export function MachineListSection({
         open={formOpen}
         onOpenChange={setFormOpen}
         initialValues={editingValues}
-        factoryId={factoryIdStr}
-        isSubmitting={save.isPending}
+        isSubmitting={isSaving}
         onSubmit={handleSubmit}
       />
 
@@ -317,7 +333,7 @@ export function MachineListSection({
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
         onConfirm={handleConfirmDelete}
-        loading={remove.isPending}
+        loading={isDeleting}
         description={`Xóa máy "${deleting?.name ?? ""}"?`}
       />
     </div>

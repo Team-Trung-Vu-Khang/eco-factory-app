@@ -1,10 +1,9 @@
 import {
   Badge,
   Button,
-  DataTable,
   DeleteDialog,
-  type Column,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { DataTable, type Column } from "@/components/common/DataTable";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
 import {

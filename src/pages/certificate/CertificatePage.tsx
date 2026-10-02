@@ -1,8 +1,8 @@
 import {
   Button,
-  DataTable,
   DeleteDialog,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { DataTable } from "@/components/common/DataTable";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
 import { useIsFactoryAdmin } from "@/features/viewer";

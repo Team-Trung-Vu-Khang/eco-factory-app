@@ -1,4 +1,5 @@
-import { Button, DataTable, DeleteDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { Button, DeleteDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { DataTable } from "@/components/common/DataTable";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
 import { productColumns } from "./components/product-columns";

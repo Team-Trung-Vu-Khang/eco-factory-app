@@ -1,48 +1,61 @@
 import {
   Badge,
   Button,
-  DataTable,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  type Column,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { DataTable, type Column } from "@/components/common/DataTable";
 import dayjs from "dayjs";
 import { Eye } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { type FactoryProfile } from "@/features/factory";
+import { CAPACITY_UNIT_LABELS } from "@/features/machine";
 import {
-  CAPACITY_UNIT_LABELS,
-  PROCESSING_SERVICE_LABELS,
-  PRODUCT_GROUP_LABELS,
-  type Factory,
-  type FactoryProfile,
-} from "@/features/factory";
-import { useSchedules, type ScheduleRow } from "@/features/processing-schedule";
+  useAdminSchedules,
+  useSchedules,
+  type ScheduleRow,
+} from "@/features/processing-schedule";
+import { useIsFactoryAdmin } from "@/features/viewer";
 import { scheduleColumns } from "@/pages/processing-schedule/components/schedule-columns";
 
 const fmt = new Intl.NumberFormat("vi-VN");
-const date = (d: string) => dayjs(d).format("DD/MM/YYYY");
+const date = (d?: string) => (d ? dayjs(d).format("DD/MM/YYYY") : "—");
 
 /** "Tin đăng" tab — the factory's open processing posts, searchable */
-export function FactoryPostsSection({
-  factory,
-}: {
-  factory: Factory | FactoryProfile;
-}) {
+export function FactoryPostsSection({ factory }: { factory: FactoryProfile }) {
   const [keyword, setKeyword] = useState("");
   const [viewing, setViewing] = useState<ScheduleRow | null>(null);
-  const factoryIdStr = String(factory.id);
-  const query = useSchedules({
-    page: 0,
-    size: 100,
-    keyword,
-    status: "ACTIVE",
-    factoryId: factoryIdStr,
-  });
+  const isAdmin = useIsFactoryAdmin();
+  const profileId = factory?.id ? Number(factory.id) : undefined;
 
-  // Farmer view: request counts and status are the factory's business — every row here is open
+  const adminQuery = useAdminSchedules(
+    {
+      page: 0,
+      size: 100,
+      keyword: keyword.trim() || undefined,
+      profileId,
+      status: "OPEN",
+    },
+    { enabled: isAdmin && !!profileId },
+  );
+
+  const memberQuery = useSchedules(
+    {
+      page: 0,
+      size: 100,
+      keyword: keyword.trim() || undefined,
+      profileId,
+      status: "OPEN",
+    },
+    { enabled: !isAdmin },
+  );
+
+  const query = isAdmin ? adminQuery : memberQuery;
+
+  // Farmer / public view: request counts and internal status are not relevant
   const columns: Column<ScheduleRow>[] = [
     ...scheduleColumns.filter(
       (c) => c.key !== "connections" && c.key !== "displayStatus",
@@ -71,7 +84,7 @@ export function FactoryPostsSection({
         data={query.data?.content ?? []}
         loading={query.isFetching}
         searchable
-        searchPlaceholder="Tìm theo máy, ghi chú..."
+        searchPlaceholder="Tìm theo tiêu đề, máy, ghi chú..."
         onSearch={setKeyword}
         columnToggleable={false}
         downloadable={false}
@@ -99,20 +112,18 @@ function PostDetailDialog({
   post,
   onClose,
 }: {
-  factory: Factory | FactoryProfile;
+  factory: FactoryProfile;
   post: ScheduleRow | null;
   onClose: () => void;
 }) {
   if (!post) return null;
-  const machine =
-    "machines" in factory && Array.isArray(factory.machines)
-      ? factory.machines.find((m) => m.id === post.machineId)
-      : undefined;
 
-  const repText =
-    "representativeName" in factory
-      ? `${factory.representativeName} · ${factory.representativePhone}`
-      : `${factory.representative.fullName} · ${factory.representative.phone}`;
+  const repText = factory.representativeName
+    ? `${factory.representativeName}${factory.representativePhone ? ` · ${factory.representativePhone}` : ""}`
+    : "—";
+
+  const services = post.machine?.processingServices?.map((s) => s.name) ?? [];
+  const productGroups = post.machine?.productGroups?.map((g) => g.name) ?? [];
 
   const chips = (items: string[]) =>
     items.length ? (
@@ -123,49 +134,41 @@ function PostDetailDialog({
           </Badge>
         ))}
       </div>
-    ) : null;
+    ) : (
+      <span className="text-slate-400">—</span>
+    );
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            {post.note || `Nhận chế biến — ${post.machineName}`}
+            {post.title || `Nhận chế biến — ${post.machine?.name || "Máy móc"}`}
           </DialogTitle>
           <DialogDescription>{factory.name}</DialogDescription>
         </DialogHeader>
         <dl className="divide-y divide-slate-100">
-          <Row label="Máy / dây chuyền">{post.machineName}</Row>
-          <Row label="Dịch vụ">
-            {chips(
-              (machine?.functions ?? []).map(
-                (f) => PROCESSING_SERVICE_LABELS[f] ?? f,
-              ),
-            )}
-          </Row>
-          <Row label="Nhóm nông sản">
-            {chips(
-              (machine?.productGroupIds ?? []).map(
-                (g) => PRODUCT_GROUP_LABELS[g] ?? g,
-              ),
-            )}
-          </Row>
+          <Row label="Máy / dây chuyền">{post.machine?.name || "—"}</Row>
+          <Row label="Dịch vụ">{chips(services)}</Row>
+          <Row label="Nhóm nông sản">{chips(productGroups)}</Row>
           <Row label="Lịch nhận">
             <span className="tabular-nums">
-              {date(post.fromDate)} → {date(post.toDate)}
+              {date(post.startDate)} → {date(post.endDate)}
             </span>
           </Row>
           <Row label="Công suất tối đa nhận">
             <span className="tabular-nums">
               {fmt.format(post.maxCapacity)}{" "}
-              {CAPACITY_UNIT_LABELS[post.capacityUnit]}
+              {CAPACITY_UNIT_LABELS[post.capacityUnit] ?? post.capacityUnit}
             </span>
           </Row>
-          <Row label="Ghi chú">{post.note}</Row>
+          <Row label="Ghi chú">{post.note || "—"}</Row>
           <Row label="Ngày đăng">
             {dayjs(post.createdAt).format("DD/MM/YYYY HH:mm")}
           </Row>
-          <Row label="Liên hệ">{repText.trim() === "·" ? "—" : repText}</Row>
+          <Row label="Liên hệ">
+            {repText === "·" || !repText ? "—" : repText}
+          </Row>
         </dl>
       </DialogContent>
     </Dialog>
