@@ -10,7 +10,10 @@ export function normalizeAdminName(name: string) {
     .trim();
 }
 
-export function findByName<T extends { name: string }>(items: T[], name?: string): T | undefined {
+export function findByName<T extends { name: string }>(
+  items: T[],
+  name?: string,
+): T | undefined {
   if (!name) return undefined;
   const target = normalizeAdminName(name);
   return items.find((i) => normalizeAdminName(i.name) === target);

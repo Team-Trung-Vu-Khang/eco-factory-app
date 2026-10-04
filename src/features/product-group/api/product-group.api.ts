@@ -11,8 +11,12 @@ export const productGroupKeys = {
     [...productGroupKeys.lists(), params] as const,
   detail: (id: string | number) =>
     [...productGroupKeys.all, "detail", id] as const,
+  publicDetail: (id: string | number) =>
+    [...productGroupKeys.all, "public-detail", id] as const,
   search: (keyword: string, size = 20) =>
     [...productGroupKeys.all, "search", keyword, size] as const,
+  cropSearch: (keyword: string, size = 20) =>
+    [...productGroupKeys.all, "crop-search", keyword, size] as const,
 };
 
 const syncLabels = (items: ProductGroup[]) => {
@@ -49,6 +53,13 @@ export const productGroupApi = {
     return data;
   },
 
+  /** Public detail — GET /api/master-data/factory-product-groups/{id} */
+  async getPublic(id: string | number): Promise<ProductGroup> {
+    const { data } = await apiClient.get<ProductGroup>(ep.publicDetail(id));
+    syncLabels([data]);
+    return data;
+  },
+
   /** Dynamic search endpoint for select dropdowns (size: 20) */
   async searchOptions(
     keyword = "",
@@ -71,6 +82,39 @@ export const productGroupApi = {
       value: String(g.id),
       label: g.name,
     }));
+  },
+
+  /**
+   * Crop options for AsyncSelect: keyword tìm trên API nhóm nông sản (mã/tên/mô tả),
+   * sau đó trả về các cây trồng của nhóm khớp. value = tên cây (API tìm kiếm nhận tên).
+   */
+  async searchCropOptions(
+    keyword = "",
+    size = 20,
+  ): Promise<Array<{ value: string; label: string }>> {
+    const { data } = await apiClient.get<PageResponse<ProductGroup>>(
+      ep.public,
+      {
+        params: {
+          status: "active",
+          page: 0,
+          size,
+          keyword: keyword.trim() || undefined,
+        },
+      },
+    );
+    const items = data.content ?? [];
+    syncLabels(items);
+    const seen = new Map<string, { value: string; label: string }>();
+    for (const g of items) {
+      for (const raw of g.crops ?? []) {
+        const name = raw.trim();
+        if (name && !seen.has(name)) {
+          seen.set(name, { value: name, label: `${name} (${g.name})` });
+        }
+      }
+    }
+    return [...seen.values()];
   },
 
   /** Public endpoint to get active product groups for select options */

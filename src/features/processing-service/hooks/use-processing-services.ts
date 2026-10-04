@@ -20,6 +20,28 @@ export function useProcessingServices(params: ProcessingServiceListParams) {
   });
 }
 
+/** Public paged list (farm/marketplace side) */
+export function usePublicProcessingServices(
+  params: ProcessingServiceListParams,
+) {
+  return useQuery({
+    queryKey: processingServiceKeys.publicList(params),
+    queryFn: () => processingServiceApi.listPublic(params),
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
+  });
+}
+
+/** Public service detail; disabled until id is set */
+export function usePublicProcessingService(id?: string | number) {
+  return useQuery({
+    queryKey: processingServiceKeys.publicDetail(id ?? ""),
+    queryFn: () => processingServiceApi.getPublic(id!),
+    enabled: id != null && id !== "",
+    staleTime: 30_000,
+  });
+}
+
 /** Function to fetch dynamic options for AsyncSelect components (cached 30s via TanStack Query) */
 export const fetchProcessingServiceOptions = (keyword = "") =>
   queryClient.fetchQuery({

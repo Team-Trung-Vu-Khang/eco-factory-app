@@ -46,18 +46,30 @@ export function PersonnelPickerDialog({
       <DialogContent className="max-w-md gap-3">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Tìm theo tên, chức vụ hoặc số điện thoại</DialogDescription>
+          <DialogDescription>
+            Tìm theo tên, chức vụ hoặc số điện thoại
+          </DialogDescription>
         </DialogHeader>
 
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input autoFocus value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Tìm nhân sự..." className="pl-9 pr-9" />
-          {isFetching && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-slate-400" />}
+          <Input
+            autoFocus
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="Tìm nhân sự..."
+            className="pl-9 pr-9"
+          />
+          {isFetching && (
+            <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-slate-400" />
+          )}
         </div>
 
         <ul className="max-h-80 space-y-1 overflow-y-auto">
           {data.length === 0 && !isFetching && (
-            <li className="py-6 text-center text-sm text-slate-500">Không tìm thấy nhân sự.</li>
+            <li className="py-6 text-center text-sm text-slate-500">
+              Không tìm thấy nhân sự.
+            </li>
           )}
           {data.map((p) => (
             <li key={p.id}>
@@ -74,12 +86,18 @@ export function PersonnelPickerDialog({
                   {p.fullName.split(" ").pop()?.[0]}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-slate-900">{p.fullName}</span>
+                  <span className="block truncate text-sm font-medium text-slate-900">
+                    {p.fullName}
+                  </span>
                   <span className="block truncate text-xs text-slate-500">
-                    {[p.position, p.phone ?? "Chưa có SĐT"].filter(Boolean).join(" · ")}
+                    {[p.position, p.phone ?? "Chưa có SĐT"]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </span>
                 </span>
-                {p.id === selectedId && <Check className="h-4 w-4 text-emerald-600" />}
+                {p.id === selectedId && (
+                  <Check className="h-4 w-4 text-emerald-600" />
+                )}
               </button>
             </li>
           ))}

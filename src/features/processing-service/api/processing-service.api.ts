@@ -19,6 +19,10 @@ export const processingServiceKeys = {
     [...processingServiceKeys.all, "detail", id] as const,
   search: (keyword: string, size = 20) =>
     [...processingServiceKeys.all, "search", keyword, size] as const,
+  publicList: (params: ProcessingServiceListParams) =>
+    [...processingServiceKeys.all, "public-list", params] as const,
+  publicDetail: (id: string | number) =>
+    [...processingServiceKeys.all, "public-detail", id] as const,
 };
 
 const syncLabels = (items: ProcessingServiceItem[]) => {
@@ -47,6 +51,34 @@ export const processingServiceApi = {
       },
     );
     syncLabels(data.content ?? []);
+    return data;
+  },
+
+  /** Public list — GET /api/master-data/factory-processing-services (defaults to active) */
+  async listPublic(
+    params: ProcessingServiceListParams,
+  ): Promise<PageResponse<ProcessingServiceItem>> {
+    const { data } = await apiClient.get<PageResponse<ProcessingServiceItem>>(
+      ep.public,
+      {
+        params: {
+          page: params.page,
+          size: params.size,
+          keyword: params.keyword?.trim() || undefined,
+          status: params.status || "active",
+        },
+      },
+    );
+    syncLabels(data.content ?? []);
+    return data;
+  },
+
+  /** Public detail — GET /api/master-data/factory-processing-services/{id} */
+  async getPublic(id: string | number): Promise<ProcessingServiceItem> {
+    const { data } = await apiClient.get<ProcessingServiceItem>(
+      ep.publicDetail(id),
+    );
+    syncLabels([data]);
     return data;
   },
 

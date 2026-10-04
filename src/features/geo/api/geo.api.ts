@@ -12,8 +12,7 @@ export const geoKeys = {
   all: ["geo"] as const,
   provinces: (params?: GeoProvinceListParams) =>
     [...geoKeys.all, "provinces", params] as const,
-  provinceDetail: (code: string) =>
-    [...geoKeys.all, "province", code] as const,
+  provinceDetail: (code: string) => [...geoKeys.all, "province", code] as const,
   wards: (params: GeoWardListParams) =>
     [...geoKeys.all, "wards", params] as const,
   wardDetail: (code: string) => [...geoKeys.all, "ward", code] as const,

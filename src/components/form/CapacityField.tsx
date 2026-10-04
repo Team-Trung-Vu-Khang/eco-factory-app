@@ -71,11 +71,14 @@ export function CapacityField<T extends FieldValues>({
               ref={field.ref}
               onBlur={field.onBlur}
               value={field.value ?? ""}
+              // null (không phải undefined): RHF coi undefined là "chưa có" và
+              // hiển thị lại defaultValue → nút xóa (X) không có tác dụng.
               onChange={(e) =>
                 field.onChange(
-                  e.target.value === "" ? undefined : e.target.valueAsNumber,
+                  e.target.value === "" ? null : e.target.valueAsNumber,
                 )
               }
+              onClear={() => field.onChange(null)}
             />
             <Select
               value={unit.value || undefined}

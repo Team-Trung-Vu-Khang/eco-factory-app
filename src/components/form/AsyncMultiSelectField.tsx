@@ -52,7 +52,16 @@ export function AsyncMultiSelectField<T extends FieldValues>({
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
 
-  // Search options - immediately on mount (when keyword is empty), debounced when typing
+  // Danh sách hiển thị = đúng kết quả API mới nhất (không trộn kết quả cũ / dữ liệu local).
+  // seenLabels chỉ dùng để hiển thị nhãn cho giá trị đã chọn.
+  const [seenLabels, setSeenLabels] = useState<Record<string, string>>({});
+  const labelOf = useMemo(() => {
+    const map: Record<string, string> = {};
+    initialOptions.forEach((opt) => (map[opt.value] = opt.label));
+    return { ...map, ...seenLabels };
+  }, [initialOptions, seenLabels]);
+
+  // Fetch immediately on mount (empty keyword), debounced while typing
   useEffect(() => {
     let active = true;
     const delay = searchKeyword ? 300 : 0;
@@ -61,17 +70,15 @@ export function AsyncMultiSelectField<T extends FieldValues>({
       try {
         const results = await fetchOptions(searchKeyword);
         if (active) {
-          setOptions((prev) => {
-            const map = new Map<string, Option>();
-            // Keep previous options to preserve labels of selected items
-            prev.forEach((opt) => map.set(opt.value, opt));
-            // Add or overwrite with fresh search results
-            results.forEach((opt) => map.set(opt.value, opt));
-            return Array.from(map.values());
-          });
+          setSeenLabels((prev) => ({
+            ...prev,
+            ...Object.fromEntries(results.map((o) => [o.value, o.label])),
+          }));
+          setOptions(results);
         }
       } catch (err) {
         console.error("Failed to load options", err);
+        if (active) setOptions([]);
       } finally {
         if (active) setLoading(false);
       }
@@ -82,14 +89,6 @@ export function AsyncMultiSelectField<T extends FieldValues>({
       clearTimeout(timer);
     };
   }, [searchKeyword, fetchOptions]);
-
-  const allOptions = useMemo(() => {
-    if (!initialOptions.length) return options;
-    const map = new Map<string, Option>();
-    initialOptions.forEach((opt) => map.set(opt.value, opt));
-    options.forEach((opt) => map.set(opt.value, opt));
-    return Array.from(map.values());
-  }, [options, initialOptions]);
 
   return (
     <FormField
@@ -104,7 +103,10 @@ export function AsyncMultiSelectField<T extends FieldValues>({
             <FormLabel required={required}>{label}</FormLabel>
             <FormControl>
               <RemoteMultiSelect
-                options={allOptions}
+                options={options}
+                selectedLabels={Object.fromEntries(
+                  stringValues.map((v) => [v, labelOf[v] ?? v]),
+                )}
                 value={stringValues}
                 onChange={field.onChange}
                 onSearch={(kw) => setSearchKeyword(kw)}

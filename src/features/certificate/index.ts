@@ -5,3 +5,6 @@ export * from "./hooks/use-certificates";
 export { toCertificateFormValues } from "./utils/certificate-mapper";
 export { getCertificateValidity } from "./utils/certificate-validity";
 export { useCertificateOptions } from "./hooks/use-certificate-options";
+export * from "./master-certificate.types";
+export * from "./hooks/use-master-certificates";
+export { masterCertificateApi } from "./api/master-certificate.api";

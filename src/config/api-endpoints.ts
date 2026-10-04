@@ -54,6 +54,8 @@ export const API_ENDPOINTS = {
     // Chứng chỉ, tiêu chuẩn và tổ chức cấp
     certificates: {
       public: "/api/master-data/certificates",
+      publicDetail: (id: string | number) =>
+        `/api/master-data/certificates/${id}`,
       admin: "/api/admin/master-data/certificates",
     },
     certificateStandards: {

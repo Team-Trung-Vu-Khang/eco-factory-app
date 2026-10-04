@@ -1,4 +1,8 @@
-import { Form, StepperForm, type Step } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  Form,
+  StepperForm,
+  type Step,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import type { ReactNode } from "react";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import type { ZodType } from "zod";
@@ -38,7 +42,11 @@ export function SchemaStepperForm<T extends FieldValues>({
   onSubmit,
   onCancel,
 }: SchemaStepperFormProps<T>) {
-  const validity = useStepValidity(form.control, schema, steps.map((s) => s.fields));
+  const validity = useStepValidity(
+    form.control,
+    schema,
+    steps.map((s) => s.fields),
+  );
   const upload = useUploadStatusState();
 
   const stepperSteps: Step[] = steps.map((step, index) => ({
@@ -51,7 +59,8 @@ export function SchemaStepperForm<T extends FieldValues>({
         {step.content}
         {!validity[index] && (
           <p className="text-xs text-slate-500">
-            Điền đủ và đúng các trường bắt buộc (<span className="text-destructive">*</span>) để tiếp tục.
+            Điền đủ và đúng các trường bắt buộc (
+            <span className="text-destructive">*</span>) để tiếp tục.
           </p>
         )}
       </div>

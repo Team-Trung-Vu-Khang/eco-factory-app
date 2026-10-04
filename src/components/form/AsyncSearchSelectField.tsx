@@ -52,7 +52,16 @@ export function AsyncSearchSelectField<T extends FieldValues>({
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
 
-  // Search options - immediately on mount (when keyword is empty), debounced when typing
+  // Danh sách hiển thị = đúng kết quả API mới nhất (không trộn kết quả cũ / dữ liệu local).
+  // seenLabels chỉ dùng để hiển thị nhãn cho giá trị đã chọn.
+  const [seenLabels, setSeenLabels] = useState<Record<string, string>>({});
+  const labelOf = useMemo(() => {
+    const map: Record<string, string> = {};
+    initialOptions.forEach((opt) => (map[opt.value] = opt.label));
+    return { ...map, ...seenLabels };
+  }, [initialOptions, seenLabels]);
+
+  // Fetch immediately on mount (empty keyword), debounced while typing
   useEffect(() => {
     let active = true;
     const delay = searchKeyword ? 300 : 0;
@@ -61,18 +70,15 @@ export function AsyncSearchSelectField<T extends FieldValues>({
       try {
         const results = await fetchOptions(searchKeyword);
         if (active) {
-          // Merge with previously selected options so selected item label remains visible
-          setOptions((prev) => {
-            const mergedMap = new Map<string, Option>();
-            // Keep existing options first
-            prev.forEach((opt) => mergedMap.set(opt.value, opt));
-            // Add or overwrite with fresh search results
-            results.forEach((opt) => mergedMap.set(opt.value, opt));
-            return Array.from(mergedMap.values());
-          });
+          setSeenLabels((prev) => ({
+            ...prev,
+            ...Object.fromEntries(results.map((o) => [o.value, o.label])),
+          }));
+          setOptions(results);
         }
       } catch (err) {
-        console.error("Failed to fetch search options", err);
+        console.error("Failed to load options", err);
+        if (active) setOptions([]);
       } finally {
         if (active) setLoading(false);
       }
@@ -83,14 +89,6 @@ export function AsyncSearchSelectField<T extends FieldValues>({
       clearTimeout(timer);
     };
   }, [searchKeyword, fetchOptions]);
-
-  const allOptions = useMemo(() => {
-    if (!initialOptions.length) return options;
-    const mergedMap = new Map<string, Option>();
-    initialOptions.forEach((opt) => mergedMap.set(opt.value, opt));
-    options.forEach((opt) => mergedMap.set(opt.value, opt));
-    return Array.from(mergedMap.values());
-  }, [options, initialOptions]);
 
   return (
     <FormField
@@ -109,7 +107,17 @@ export function AsyncSearchSelectField<T extends FieldValues>({
             <FormLabel required={required}>{label}</FormLabel>
             <FormControl>
               <RemoteAutoCompleteSelect
-                options={allOptions}
+                options={
+                  strValue && !options.some((o) => o.value === strValue)
+                    ? [
+                        ...options,
+                        {
+                          value: strValue,
+                          label: labelOf[strValue] ?? strValue,
+                        },
+                      ]
+                    : options
+                }
                 value={strValue}
                 onChange={field.onChange}
                 onSearch={(kw) => setSearchKeyword(kw)}

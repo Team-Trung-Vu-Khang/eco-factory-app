@@ -20,8 +20,11 @@ export function useStepValidity<T extends FieldValues>(
     if (result.success) return stepFields.map(() => true);
 
     const paths = result.error.issues.map((i) => i.path.join("."));
-    return stepFields.map((fields) =>
-      !paths.some((path) => fields.some((f) => path === f || path.startsWith(`${f}.`))),
+    return stepFields.map(
+      (fields) =>
+        !paths.some((path) =>
+          fields.some((f) => path === f || path.startsWith(`${f}.`)),
+        ),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by content
   }, [values, schema, fieldsKey]);

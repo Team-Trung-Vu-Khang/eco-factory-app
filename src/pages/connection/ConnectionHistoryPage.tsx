@@ -4,6 +4,7 @@ import {
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { DataTable, type Column } from "@/components/common/DataTable";
+import { MATERIAL_CONDITION_LABELS } from "@/features/demand/constants";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import PageWrapper from "@/components/common/PageWrapper";
@@ -114,6 +115,13 @@ export default function ConnectionHistoryPage() {
       render: (_, c) => (
         <div className="text-sm text-slate-700">
           <p>{c.crops?.join(", ") || "—"}</p>
+          {c.materialCondition && (
+            <p className="text-xs text-slate-500">
+              {MATERIAL_CONDITION_LABELS[
+                c.materialCondition as keyof typeof MATERIAL_CONDITION_LABELS
+              ] ?? c.materialCondition}
+            </p>
+          )}
           {c.maxCapacity !== undefined && c.maxCapacity !== null && (
             <p className="text-xs tabular-nums text-slate-500">
               {fmt.format(c.maxCapacity)}{" "}
@@ -127,10 +135,10 @@ export default function ConnectionHistoryPage() {
     },
     {
       key: "message",
-      label: "Ghi chú / Lời nhắn",
+      label: "Lời nhắn",
       render: (_, c) => (
         <span className="text-sm text-slate-600 line-clamp-2">
-          {c.message || c.materialCondition || "—"}
+          {c.message || "—"}
         </span>
       ),
     },
@@ -146,17 +154,27 @@ export default function ConnectionHistoryPage() {
     {
       key: "status",
       label: "Trạng thái",
-      render: (_, c) => (
-        <div className="max-w-56 space-y-0.5">
-          <ConnectionStatusBadge status={c.status} />
-          {c.resultNote && (
-            <p className="text-xs text-slate-500">{c.resultNote}</p>
-          )}
-          {c.rejectReason && (
-            <p className="text-xs text-rose-500">{c.rejectReason}</p>
-          )}
-        </div>
-      ),
+      render: (_, c) => <ConnectionStatusBadge status={c.status} />,
+    },
+    {
+      key: "factoryNote",
+      label: "Ghi chú của nhà máy",
+      render: (_, c) =>
+        c.resultNote || c.rejectReason ? (
+          <div className="max-w-60 space-y-0.5 text-sm">
+            {c.resultNote && (
+              <p className="line-clamp-2 text-slate-600">{c.resultNote}</p>
+            )}
+            {c.rejectReason && (
+              <p className="line-clamp-2 text-rose-600">
+                <span className="font-medium">Lý do từ chối:</span>{" "}
+                {c.rejectReason}
+              </p>
+            )}
+          </div>
+        ) : (
+          <span className="text-sm text-slate-400">—</span>
+        ),
     },
     ...(!isAdmin
       ? [

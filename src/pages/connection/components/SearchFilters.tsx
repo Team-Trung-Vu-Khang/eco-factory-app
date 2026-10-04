@@ -1,13 +1,12 @@
 import { Button, Form } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Loader2, Search } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
   AsyncMultiSelectField,
+  AsyncSearchSelectField,
   CapacityField,
   FormSection,
-  MultiSelectField,
-  SearchSelectField,
   SelectField,
   TextareaField,
 } from "@/components/form";
@@ -16,11 +15,17 @@ import {
   type MaterialCondition,
 } from "@/features/demand/constants";
 import type { FactorySearchParams } from "@/features/connection";
-import { CROP_OPTIONS, getCropName } from "@/features/crop";
-import { CERTIFICATION_TYPE_NAMED_OPTIONS } from "@/features/factory";
-import { useProvinceOptions, useWardOptions } from "@/features/geo";
+import { fetchMasterCertificateOptions } from "@/features/certificate";
+import {
+  fetchProvinceOptions,
+  fetchWardOptions,
+  useProvinceOptions,
+} from "@/features/geo";
 import { MACHINE_CAPACITY_UNIT_OPTIONS } from "@/features/machine";
-import { fetchProductGroupOptions } from "@/features/product-group";
+import {
+  fetchProductGroupOptions,
+  fetchProductGroupCropOptions,
+} from "@/features/product-group";
 import { fetchProcessingServiceOptions } from "@/features/processing-service";
 import { searchSession } from "../search-session";
 
@@ -79,7 +84,8 @@ export function SearchFilters({
   const isAdmin = mode === "admin";
   const provinceName = useWatch({ control, name: "province" });
 
-  const { options: provinceOptions, provinces } = useProvinceOptions();
+  // Chỉ dùng để tra mã tỉnh từ tên đã chọn (cache 24h); việc tìm kiếm đi qua API.
+  const { provinces } = useProvinceOptions();
 
   const currentProvince = useMemo(
     () =>
@@ -92,7 +98,14 @@ export function SearchFilters({
     [provinces, provinceName],
   );
 
-  const { options: wardOptions } = useWardOptions(currentProvince?.code);
+  const provinceCode = currentProvince?.code;
+  const fetchWards = useCallback(
+    (keyword: string) =>
+      provinceCode
+        ? fetchWardOptions(provinceCode, keyword)
+        : Promise.resolve([]),
+    [provinceCode],
+  );
 
   const prevProvince = useRef(provinceName);
   useEffect(() => {
@@ -106,10 +119,8 @@ export function SearchFilters({
     processingServiceIds: v.processingServiceIds?.length
       ? v.processingServiceIds.map(Number)
       : undefined,
-    crops: v.crops?.length
-      ? v.crops.map((c) => getCropName(c) || c)
-      : undefined,
-    maxCapacity: v.maxCapacity,
+    crops: v.crops?.length ? v.crops : undefined,
+    maxCapacity: v.maxCapacity ?? undefined,
     capacityUnit: v.maxCapacity ? v.capacityUnit : undefined,
     certificateTypes: v.certificateTypes?.length
       ? v.certificateTypes
@@ -136,19 +147,21 @@ export function SearchFilters({
           description="Để trống để tìm tất cả tỉnh/thành"
         >
           <div className="grid gap-x-4 gap-y-3 md:grid-cols-2">
-            <SearchSelectField
+            <AsyncSearchSelectField
               control={control}
               name="province"
               label="Tỉnh/Thành phố"
-              options={provinceOptions}
+              fetchOptions={fetchProvinceOptions}
               placeholder="Tất cả"
             />
-            <SearchSelectField
+            <AsyncSearchSelectField
+              // Remount khi đổi tỉnh để bỏ danh sách xã của tỉnh cũ
+              key={currentProvince?.code ?? "none"}
               control={control}
               name="ward"
               label="Xã/Phường"
-              options={wardOptions}
-              disabled={!provinceName}
+              fetchOptions={fetchWards}
+              disabled={!currentProvince}
               placeholder={provinceName ? "Tất cả" : "Chọn tỉnh trước"}
             />
           </div>
@@ -175,12 +188,13 @@ export function SearchFilters({
               />
             ) : (
               <>
-                <MultiSelectField
+                <AsyncMultiSelectField
                   control={control}
                   name="crops"
                   label="Nguyên liệu (cây trồng)"
-                  options={CROP_OPTIONS}
+                  fetchOptions={fetchProductGroupCropOptions}
                   placeholder="VD: Xoài, Sầu riêng..."
+                  searchPlaceholder="Tìm theo nhóm/cây trồng..."
                   description="Hệ thống tìm nhóm nông sản nhà máy đang chế biến tương ứng"
                 />
                 <CapacityField
@@ -193,11 +207,11 @@ export function SearchFilters({
                 />
               </>
             )}
-            <MultiSelectField
+            <AsyncMultiSelectField
               control={control}
               name="certificateTypes"
               label="Chứng nhận của cơ sở"
-              options={CERTIFICATION_TYPE_NAMED_OPTIONS}
+              fetchOptions={fetchMasterCertificateOptions}
               placeholder="Không yêu cầu"
               description="Nhà máy phải có đủ các chứng nhận còn hiệu lực"
               className={isAdmin ? "md:col-span-2" : undefined}

@@ -20,7 +20,11 @@ export interface ResolvedPlace {
   compound: GoongCompound;
 }
 
-async function goongGet<T>(path: string, params: Record<string, string>, signal?: AbortSignal): Promise<T> {
+async function goongGet<T>(
+  path: string,
+  params: Record<string, string>,
+  signal?: AbortSignal,
+): Promise<T> {
   const url = new URL(`${GOONG_API_URL}${path}`);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   if (env.goongApiKey) url.searchParams.set("api_key", env.goongApiKey);
@@ -30,13 +34,23 @@ async function goongGet<T>(path: string, params: Record<string, string>, signal?
 }
 
 export const goongApi = {
-  async autocomplete(input: string, signal?: AbortSignal): Promise<PlacePrediction[]> {
-    const data = await goongGet<{ predictions?: PlacePrediction[] }>("/Place/AutoComplete", { input }, signal);
+  async autocomplete(
+    input: string,
+    signal?: AbortSignal,
+  ): Promise<PlacePrediction[]> {
+    const data = await goongGet<{ predictions?: PlacePrediction[] }>(
+      "/Place/AutoComplete",
+      { input },
+      signal,
+    );
     return (data.predictions ?? []).slice(0, 6);
   },
 
   /** AutoComplete has no coordinates → resolve them from Place Detail */
-  async placeDetail(placeId: string, fallbackAddress: string): Promise<ResolvedPlace | null> {
+  async placeDetail(
+    placeId: string,
+    fallbackAddress: string,
+  ): Promise<ResolvedPlace | null> {
     const data = await goongGet<{
       result?: {
         formatted_address?: string;
@@ -45,7 +59,8 @@ export const goongApi = {
       };
     }>("/Place/Detail", { place_id: placeId });
     const loc = data.result?.geometry?.location;
-    if (!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) return null;
+    if (!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng))
+      return null;
     return {
       address: fallbackAddress || data.result?.formatted_address || "",
       latitude: loc.lat,
@@ -54,7 +69,10 @@ export const goongApi = {
     };
   },
 
-  async reverseGeocode(latitude: number, longitude: number): Promise<ResolvedPlace | null> {
+  async reverseGeocode(
+    latitude: number,
+    longitude: number,
+  ): Promise<ResolvedPlace | null> {
     const data = await goongGet<{
       results?: { formatted_address?: string; compound?: GoongCompound }[];
     }>("/Geocode", { latlng: `${latitude},${longitude}` });

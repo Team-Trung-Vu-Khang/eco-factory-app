@@ -22,6 +22,8 @@ export type RemoteMultiSelectOption = {
 
 export type RemoteMultiSelectProps = {
   options: RemoteMultiSelectOption[];
+  /** Labels for selected values not present in the current (remote) result page */
+  selectedLabels?: Record<string, string>;
   value: string[];
   onChange: (next: string[]) => void;
   /** Called with the raw search term so the caller can query remotely. */
@@ -42,6 +44,7 @@ export type RemoteMultiSelectProps = {
  */
 export function RemoteMultiSelect({
   options,
+  selectedLabels,
   value,
   onChange,
   onSearch,
@@ -79,6 +82,7 @@ export function RemoteMultiSelect({
 
   const labelFor = (optionValue: string) =>
     options.find((option) => option.value === optionValue)?.label ??
+    selectedLabels?.[optionValue] ??
     optionValue;
 
   return (
@@ -98,7 +102,9 @@ export function RemoteMultiSelect({
         >
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left">
             {value.length === 0 ? (
-              <span className="min-w-0 truncate text-muted-foreground">{placeholder}</span>
+              <span className="min-w-0 truncate text-muted-foreground">
+                {placeholder}
+              </span>
             ) : (
               value.map((item) => (
                 <Badge

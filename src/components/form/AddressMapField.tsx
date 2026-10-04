@@ -1,8 +1,23 @@
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { useFormContext, useWatch, type FieldPath, type FieldValues, type PathValue } from "react-hook-form";
-import { LocationPickerMap, type LatLng } from "@/components/map/LocationPickerMap";
+import {
+  useFormContext,
+  useWatch,
+  type FieldPath,
+  type FieldValues,
+  type PathValue,
+} from "react-hook-form";
+import {
+  LocationPickerMap,
+  type LatLng,
+} from "@/components/map/LocationPickerMap";
 import { goongApi, type ResolvedPlace } from "@/features/geo";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 
@@ -27,12 +42,16 @@ export function AddressMapField<T extends FieldValues>({
   mapClassName = "h-72",
 }: AddressMapFieldProps<T>) {
   const { control, setValue } = useFormContext<T>();
-  const [latitude, longitude] = useWatch({ control, name: [latitudeName, longitudeName] }) as [number?, number?];
+  const [latitude, longitude] = useWatch({
+    control,
+    name: [latitudeName, longitudeName],
+  }) as [number?, number?];
   const [resolving, setResolving] = useState(false);
   const requestRef = useRef(0);
 
   const opts = { shouldDirty: true, shouldValidate: true };
-  const set = (name: FieldPath<T>, value: unknown) => setValue(name, value as PathValue<T, FieldPath<T>>, opts);
+  const set = (name: FieldPath<T>, value: unknown) =>
+    setValue(name, value as PathValue<T, FieldPath<T>>, opts);
 
   const applyPlace = (place: ResolvedPlace, overwriteAddress: boolean) => {
     set(latitudeName, place.latitude);
@@ -86,7 +105,11 @@ export function AddressMapField<T extends FieldValues>({
         )}
       />
       <LocationPickerMap
-        value={hasPosition ? { latitude: latitude!, longitude: longitude! } : undefined}
+        value={
+          hasPosition
+            ? { latitude: latitude!, longitude: longitude! }
+            : undefined
+        }
         onPick={handleMapPick}
         className={mapClassName}
       />
