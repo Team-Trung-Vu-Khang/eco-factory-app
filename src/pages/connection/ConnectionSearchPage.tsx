@@ -1,10 +1,23 @@
-import { Button, useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  useToast,
+} from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { SearchX } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { MATERIAL_CONDITION_LABELS } from "@/features/demand/constants";
+import { PROCESSING_SERVICE_LABELS } from "@/features/factory";
+import { CAPACITY_UNIT_LABELS } from "@/features/machine";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
 import {
+  useCancelConnectionRequest,
   useCreateConnectionRequest,
   useFactorySearch,
   type FactorySearchParams,
@@ -42,6 +55,31 @@ export default function ConnectionSearchPage() {
   const totalElements = search.data?.totalElements ?? results.length;
 
   const [connectingId, setConnectingId] = useState<number>();
+  const cancelMutation = useCancelConnectionRequest();
+  const [cancelTarget, setCancelTarget] =
+    useState<MarketplaceScheduleItem | null>(null);
+
+  const handleCancel = async () => {
+    const reqId = cancelTarget?.myConnectionRequest?.id;
+    if (!reqId) return;
+    try {
+      await cancelMutation.mutateAsync(reqId);
+      toast({
+        title: "Đã hủy",
+        description: `Đã hủy kết nối với ${cancelTarget.profile.name}.`,
+      });
+      setCancelTarget(null);
+    } catch (error) {
+      toast({
+        title: "Không thể hủy",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const [confirmTarget, setConfirmTarget] =
+    useState<MarketplaceScheduleItem | null>(null);
 
   const handleConnect = async (schedule: MarketplaceScheduleItem) => {
     if (!params) return;
@@ -58,6 +96,7 @@ export default function ConnectionSearchPage() {
         technicalRequirement: params.technicalRequirement,
         message: params.message,
       });
+      setConfirmTarget(null);
 
       toast({
         title: "Đã gửi yêu cầu kết nối",
@@ -140,12 +179,117 @@ export default function ConnectionSearchPage() {
                 results={results}
                 mode={isAdmin ? "admin" : "member"}
                 connectingId={connectingId}
-                onConnect={handleConnect}
+                onConnect={setConfirmTarget}
+                onCancel={isAdmin ? undefined : setCancelTarget}
               />
             )}
           </section>
         )}
       </div>
+      <Dialog
+        open={!!confirmTarget}
+        onOpenChange={(o) =>
+          !o && !connectMutation.isPending && setConfirmTarget(null)
+        }
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gửi yêu cầu kết nối?</DialogTitle>
+            <DialogDescription>
+              Nhà máy sẽ nhận được thông tin liên hệ và nhu cầu chế biến của
+              bạn.
+            </DialogDescription>
+          </DialogHeader>
+          {confirmTarget && (
+            <dl className="grid max-h-[50vh] grid-cols-[7rem_1fr] gap-x-3 gap-y-1.5 overflow-y-auto rounded-lg bg-slate-50 px-3 py-2.5 text-sm">
+              {confirmRows(confirmTarget, params).map(([label, value]) => (
+                <div key={label} className="contents">
+                  <dt className="text-slate-500">{label}</dt>
+                  <dd className="whitespace-pre-line break-words text-slate-800">
+                    {value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={connectMutation.isPending}
+              onClick={() => setConfirmTarget(null)}
+            >
+              Hủy
+            </Button>
+            <Button
+              disabled={connectMutation.isPending}
+              onClick={() => confirmTarget && handleConnect(confirmTarget)}
+            >
+              {connectMutation.isPending ? "Đang gửi..." : "Gửi yêu cầu"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={!!cancelTarget}
+        onOpenChange={(o) =>
+          !o && !cancelMutation.isPending && setCancelTarget(null)
+        }
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {cancelTarget?.myConnectionRequest?.status === "SUCCESS"
+                ? "Hủy kết nối?"
+                : "Hủy yêu cầu kết nối?"}
+            </DialogTitle>
+            <DialogDescription>
+              {cancelTarget?.profile.name} · {cancelTarget?.machine.name}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="destructive"
+              disabled={cancelMutation.isPending}
+              onClick={handleCancel}
+            >
+              {cancelMutation.isPending ? "Đang hủy..." : "Hủy"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageWrapper>
   );
+}
+
+/** Nội dung sẽ gửi cho nhà máy — chỉ liệt kê các trường đã nhập */
+function confirmRows(
+  schedule: MarketplaceScheduleItem,
+  p?: FactorySearchParams,
+): [string, string][] {
+  const condition = p?.materialCondition
+    ? (MATERIAL_CONDITION_LABELS[
+        p.materialCondition as keyof typeof MATERIAL_CONDITION_LABELS
+      ] ?? p.materialCondition)
+    : undefined;
+  const services = p?.processingServiceIds
+    ?.map((id) => PROCESSING_SERVICE_LABELS[String(id)] ?? `#${id}`)
+    .join(", ");
+  const unit = p?.capacityUnit
+    ? (CAPACITY_UNIT_LABELS[p.capacityUnit] ?? p.capacityUnit)
+    : "";
+  const rows: [string, string | null | undefined][] = [
+    ["Nhà máy", schedule.profile.name],
+    ["Máy", schedule.machine.name],
+    ["Dịch vụ", services],
+    ["Nông sản", p?.crops?.join(", ")],
+    [
+      "Sản lượng",
+      p?.maxCapacity ? `${p.maxCapacity} ${unit}`.trim() : undefined,
+    ],
+    ["Tình trạng", condition],
+    ["Đóng gói", p?.packagingRequirement],
+    ["Kỹ thuật", p?.technicalRequirement],
+    ["Lời nhắn", p?.message],
+  ];
+  return rows.filter((r): r is [string, string] => !!r[1]);
 }

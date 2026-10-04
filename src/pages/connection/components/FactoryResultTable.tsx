@@ -41,12 +41,15 @@ interface FactoryResultTableProps {
   mode: "admin" | "member";
   connectingId?: number;
   onConnect?: (schedule: MarketplaceScheduleItem) => void;
+  /** Hủy yêu cầu/kết nối hiện có của mình với tin đăng này */
+  onCancel?: (schedule: MarketplaceScheduleItem) => void;
 }
 
 export function FactoryResultTable({
   results,
   connectingId,
   onConnect,
+  onCancel,
 }: FactoryResultTableProps) {
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
@@ -138,7 +141,21 @@ export function FactoryResultTable({
                         Kết nối
                       </Button>
                     ) : (
-                      <ConnectionStatusBadge status={req.status} />
+                      <>
+                        <ConnectionStatusBadge status={req.status} />
+                        {onCancel &&
+                          (req.status === "PENDING" ||
+                            req.status === "SUCCESS") && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                              onClick={() => onCancel(item)}
+                            >
+                              Hủy
+                            </Button>
+                          )}
+                      </>
                     )}
                   </div>
                 </td>

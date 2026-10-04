@@ -1,6 +1,11 @@
 import {
   Button,
-  DeleteDialog,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { DataTable, type Column } from "@/components/common/DataTable";
@@ -182,14 +187,14 @@ export default function ConnectionHistoryPage() {
             key: "actions",
             label: "",
             render: (_: unknown, c: ConnectionRequestItem) =>
-              c.status === "PENDING" ? (
+              c.status === "PENDING" || c.status === "SUCCESS" ? (
                 <Button
                   size="sm"
                   variant="outline"
                   className="h-7 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                   onClick={() => setCancelling(c)}
                 >
-                  Hủy yêu cầu
+                  {c.status === "SUCCESS" ? "Hủy kết nối" : "Hủy yêu cầu"}
                 </Button>
               ) : null,
           },
@@ -238,14 +243,74 @@ export default function ConnectionHistoryPage() {
         downloadable={false}
       />
 
-      <DeleteDialog
+      <Dialog
         open={!!cancelling}
-        onOpenChange={(o) => !o && setCancelling(null)}
-        onConfirm={handleCancelRequest}
-        loading={cancelMutation.isPending}
-        title="Hủy yêu cầu kết nối?"
-        description={`Bạn có chắc muốn hủy yêu cầu kết nối tới "${cancelling?.profile?.name ?? "Nhà máy"}"?`}
-      />
+        onOpenChange={(o) =>
+          !o && !cancelMutation.isPending && setCancelling(null)
+        }
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {cancelling?.status === "SUCCESS"
+                ? "Hủy kết nối?"
+                : "Hủy yêu cầu kết nối?"}
+            </DialogTitle>
+            <DialogDescription>
+              Bạn sắp hủy yêu cầu kết nối dưới đây.
+            </DialogDescription>
+          </DialogHeader>
+          {cancelling && (
+            <dl className="grid max-h-[50vh] grid-cols-[7rem_1fr] gap-x-3 gap-y-1.5 overflow-y-auto rounded-lg bg-slate-50 px-3 py-2.5 text-sm">
+              {requestRows(cancelling).map(([label, value]) => (
+                <div key={label} className="contents">
+                  <dt className="text-slate-500">{label}</dt>
+                  <dd className="whitespace-pre-line break-words text-slate-800">
+                    {value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          <DialogFooter>
+            <Button
+              variant="destructive"
+              disabled={cancelMutation.isPending}
+              onClick={handleCancelRequest}
+            >
+              {cancelMutation.isPending ? "Đang hủy..." : "Hủy yêu cầu"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageWrapper>
   );
+}
+
+/** Thông tin yêu cầu đã gửi — chỉ liệt kê các trường có dữ liệu */
+function requestRows(c: ConnectionRequestItem): [string, string][] {
+  const condition = c.materialCondition
+    ? (MATERIAL_CONDITION_LABELS[
+        c.materialCondition as keyof typeof MATERIAL_CONDITION_LABELS
+      ] ?? c.materialCondition)
+    : undefined;
+  const unit = c.capacityUnit
+    ? (CAPACITY_UNIT_LABELS[c.capacityUnit] ?? c.capacityUnit)
+    : "";
+  const rows: [string, string | null | undefined][] = [
+    ["Nhà máy", c.profile?.name],
+    ["Tin đăng", c.schedule?.title || c.schedule?.machine?.name || undefined],
+    ["Dịch vụ", c.processingServices?.map((s) => s.name).join(", ")],
+    ["Nông sản", c.crops?.join(", ")],
+    [
+      "Sản lượng",
+      c.maxCapacity != null ? `${c.maxCapacity} ${unit}`.trim() : undefined,
+    ],
+    ["Tình trạng", condition],
+    ["Đóng gói", c.packagingRequirement],
+    ["Kỹ thuật", c.technicalRequirement],
+    ["Lời nhắn", c.message],
+    ["Gửi lúc", dayjs(c.requestedAt || c.createdAt).format("DD/MM/YYYY HH:mm")],
+  ];
+  return rows.filter((r): r is [string, string] => !!r[1]);
 }
