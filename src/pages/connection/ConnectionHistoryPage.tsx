@@ -7,6 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  useIsMobile,
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { DataTable, type Column } from "@/components/common/DataTable";
@@ -23,7 +24,9 @@ import {
 } from "@/features/connection";
 import { CAPACITY_UNIT_LABELS } from "@/features/machine";
 import { useIsFactoryAdmin } from "@/features/viewer";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import { ConnectionStatusBadge } from "./components/ConnectionStatusBadge";
+import { MobileConnectionHistory } from "./mobile/MobileConnectionHistory";
 
 const fmt = new Intl.NumberFormat("vi-VN");
 const filters = [
@@ -33,6 +36,10 @@ const filters = [
 export default function ConnectionHistoryPage() {
   const { toast } = useToast();
   const isAdmin = useIsFactoryAdmin();
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+  // Mobile app (farmer): card list with infinite scroll instead of the table
+  const mobileApp = isMobile && mobileUiMode === "app" && !isAdmin;
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [keyword, setKeyword] = useState("");
@@ -57,7 +64,9 @@ export default function ConnectionHistoryPage() {
     status: status || undefined,
   };
 
-  const farmQuery = useMyConnectionRequests(queryParams, { enabled: !isAdmin });
+  const farmQuery = useMyConnectionRequests(queryParams, {
+    enabled: !isAdmin && !mobileApp,
+  });
   const adminQuery = useAdminConnections(queryParams, { enabled: isAdmin });
   const query = isAdmin ? adminQuery : farmQuery;
   const cancelMutation = useCancelConnectionRequest();
@@ -106,8 +115,13 @@ export default function ConnectionHistoryPage() {
       label: "Nhà máy & Tin đăng",
       render: (_, c) => (
         <div className="min-w-48">
-          <ThumbnailLabel src={c.schedule?.machine?.imageUrl} label={c.profile?.name ?? "—"}>
-            <p className="font-medium text-slate-900">{c.profile?.name ?? "—"}</p>
+          <ThumbnailLabel
+            src={c.schedule?.machine?.imageUrl}
+            label={c.profile?.name ?? "—"}
+          >
+            <p className="font-medium text-slate-900">
+              {c.profile?.name ?? "—"}
+            </p>
             <p className="text-xs text-slate-500">
               {c.schedule?.title ||
                 c.schedule?.machine?.name ||
@@ -205,6 +219,57 @@ export default function ConnectionHistoryPage() {
       : []),
   ];
 
+  const cancelDialog = (
+    <Dialog
+      open={!!cancelling}
+      onOpenChange={(o) =>
+        !o && !cancelMutation.isPending && setCancelling(null)
+      }
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {cancelling?.status === "SUCCESS"
+              ? "Hủy kết nối?"
+              : "Hủy yêu cầu kết nối?"}
+          </DialogTitle>
+          <DialogDescription>
+            Bạn sắp hủy yêu cầu kết nối dưới đây.
+          </DialogDescription>
+        </DialogHeader>
+        {cancelling && (
+          <dl className="grid max-h-[50vh] grid-cols-[7rem_1fr] gap-x-3 gap-y-1.5 overflow-y-auto rounded-lg bg-slate-50 px-3 py-2.5 text-sm">
+            {requestRows(cancelling).map(([label, value]) => (
+              <div key={label} className="contents">
+                <dt className="text-slate-500">{label}</dt>
+                <dd className="whitespace-pre-line break-words text-slate-800">
+                  {value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        <DialogFooter>
+          <Button
+            variant="destructive"
+            disabled={cancelMutation.isPending}
+            onClick={handleCancelRequest}
+          >
+            {cancelMutation.isPending ? "Đang hủy..." : "Hủy yêu cầu"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  if (mobileApp)
+    return (
+      <>
+        <MobileConnectionHistory onCancel={setCancelling} />
+        {cancelDialog}
+      </>
+    );
+
   return (
     <PageWrapper
       title="Lịch sử kết nối"
@@ -246,46 +311,7 @@ export default function ConnectionHistoryPage() {
         downloadable={false}
       />
 
-      <Dialog
-        open={!!cancelling}
-        onOpenChange={(o) =>
-          !o && !cancelMutation.isPending && setCancelling(null)
-        }
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {cancelling?.status === "SUCCESS"
-                ? "Hủy kết nối?"
-                : "Hủy yêu cầu kết nối?"}
-            </DialogTitle>
-            <DialogDescription>
-              Bạn sắp hủy yêu cầu kết nối dưới đây.
-            </DialogDescription>
-          </DialogHeader>
-          {cancelling && (
-            <dl className="grid max-h-[50vh] grid-cols-[7rem_1fr] gap-x-3 gap-y-1.5 overflow-y-auto rounded-lg bg-slate-50 px-3 py-2.5 text-sm">
-              {requestRows(cancelling).map(([label, value]) => (
-                <div key={label} className="contents">
-                  <dt className="text-slate-500">{label}</dt>
-                  <dd className="whitespace-pre-line break-words text-slate-800">
-                    {value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          )}
-          <DialogFooter>
-            <Button
-              variant="destructive"
-              disabled={cancelMutation.isPending}
-              onClick={handleCancelRequest}
-            >
-              {cancelMutation.isPending ? "Đang hủy..." : "Hủy yêu cầu"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {cancelDialog}
     </PageWrapper>
   );
 }

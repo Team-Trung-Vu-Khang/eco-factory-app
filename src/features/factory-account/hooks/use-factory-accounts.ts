@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -20,6 +21,24 @@ export function useFactoryAccounts(params: FactoryAccountListParams) {
     queryKey: factoryAccountKeys.list(params),
     queryFn: () => factoryAccountApi.list(params),
     placeholderData: keepPreviousData,
+  });
+}
+
+/** Accounts page by page for infinite scroll (mobile) */
+export function useInfiniteFactoryAccounts(
+  params: Omit<FactoryAccountListParams, "page" | "size">,
+  pageSize = 20,
+) {
+  return useInfiniteQuery({
+    queryKey: [
+      ...factoryAccountKeys.list({ ...params, page: 0, size: pageSize }),
+      "infinite",
+    ],
+    queryFn: ({ pageParam }) =>
+      factoryAccountApi.list({ ...params, page: pageParam, size: pageSize }),
+    initialPageParam: 0,
+    getNextPageParam: (last) =>
+      last.page + 1 < last.totalPages ? last.page + 1 : undefined,
   });
 }
 

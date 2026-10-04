@@ -1,16 +1,30 @@
-import { Button } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { Button, useIsMobile } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { Pencil, Plus } from "lucide-react";
 import { useLocation } from "wouter";
 import { DetailPageSkeleton, EmptyState } from "@/components/common/PageState";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
 import { useMyFactoryProfile } from "@/features/factory";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import { FactoryProfileView } from "./components/detail/FactoryProfileView";
+import {
+  MobileFactoryProfileEmpty,
+  MobileMyFactoryProfile,
+} from "./components/MobileMyFactoryProfile";
 
 /** MEVI_FACTORY_MEMBER: "Hồ sơ nhà máy" is their own factory */
 export default function MyFactoryProfilePage() {
   const [, navigate] = useLocation();
   const { data: profile, isLoading, isError } = useMyFactoryProfile();
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+
+  if (isMobile && mobileUiMode === "app" && !isLoading)
+    return isError || !profile ? (
+      <MobileFactoryProfileEmpty />
+    ) : (
+      <MobileMyFactoryProfile profile={profile} />
+    );
 
   if (isLoading) {
     return (

@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -19,6 +20,26 @@ export function useFactorySearch(params: FactorySearchParams | undefined) {
     queryFn: () => connectionApi.searchMarketplaceSchedules(params!),
     enabled: !!params,
     placeholderData: keepPreviousData,
+  });
+}
+
+/** Same search, page by page for infinite scroll (mobile) */
+export function useInfiniteFactorySearch(
+  params: FactorySearchParams | undefined,
+  pageSize = 10,
+) {
+  return useInfiniteQuery({
+    queryKey: [...connectionKeys.search(params!), "infinite", pageSize],
+    queryFn: ({ pageParam }) =>
+      connectionApi.searchMarketplaceSchedules({
+        ...params!,
+        page: pageParam,
+        size: pageSize,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (last) =>
+      last.page + 1 < last.totalPages ? last.page + 1 : undefined,
+    enabled: !!params,
   });
 }
 
@@ -62,6 +83,30 @@ export function useMyConnectionRequests(
     queryKey: connectionKeys.myList(params),
     queryFn: () => connectionApi.getMyConnectionRequests(params),
     placeholderData: keepPreviousData,
+    enabled: options?.enabled,
+  });
+}
+
+/** Farmer's own requests, page by page for infinite scroll (mobile) */
+export function useInfiniteMyConnectionRequests(
+  params: Omit<ConnectionListParams, "page" | "size">,
+  options?: { enabled?: boolean; pageSize?: number },
+) {
+  const size = options?.pageSize ?? 10;
+  return useInfiniteQuery({
+    queryKey: [
+      ...connectionKeys.myList({ ...params, page: 0, size }),
+      "infinite",
+    ],
+    queryFn: ({ pageParam }) =>
+      connectionApi.getMyConnectionRequests({
+        ...params,
+        page: pageParam,
+        size,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (last) =>
+      last.page + 1 < last.totalPages ? last.page + 1 : undefined,
     enabled: options?.enabled,
   });
 }

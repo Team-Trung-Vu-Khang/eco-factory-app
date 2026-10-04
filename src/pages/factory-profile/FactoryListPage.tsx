@@ -1,11 +1,14 @@
 import {
   Button /*, DeleteDialog */,
+  useIsMobile,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { DataTable } from "@/components/common/DataTable";
 import { Plus } from "lucide-react";
 import PageWrapper from "@/components/common/PageWrapper";
 import { AppLoadingState } from "@/components/common/AppLoadingState";
 import { useFactoryMemberStatus } from "@/features/viewer";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
+import { MobileFactoryList } from "./components/list/MobileFactoryList";
 import MyFactoryProfilePage from "./MyFactoryProfilePage";
 import { factoryColumns } from "./components/list/factory-columns";
 import { useFactoryFilters } from "./components/list/factory-filters";
@@ -14,7 +17,18 @@ import { useFactoryListPage } from "./hooks/useFactoryListPage";
 export default function FactoryListPage() {
   const isMember = useFactoryMemberStatus();
   if (isMember === undefined) return <AppLoadingState />;
-  return isMember ? <MyFactoryProfilePage /> : <FactoryList />;
+  return isMember ? <MyFactoryProfilePage /> : <FactoryListSwitch />;
+}
+
+/** Mobile app gets the card list; desktop keeps the table */
+function FactoryListSwitch() {
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+  return isMobile && mobileUiMode === "app" ? (
+    <MobileFactoryList />
+  ) : (
+    <FactoryList />
+  );
 }
 
 function FactoryList() {

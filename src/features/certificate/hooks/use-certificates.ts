@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -32,6 +33,33 @@ export function useCertificate(id: string | number | undefined) {
     queryFn: () =>
       isAdmin ? certificateApi.adminGet(id!) : certificateApi.get(id!),
     enabled: id !== undefined && id !== "",
+  });
+}
+
+/** Own workspace certificates page by page for infinite scroll (mobile, member) */
+export function useInfiniteCertificates(
+  params: Omit<CertificateListParams, "page" | "size">,
+  options?: { admin?: boolean; pageSize?: number },
+) {
+  const pageSize = options?.pageSize ?? 10;
+  const admin = !!options?.admin;
+  return useInfiniteQuery({
+    queryKey: [
+      ...(admin
+        ? certificateKeys.adminList({ ...params, page: 0, size: pageSize })
+        : certificateKeys.list({ ...params, page: 0, size: pageSize })),
+      "infinite",
+    ],
+    // Admin → all factories (/api/admin/factory/certificates)
+    queryFn: ({ pageParam }) =>
+      (admin ? certificateApi.adminList : certificateApi.list)({
+        ...params,
+        page: pageParam,
+        size: pageSize,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (last) =>
+      last.page + 1 < last.totalPages ? last.page + 1 : undefined,
   });
 }
 

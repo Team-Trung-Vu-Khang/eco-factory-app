@@ -32,3 +32,39 @@
 [data-radix-popper-content-wrapper] > * {
   max-width: var(--radix-popper-available-width, 100vw);
 }
+
+/* Factory search landing (mobile app) */
+@keyframes fsl-sheet-in {
+  from { transform: translateY(32px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fsl-kenburns {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
+}
+.fsl-sheet { animation: fsl-sheet-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
+.fsl-kenburns { animation: fsl-kenburns 1.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .fsl-sheet, .fsl-kenburns { animation: none; }
+}
+.fsl-landscape { animation: fsl-sheet-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both; }
+@media (prefers-reduced-motion: reduce) {
+  .fsl-landscape { animation: none; }
+}
+@keyframes fsl-card-in {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.fsl-card-in { animation: fsl-card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .fsl-card-in { animation: none; }
+}
+/* Dialog shown as a bottom sheet on the mobile app */
+@keyframes fsl-sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.fsl-bottom-sheet[data-state="open"] { animation: fsl-sheet-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .fsl-bottom-sheet[data-state="open"] { animation: none; }
+}

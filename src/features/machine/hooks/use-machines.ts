@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -11,6 +12,24 @@ import {
   machineKeys,
 } from "../api/machine.api";
 import type { FactoryMachineInput, FactoryMachineListParams } from "../types";
+
+/** Own workspace machines page by page for infinite scroll (mobile, member) */
+export function useInfiniteFactoryMachines(
+  params: Omit<FactoryMachineListParams, "page" | "size">,
+  pageSize = 10,
+) {
+  return useInfiniteQuery({
+    queryKey: [
+      ...machineKeys.list({ ...params, page: 0, size: pageSize }),
+      "infinite",
+    ],
+    queryFn: ({ pageParam }) =>
+      factoryMachineApi.list({ ...params, page: pageParam, size: pageSize }),
+    initialPageParam: 0,
+    getNextPageParam: (last) =>
+      last.page + 1 < last.totalPages ? last.page + 1 : undefined,
+  });
+}
 
 export function useFactoryMachines(
   params: FactoryMachineListParams,

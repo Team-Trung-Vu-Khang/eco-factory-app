@@ -57,6 +57,10 @@ interface ScheduleFormProps {
   isSubmitting?: boolean;
   onSubmit: (values: ScheduleFormValues) => Promise<boolean>;
   onCancelEdit?: () => void;
+  /** Lets an outside button submit via `form={formId}` */
+  formId?: string;
+  /** Hide the built-in button row (the caller renders its own) */
+  hideActions?: boolean;
 }
 
 export function ScheduleForm({
@@ -65,6 +69,8 @@ export function ScheduleForm({
   isSubmitting,
   onSubmit,
   onCancelEdit,
+  formId,
+  hideActions,
 }: ScheduleFormProps) {
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(scheduleSchema),
@@ -165,6 +171,7 @@ export function ScheduleForm({
   return (
     <Form {...form}>
       <form
+        id={formId}
         onSubmit={submit}
         className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
       >
@@ -242,7 +249,7 @@ export function ScheduleForm({
             />
           </div>
         </FormSection>
-        <div className="flex justify-end gap-2">
+        <div className={hideActions ? "hidden" : "flex justify-end gap-2"}>
           {editingSchedule && (
             <Button
               type="button"

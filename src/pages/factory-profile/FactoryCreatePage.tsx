@@ -1,8 +1,9 @@
-import { useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { useIsMobile, useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { useLocation } from "wouter";
 import { BackButton } from "@/components/common/BackButton";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import {
   EMPTY_FACTORY_PROFILE,
   toFactoryProfileSubmitInput,
@@ -14,6 +15,9 @@ import { FactoryStepperForm } from "./components/form/FactoryStepperForm";
 export default function FactoryCreatePage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+  const mobileApp = isMobile && mobileUiMode === "app";
   const submitProfile = useSubmitFactoryProfile();
 
   const handleSubmit = async (values: FactoryProfileFormValues) => {
@@ -34,6 +38,20 @@ export default function FactoryCreatePage() {
     }
   };
 
+  const form = (
+    <FactoryStepperForm
+      title="Thiết lập hồ sơ nhà máy"
+      defaultValues={EMPTY_FACTORY_PROFILE}
+      submitLabel="Gửi duyệt hồ sơ"
+      isSubmitting={submitProfile.isPending}
+      onSubmit={handleSubmit}
+      onCancel={() => navigate(ROUTES.profile)}
+    />
+  );
+
+  // Mobile app: the form brings its own banner/title — no PageWrapper header or padding
+  if (mobileApp) return form;
+
   return (
     <PageWrapper
       title="Thiết lập hồ sơ nhà máy"
@@ -41,13 +59,7 @@ export default function FactoryCreatePage() {
       overflow="visible"
       actions={<BackButton to={ROUTES.profile} />}
     >
-      <FactoryStepperForm
-        defaultValues={EMPTY_FACTORY_PROFILE}
-        submitLabel="Gửi duyệt hồ sơ"
-        isSubmitting={submitProfile.isPending}
-        onSubmit={handleSubmit}
-        onCancel={() => navigate(ROUTES.profile)}
-      />
+      {form}
     </PageWrapper>
   );
 }

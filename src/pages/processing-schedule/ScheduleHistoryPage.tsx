@@ -1,6 +1,7 @@
 import {
   Button,
   DeleteDialog,
+  useIsMobile,
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { DataTable, type Column } from "@/components/common/DataTable";
@@ -14,6 +15,8 @@ import {
   type ScheduleRow,
 } from "@/features/processing-schedule";
 import { useFactoryFilter } from "./components/useFactoryFilter";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
+import { MobileScheduleList } from "./components/MobileScheduleList";
 import { scheduleColumns } from "./components/schedule-columns";
 
 export default function ScheduleHistoryPage() {
@@ -36,6 +39,10 @@ export default function ScheduleHistoryPage() {
   // Admin: every factory (filterable) · factory: its own posts only
   const factoryOptions = useFactoryFilter();
   const isAdmin = factoryOptions.isAdmin;
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+  // Mobile app (factory member): history as cards with status chips
+  const mobileApp = isMobile && mobileUiMode === "app";
   const [factoryId, setFactoryId] = useState<string | undefined>();
 
   const queryParams = {
@@ -48,8 +55,12 @@ export default function ScheduleHistoryPage() {
       : undefined,
   };
 
-  const memberQuery = useSchedules(queryParams, { enabled: !isAdmin });
-  const adminQuery = useAdminSchedules(queryParams, { enabled: isAdmin });
+  const memberQuery = useSchedules(queryParams, {
+    enabled: !isAdmin && !mobileApp,
+  });
+  const adminQuery = useAdminSchedules(queryParams, {
+    enabled: isAdmin && !mobileApp,
+  });
   const query = isAdmin ? adminQuery : memberQuery;
   const close = useCloseSchedule();
 
@@ -82,6 +93,46 @@ export default function ScheduleHistoryPage() {
             ),
         },
       ];
+
+  const closeDialog = (
+    <DeleteDialog
+      open={!!closing}
+      onOpenChange={(o) => !o && setClosing(null)}
+      onConfirm={async () => {
+        if (!closing) return;
+        try {
+          await close.mutateAsync(closing.id);
+          toast({
+            title: "Đã đóng tin",
+            description: `${closing.machine?.name ?? "Máy"} không còn nhận kết nối mới.`,
+          });
+          setClosing(null);
+        } catch (error) {
+          toast({
+            title: "Không thể đóng tin",
+            description: (error as Error).message,
+            variant: "destructive",
+          });
+        }
+      }}
+      loading={close.isPending}
+      title="Đóng tin đăng?"
+      description={`Đóng lịch nhận chế biến của "${closing?.machine?.name ?? ""}"? Nông hộ sẽ không tìm thấy lịch này nữa.`}
+    />
+  );
+
+  if (mobileApp)
+    return (
+      <>
+        <MobileScheduleList
+          variant="history"
+          admin={isAdmin}
+          // Admin history is view-only, as on desktop
+          onClose={isAdmin ? undefined : setClosing}
+        />
+        {closeDialog}
+      </>
+    );
 
   return (
     <PageWrapper
@@ -120,30 +171,7 @@ export default function ScheduleHistoryPage() {
         downloadable={false}
       />
 
-      <DeleteDialog
-        open={!!closing}
-        onOpenChange={(o) => !o && setClosing(null)}
-        onConfirm={async () => {
-          if (!closing) return;
-          try {
-            await close.mutateAsync(closing.id);
-            toast({
-              title: "Đã đóng tin",
-              description: `${closing.machine?.name ?? "Máy"} không còn nhận kết nối mới.`,
-            });
-            setClosing(null);
-          } catch (error) {
-            toast({
-              title: "Không thể đóng tin",
-              description: (error as Error).message,
-              variant: "destructive",
-            });
-          }
-        }}
-        loading={close.isPending}
-        title="Đóng tin đăng?"
-        description={`Đóng lịch nhận chế biến của "${closing?.machine?.name ?? ""}"? Nông hộ sẽ không tìm thấy lịch này nữa.`}
-      />
+      {closeDialog}
     </PageWrapper>
   );
 }

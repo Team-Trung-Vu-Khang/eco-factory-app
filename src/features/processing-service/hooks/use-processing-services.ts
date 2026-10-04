@@ -50,12 +50,17 @@ export const fetchProcessingServiceOptions = (keyword = "") =>
     staleTime: 30_000,
   });
 
-export function useProcessingServiceOptions() {
-  const { data } = useQuery({
+/** Active services (public, with imageUrl), cached 30s */
+export function useActiveProcessingServices() {
+  return useQuery({
     queryKey: [...processingServiceKeys.all, "all"],
     queryFn: processingServiceApi.all,
     staleTime: 30_000,
   });
+}
+
+export function useProcessingServiceOptions() {
+  const { data } = useActiveProcessingServices();
   return (data ?? []).map((s) => ({ value: String(s.id), label: s.name }));
 }
 

@@ -1,6 +1,7 @@
 import {
   Button,
   DeleteDialog,
+  useIsMobile,
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { DataTable, type Column } from "@/components/common/DataTable";
@@ -19,6 +20,9 @@ import {
 } from "@/features/processing-schedule";
 import { useFactoryFilter } from "./components/useFactoryFilter";
 import { scheduleColumns } from "./components/schedule-columns";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
+import { MobileScheduleFormScreen } from "./components/MobileScheduleFormScreen";
+import { MobileScheduleList } from "./components/MobileScheduleList";
 import { ScheduleForm } from "./components/ScheduleForm";
 
 /** "Đăng tin": post a processing window + manage the ones still open */
@@ -41,6 +45,12 @@ export default function ProcessingSchedulePage() {
   // Admin: every factory (filterable) · factory: its own posts only
   const factoryFilter = useFactoryFilter();
   const isAdmin = factoryFilter.isAdmin;
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+  // Mobile app (factory member): card list + full-screen form
+  const mobileApp = isMobile && mobileUiMode === "app";
+  // Arriving with ?machineId (from a machine) → open the form straight away
+  const [mobileFormOpen, setMobileFormOpen] = useState(() => !!machineId);
   const [factoryId, setFactoryId] = useState<string | undefined>();
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
@@ -65,8 +75,12 @@ export default function ProcessingSchedulePage() {
       : undefined,
   };
 
-  const memberQuery = useSchedules(queryParams, { enabled: !isAdmin });
-  const adminQuery = useAdminSchedules(queryParams, { enabled: isAdmin });
+  const memberQuery = useSchedules(queryParams, {
+    enabled: !isAdmin && !mobileApp,
+  });
+  const adminQuery = useAdminSchedules(queryParams, {
+    enabled: isAdmin && !mobileApp,
+  });
   const activeQuery = isAdmin ? adminQuery : memberQuery;
   const active = activeQuery.data?.content ?? [];
   const totalElements = activeQuery.data?.totalElements ?? active.length;
@@ -159,59 +173,8 @@ export default function ProcessingSchedulePage() {
     }
   };
 
-  return (
-    <PageWrapper
-      title="Lịch nhận chế biến"
-      description="Đăng lịch nhận chế biến theo từng đợt cho máy / dây chuyền"
-    >
-      <div className="space-y-6">
-        {!isAdmin && (
-          <div ref={formRef}>
-            <ScheduleForm
-              machineId={machineId}
-              editingSchedule={editingSchedule}
-              isSubmitting={create.isPending || update.isPending}
-              onSubmit={handleSubmit}
-              onCancelEdit={() => setEditingSchedule(null)}
-            />
-          </div>
-        )}
-
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-slate-900">
-            Tin đang mở ({totalElements})
-          </h2>
-          <DataTable
-            columns={columns}
-            data={active}
-            loading={activeQuery.isFetching}
-            searchable
-            searchPlaceholder="Tìm theo máy, nhà máy, tiêu đề..."
-            onSearch={(val) => {
-              setKeyword(val);
-              setPage(0);
-            }}
-            // Admin sees every factory's posts — filter by factory
-            filters={isAdmin ? [factoryFilter.filter] : undefined}
-            onFilterChange={(_key, value) => {
-              setFactoryId(value && value !== "all" ? value : undefined);
-              setPage(0);
-            }}
-            pageSize={size}
-            currentIndex={page + 1}
-            totalElements={totalElements}
-            totalPages={totalPages}
-            onPageSize={(s) => {
-              setSize(s);
-              setPage(0);
-            }}
-            onIndexChange={(index) => setPage(Math.max(0, index - 1))}
-            columnToggleable={false}
-            downloadable={false}
-          />
-        </section>
-      </div>
-
+  const dialogs = (
+    <>
       <DeleteDialog
         open={!!closing}
         onOpenChange={(o) => !o && setClosing(null)}
@@ -272,6 +235,106 @@ export default function ProcessingSchedulePage() {
         title="Xóa tin đăng?"
         description={`Xóa vĩnh viễn lịch nhận chế biến của "${deleting?.machine?.name ?? ""}" khỏi hệ thống?`}
       />
+    </>
+  );
+
+  if (mobileApp)
+    return (
+      <>
+        {mobileFormOpen ? (
+          <MobileScheduleFormScreen
+            key={editingSchedule?.id ?? "new"}
+            machineId={editingSchedule ? undefined : machineId}
+            editingSchedule={editingSchedule}
+            isSubmitting={create.isPending || update.isPending}
+            onSubmit={handleSubmit}
+            onClose={() => {
+              setMobileFormOpen(false);
+              setEditingSchedule(null);
+            }}
+          />
+        ) : (
+          <MobileScheduleList
+            admin={isAdmin}
+            // Admin: view + delete only (same as desktop); factory: post, edit, close
+            onCreate={
+              isAdmin
+                ? undefined
+                : () => {
+                    setEditingSchedule(null);
+                    setMobileFormOpen(true);
+                  }
+            }
+            onEdit={
+              isAdmin
+                ? undefined
+                : (s) => {
+                    setEditingSchedule(s);
+                    setMobileFormOpen(true);
+                  }
+            }
+            onClose={isAdmin ? undefined : setClosing}
+            onDelete={isAdmin ? setDeleting : undefined}
+          />
+        )}
+        {dialogs}
+      </>
+    );
+
+  return (
+    <PageWrapper
+      title="Lịch nhận chế biến"
+      description="Đăng lịch nhận chế biến theo từng đợt cho máy / dây chuyền"
+    >
+      <div className="space-y-6">
+        {!isAdmin && (
+          <div ref={formRef}>
+            <ScheduleForm
+              machineId={machineId}
+              editingSchedule={editingSchedule}
+              isSubmitting={create.isPending || update.isPending}
+              onSubmit={handleSubmit}
+              onCancelEdit={() => setEditingSchedule(null)}
+            />
+          </div>
+        )}
+
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Tin đang mở ({totalElements})
+          </h2>
+          <DataTable
+            columns={columns}
+            data={active}
+            loading={activeQuery.isFetching}
+            searchable
+            searchPlaceholder="Tìm theo máy, nhà máy, tiêu đề..."
+            onSearch={(val) => {
+              setKeyword(val);
+              setPage(0);
+            }}
+            // Admin sees every factory's posts — filter by factory
+            filters={isAdmin ? [factoryFilter.filter] : undefined}
+            onFilterChange={(_key, value) => {
+              setFactoryId(value && value !== "all" ? value : undefined);
+              setPage(0);
+            }}
+            pageSize={size}
+            currentIndex={page + 1}
+            totalElements={totalElements}
+            totalPages={totalPages}
+            onPageSize={(s) => {
+              setSize(s);
+              setPage(0);
+            }}
+            onIndexChange={(index) => setPage(Math.max(0, index - 1))}
+            columnToggleable={false}
+            downloadable={false}
+          />
+        </section>
+      </div>
+
+      {dialogs}
     </PageWrapper>
   );
 }

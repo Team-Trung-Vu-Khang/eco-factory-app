@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -25,6 +26,28 @@ export function useAdminFactoryProfiles(params: AdminFactoryProfileListParams) {
     queryKey: factoryProfileKeys.adminList(params),
     queryFn: () => factoryProfileApi.adminList(params),
     placeholderData: keepPreviousData,
+  });
+}
+
+/** Admin profile list page by page for infinite scroll (mobile) */
+export function useInfiniteAdminFactoryProfiles(
+  params: Omit<AdminFactoryProfileListParams, "page" | "size">,
+  pageSize = 10,
+) {
+  return useInfiniteQuery({
+    queryKey: [
+      ...factoryProfileKeys.adminList({ ...params, page: 0, size: pageSize }),
+      "infinite",
+    ],
+    queryFn: ({ pageParam }) =>
+      factoryProfileApi.adminList({
+        ...params,
+        page: pageParam,
+        size: pageSize,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (last) =>
+      last.page + 1 < last.totalPages ? last.page + 1 : undefined,
   });
 }
 

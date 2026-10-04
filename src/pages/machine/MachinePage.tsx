@@ -1,6 +1,7 @@
 import {
   Button,
   DeleteDialog,
+  useIsMobile,
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { DataTable } from "@/components/common/DataTable";
@@ -26,7 +27,10 @@ import {
   machineColumns,
   machineFilters,
 } from "./components/machine-columns";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import { MachineFormDialog } from "./components/MachineFormDialog";
+import { MobileMachineForm } from "./components/MobileMachineForm";
+import { MobileMachineList } from "./components/MobileMachineList";
 import type { MachineDialogValues } from "./components/machine-form-schema";
 
 const toDialogValues = (m: FactoryMachineItem): MachineDialogValues => ({
@@ -65,6 +69,10 @@ export default function MachinePage() {
   }, [keyword]);
 
   const isAdmin = useIsFactoryAdmin();
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+  // Mobile app (factory member): card list + full-screen form, no table/dialog
+  const mobileApp = isMobile && mobileUiMode === "app" && !isAdmin;
   const { options: factoryOptions } = useFactoryOptions();
   const processingServiceOptions = useProcessingServiceOptions();
   const productGroupOptions = useProductGroupOptions();
@@ -86,7 +94,9 @@ export default function MachinePage() {
     [page, size, debouncedKeyword, filters],
   );
 
-  const memberQuery = useFactoryMachines(queryParams, { enabled: !isAdmin });
+  const memberQuery = useFactoryMachines(queryParams, {
+    enabled: !isAdmin && !mobileApp,
+  });
   const adminQuery = useAdminFactoryMachines(queryParams, { enabled: isAdmin });
   const query = isAdmin ? adminQuery : memberQuery;
 
@@ -205,6 +215,47 @@ export default function MachinePage() {
     }
   };
 
+  const deleteDialog = (
+    <DeleteDialog
+      open={!!deleting}
+      onOpenChange={(open) => !open && setDeleting(null)}
+      onConfirm={handleConfirmDelete}
+      loading={isDeleting}
+      description={`Bạn có chắc chắn muốn xóa máy "${deleting?.name ?? ""}" (Mã: ${deleting?.code ?? ""}) không?`}
+    />
+  );
+
+  if (mobileApp)
+    return (
+      <>
+        {formOpen ? (
+          <MobileMachineForm
+            key={editing?.id ?? "new"}
+            initialValues={editingValues}
+            isSubmitting={isSubmitting}
+            onSubmit={handleSubmit}
+            onClose={() => {
+              setFormOpen(false);
+              setEditing(null);
+            }}
+          />
+        ) : (
+          <MobileMachineList
+            onCreate={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+            onEdit={(m) => {
+              setEditing(m);
+              setFormOpen(true);
+            }}
+            onDelete={setDeleting}
+          />
+        )}
+        {deleteDialog}
+      </>
+    );
+
   return (
     <PageWrapper
       title="Máy & Dây chuyền"
@@ -276,13 +327,7 @@ export default function MachinePage() {
         onSubmit={handleSubmit}
       />
 
-      <DeleteDialog
-        open={!!deleting}
-        onOpenChange={(open) => !open && setDeleting(null)}
-        onConfirm={handleConfirmDelete}
-        loading={isDeleting}
-        description={`Bạn có chắc chắn muốn xóa máy "${deleting?.name ?? ""}" (Mã: ${deleting?.code ?? ""}) không?`}
-      />
+      {deleteDialog}
     </PageWrapper>
   );
 }

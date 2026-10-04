@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   Switch,
+  useIsMobile,
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { DataTable, type Column } from "@/components/common/DataTable";
@@ -27,7 +28,12 @@ import {
   type FactoryAccountStatus,
 } from "@/features/factory-account";
 import { useIsFactoryAdmin } from "@/features/viewer";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import { FactoryAccountFormDialog } from "./components/FactoryAccountFormDialog";
+import {
+  MobileFactoryAccountForm,
+  MobileFactoryAccountList,
+} from "./components/MobileFactoryAccounts";
 
 /** Helper format SĐT từ dạng 84xxxxxxxxx sang 0xxxxxxxxx */
 const formatPhoneNumber = (phone?: string | null): string => {
@@ -69,6 +75,10 @@ const toFormValues = (
 export default function FactoryAccountPage() {
   const { toast } = useToast();
   const isFactoryAdmin = useIsFactoryAdmin();
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+  // Mobile app: card list + full-screen form instead of table + dialog
+  const mobileApp = isMobile && mobileUiMode === "app";
 
   // State phân trang & tìm kiếm
   const [page, setPage] = useState(0);
@@ -325,6 +335,82 @@ export default function FactoryAccountPage() {
     };
   }, [editingAccount]);
 
+  const statusDialog = (
+    <Dialog
+      open={!!statusTarget}
+      onOpenChange={(o) => !o && !setStatus.isPending && setStatusTarget(null)}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {statusTarget?.active
+              ? "Kích hoạt tài khoản?"
+              : "Tạm dừng tài khoản?"}
+          </DialogTitle>
+          <DialogDescription>
+            {statusTarget?.active
+              ? `Tài khoản "${statusTarget?.account.fullName}" sẽ có thể đăng nhập và thao tác trở lại.`
+              : `Tài khoản "${statusTarget?.account.fullName}" sẽ không thể đăng nhập cho đến khi được kích hoạt lại.`}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            disabled={setStatus.isPending}
+            onClick={() => setStatusTarget(null)}
+          >
+            Hủy
+          </Button>
+          <Button
+            variant={statusTarget?.active ? "default" : "destructive"}
+            disabled={setStatus.isPending}
+            onClick={() =>
+              statusTarget &&
+              toggleStatus(statusTarget.account, statusTarget.active)
+            }
+          >
+            {setStatus.isPending
+              ? "Đang cập nhật..."
+              : statusTarget?.active
+                ? "Kích hoạt"
+                : "Tạm dừng"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
+  if (mobileApp)
+    return (
+      <>
+        {formOpen ? (
+          <MobileFactoryAccountForm
+            key={editingAccount?.id ?? "new"}
+            initialValues={
+              editingAccount ? toFormValues(editingAccount) : undefined
+            }
+            initialWorkspaceOption={initialWorkspaceOption}
+            isSubmitting={isSubmitting}
+            onSubmit={handleSubmit}
+            onClose={() => {
+              setFormOpen(false);
+              setEditingAccount(null);
+            }}
+          />
+        ) : (
+          <MobileFactoryAccountList
+            formatPhone={formatPhoneNumber}
+            isLocked={(a) => isTargetAdminAccount(a) && isFactoryAdmin}
+            togglePending={setStatus.isPending}
+            onCreate={handleOpenCreate}
+            onEdit={handleOpenEdit}
+            onToggle={(account, active) => setStatusTarget({ account, active })}
+          />
+        )}
+        {statusDialog}
+      </>
+    );
+
   return (
     <PageWrapper
       title="Quản lý tài khoản nhà máy"
@@ -371,50 +457,7 @@ export default function FactoryAccountPage() {
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
       />
-      <Dialog
-        open={!!statusTarget}
-        onOpenChange={(o) =>
-          !o && !setStatus.isPending && setStatusTarget(null)
-        }
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {statusTarget?.active
-                ? "Kích hoạt tài khoản?"
-                : "Tạm dừng tài khoản?"}
-            </DialogTitle>
-            <DialogDescription>
-              {statusTarget?.active
-                ? `Tài khoản "${statusTarget?.account.fullName}" sẽ có thể đăng nhập và thao tác trở lại.`
-                : `Tài khoản "${statusTarget?.account.fullName}" sẽ không thể đăng nhập cho đến khi được kích hoạt lại.`}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              disabled={setStatus.isPending}
-              onClick={() => setStatusTarget(null)}
-            >
-              Hủy
-            </Button>
-            <Button
-              variant={statusTarget?.active ? "default" : "destructive"}
-              disabled={setStatus.isPending}
-              onClick={() =>
-                statusTarget &&
-                toggleStatus(statusTarget.account, statusTarget.active)
-              }
-            >
-              {setStatus.isPending
-                ? "Đang cập nhật..."
-                : statusTarget?.active
-                  ? "Kích hoạt"
-                  : "Tạm dừng"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {statusDialog}
     </PageWrapper>
   );
 }

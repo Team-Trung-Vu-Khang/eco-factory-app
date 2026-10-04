@@ -1,6 +1,7 @@
 import {
   Button,
   cn,
+  useIsMobile,
   useToast,
   Dialog,
   DialogContent,
@@ -29,6 +30,7 @@ import { CAPACITY_UNIT_LABELS } from "@/features/machine";
 import type { ScheduleRow } from "@/features/processing-schedule";
 import { useIsFactoryAdmin } from "@/features/viewer";
 import { ConnectionStatusBadge } from "@/pages/connection/components/ConnectionStatusBadge";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import { ResolveDialog } from "@/pages/connection/components/ResolveDialog";
 
 const fmt = new Intl.NumberFormat("vi-VN");
@@ -61,6 +63,10 @@ export function ScheduleConnectionsButton({
   const { toast } = useToast();
   // Admin: view only — resolving is the factory's job
   const isAdmin = useIsFactoryAdmin();
+  // Mobile app: show as a bottom sheet instead of a centered dialog
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+  const sheet = isMobile && mobileUiMode === "app";
   const acceptMutation = useAcceptConnectionRequest();
   const [resolving, setResolving] = useState<{
     request: ConnectionRequestItem;
@@ -112,8 +118,22 @@ export function ScheduleConnectionsButton({
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent
+          className={
+            sheet
+              ? "fsl-bottom-sheet !top-auto !bottom-0 !left-0 !max-w-none w-full !translate-x-0 !translate-y-0 gap-0 rounded-b-none rounded-t-3xl border-0 bg-[#f7f5ee] p-0 pb-[env(safe-area-inset-bottom)]"
+              : "max-w-2xl"
+          }
+        >
+          {sheet && (
+            <span
+              aria-hidden
+              className="mx-auto mt-2.5 block h-1.5 w-10 rounded-full bg-slate-300"
+            />
+          )}
+          <DialogHeader
+            className={sheet ? "px-5 pb-3 pt-3 text-left" : undefined}
+          >
             <DialogTitle>
               Yêu cầu kết nối ({data?.totalElements ?? requests.length})
             </DialogTitle>
@@ -123,7 +143,13 @@ export function ScheduleConnectionsButton({
               {dayjs(schedule.endDate).format("DD/MM/YYYY")}
             </DialogDescription>
           </DialogHeader>
-          <ul className="-mx-1 max-h-[65vh] space-y-3 overflow-y-auto px-1 py-1">
+          <ul
+            className={
+              sheet
+                ? "max-h-[72dvh] space-y-3 overflow-y-auto overscroll-contain px-4 pb-4"
+                : "-mx-1 max-h-[65vh] space-y-3 overflow-y-auto px-1 py-1"
+            }
+          >
             {isLoading ? (
               <li className="py-6 text-center text-sm text-slate-500">
                 Đang tải danh sách yêu cầu...
@@ -136,7 +162,12 @@ export function ScheduleConnectionsButton({
               requests.map((c) => (
                 <li
                   key={c.id}
-                  className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+                  className={cn(
+                    "overflow-hidden bg-white",
+                    sheet
+                      ? "rounded-2xl shadow-[0_2px_12px_rgba(20,83,45,0.06)] ring-1 ring-emerald-900/5"
+                      : "rounded-xl border border-slate-200",
+                  )}
                 >
                   {/* Người gửi + trạng thái */}
                   <div className="flex items-start gap-3 px-4 pt-4">
@@ -166,7 +197,7 @@ export function ScheduleConnectionsButton({
                     <ConnectionStatusBadge status={c.status} />
                   </div>
 
-                  <RequestDetails request={c} />
+                  <RequestDetails request={c} wrapCrops={sheet} />
 
                   {(c.resultNote || c.rejectReason) && (
                     <div className="mx-4 mb-4 rounded-lg bg-slate-50 px-3 py-2 text-sm">
@@ -185,19 +216,42 @@ export function ScheduleConnectionsButton({
                     </div>
                   )}
 
-                  {c.status === "PENDING" && !isAdmin && (
-                    <div className="flex justify-end border-t border-slate-100 bg-slate-50/60 px-4 py-2.5">
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          setResolving({ request: c, status: "SUCCESS" })
-                        }
-                      >
-                        <Check className="mr-1.5 h-4 w-4" />
-                        Xác nhận kết nối
-                      </Button>
-                    </div>
-                  )}
+                  {c.status === "PENDING" &&
+                    !isAdmin &&
+                    (sheet ? (
+                      // Mobile: big thumb-friendly actions — call first, then confirm
+                      <div className="flex gap-2 border-t border-slate-100 px-4 py-3">
+                        {c.contactPhone && (
+                          <a
+                            href={`tel:${c.contactPhone}`}
+                            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-800 active:scale-[0.98]"
+                          >
+                            <Phone className="h-4 w-4" /> Gọi
+                          </a>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setResolving({ request: c, status: "SUCCESS" })
+                          }
+                          className="flex h-11 flex-[2] items-center justify-center gap-1.5 rounded-xl bg-[#14532d] text-sm font-semibold text-white shadow-md shadow-emerald-900/20 active:scale-[0.98]"
+                        >
+                          <Check className="h-4 w-4" /> Xác nhận kết nối
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex justify-end border-t border-slate-100 bg-slate-50/60 px-4 py-2.5">
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            setResolving({ request: c, status: "SUCCESS" })
+                          }
+                        >
+                          <Check className="mr-1.5 h-4 w-4" />
+                          Xác nhận kết nối
+                        </Button>
+                      </div>
+                    ))}
                 </li>
               ))
             )}
@@ -217,7 +271,14 @@ export function ScheduleConnectionsButton({
 }
 
 /** Nhu cầu của nông hộ: nông sản + sản lượng nổi bật, yêu cầu phụ dạng chip */
-function RequestDetails({ request: c }: { request: ConnectionRequestItem }) {
+function RequestDetails({
+  request: c,
+  wrapCrops,
+}: {
+  request: ConnectionRequestItem;
+  /** Mobile: let a long crop list wrap instead of truncating */
+  wrapCrops?: boolean;
+}) {
   const condition = c.materialCondition
     ? (MATERIAL_CONDITION_LABELS[
         c.materialCondition as keyof typeof MATERIAL_CONDITION_LABELS
@@ -239,7 +300,12 @@ function RequestDetails({ request: c }: { request: ConnectionRequestItem }) {
             <p className="text-[11px] uppercase tracking-wide text-emerald-700/70">
               Nông sản
             </p>
-            <p className="truncate font-semibold text-slate-900">
+            <p
+              className={cn(
+                "font-semibold text-slate-900",
+                wrapCrops ? "break-words leading-snug" : "truncate",
+              )}
+            >
               {crops ?? "Chưa chọn"}
             </p>
           </div>

@@ -1,10 +1,10 @@
-import { ImageIcon } from "lucide-react";
+import placeholderImage from "@/assets/images/image-placeholder.webp";
 import { useState } from "react";
 import { ImagePreview } from "./ImagePreview";
 
 const SIZES = { sm: "h-8 w-8", md: "h-10 w-10", lg: "h-16 w-16" } as const;
 
-/** Square image preview for catalog items; falls back to an icon when missing or broken */
+/** Square image preview for catalog items; falls back to the default placeholder when missing or broken */
 export function Thumbnail({
   src,
   alt,
@@ -23,11 +23,7 @@ export function Thumbnail({
   const box = `${SIZES[size]} shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-50 ${className}`;
 
   if (!src || broken)
-    return (
-      <div className={`${box} flex items-center justify-center text-slate-300`} aria-hidden>
-        <ImageIcon className="h-1/2 w-1/2" />
-      </div>
-    );
+    return <img src={placeholderImage} alt="" aria-hidden className={`${box} block object-cover`} />;
   const img = (
     <img
       src={src}

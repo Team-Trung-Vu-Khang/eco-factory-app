@@ -1,3 +1,4 @@
+import { useIsMobile } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import PageWrapper from "@/components/common/PageWrapper";
 import { useAdminDashboardSummary } from "@/features/dashboard";
 import { scheduleApi, scheduleKeys } from "@/features/processing-schedule";
@@ -7,6 +8,8 @@ import {
   DashboardError,
   DashboardSkeleton,
 } from "./components";
+import { MobileDashboard } from "./components/MobileDashboard";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 
 export default function DashboardPage() {
   const {
@@ -34,6 +37,19 @@ export default function DashboardPage() {
   };
 
   const latestSchedule = schedulePage?.content?.[0] || null;
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+
+  if (isMobile && mobileUiMode === "app")
+    return (
+      <MobileDashboard
+        summary={summary}
+        latestSchedule={latestSchedule}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={handleRetry}
+      />
+    );
 
   return (
     <PageWrapper

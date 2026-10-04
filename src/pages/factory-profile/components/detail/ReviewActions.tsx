@@ -14,7 +14,14 @@ import {
 } from "@/features/factory";
 
 /** Admin: approve / reject a pending profile */
-export function ReviewActions({ factory }: { factory: FactoryProfile }) {
+export function ReviewActions({
+  factory,
+  mobile,
+}: {
+  factory: FactoryProfile;
+  /** Large thumb-friendly buttons for the mobile sticky footer */
+  mobile?: boolean;
+}) {
   const { toast } = useToast();
   const approve = useAdminApproveProfile();
   const reject = useAdminRejectProfile();
@@ -63,23 +70,46 @@ export function ReviewActions({ factory }: { factory: FactoryProfile }) {
 
   return (
     <>
-      <Button
-        variant="outline"
-        className="text-rose-600"
-        onClick={() => setRejecting(true)}
-        disabled={isLoading}
-      >
-        <X className="mr-2 h-4 w-4" />
-        Từ chối
-      </Button>
-      <Button
-        className="bg-emerald-600 hover:bg-emerald-700"
-        onClick={handleApprove}
-        disabled={isLoading}
-      >
-        <Check className="mr-2 h-4 w-4" />
-        Duyệt
-      </Button>
+      {mobile ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setRejecting(true)}
+            disabled={isLoading}
+            className="flex h-14 flex-1 items-center justify-center gap-1.5 rounded-2xl border border-rose-200 bg-white text-base font-semibold text-rose-600 shadow-sm active:scale-[0.98] disabled:opacity-60"
+          >
+            <X className="h-5 w-5" /> Từ chối
+          </button>
+          <button
+            type="button"
+            onClick={handleApprove}
+            disabled={isLoading}
+            className="flex h-14 flex-[1.4] items-center justify-center gap-1.5 rounded-2xl bg-[#14532d] text-base font-semibold text-white shadow-lg shadow-emerald-900/25 active:scale-[0.98] disabled:opacity-60"
+          >
+            <Check className="h-5 w-5" /> Duyệt hồ sơ
+          </button>
+        </>
+      ) : (
+        <>
+          <Button
+            variant="outline"
+            className="text-rose-600"
+            onClick={() => setRejecting(true)}
+            disabled={isLoading}
+          >
+            <X className="mr-2 h-4 w-4" />
+            Từ chối
+          </Button>
+          <Button
+            className="bg-emerald-600 hover:bg-emerald-700"
+            onClick={handleApprove}
+            disabled={isLoading}
+          >
+            <Check className="mr-2 h-4 w-4" />
+            Duyệt
+          </Button>
+        </>
+      )}
 
       <FormDialog
         open={rejecting}

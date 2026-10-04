@@ -10,10 +10,7 @@ import {
   SelectField,
   TextareaField,
 } from "@/components/form";
-import {
-  MATERIAL_CONDITION_OPTIONS,
-  type MaterialCondition,
-} from "@/features/demand/constants";
+import { MATERIAL_CONDITION_OPTIONS } from "@/features/demand/constants";
 import type { FactorySearchParams } from "@/features/connection";
 import { fetchMasterCertificateOptions } from "@/features/certificate";
 import {
@@ -27,37 +24,12 @@ import {
   fetchProductGroupCropOptions,
 } from "@/features/product-group";
 import { fetchProcessingServiceOptions } from "@/features/processing-service";
+import {
+  EMPTY_SEARCH_FILTER_VALUES,
+  toSearchParams,
+  type FilterValues,
+} from "../search-filter-utils";
 import { searchSession } from "../search-session";
-
-export interface FilterValues {
-  province: string;
-  ward: string;
-  processingServiceIds: string[];
-  crops: string[];
-  productGroupIds: string[];
-  maxCapacity?: number;
-  capacityUnit: "KG_PER_MONTH" | "TONNE_PER_MONTH";
-  certificateTypes: string[];
-  materialCondition: MaterialCondition | "";
-  packagingRequirement: string;
-  technicalRequirement: string;
-  message: string;
-}
-
-export const EMPTY_SEARCH_FILTER_VALUES: FilterValues = {
-  province: "",
-  ward: "",
-  processingServiceIds: [],
-  crops: [],
-  productGroupIds: [],
-  maxCapacity: undefined,
-  capacityUnit: "KG_PER_MONTH",
-  certificateTypes: [],
-  materialCondition: "",
-  packagingRequirement: "",
-  technicalRequirement: "",
-  message: "",
-};
 
 interface SearchFiltersProps {
   mode: "admin" | "member";
@@ -113,27 +85,10 @@ export function SearchFilters({
     prevProvince.current = provinceName;
   }, [provinceName, setValue]);
 
-  const toParams = (v: FilterValues): FactorySearchParams => ({
-    province: v.province || undefined,
-    ward: v.ward || undefined,
-    processingServiceIds: v.processingServiceIds?.length
-      ? v.processingServiceIds.map(Number)
-      : undefined,
-    crops: v.crops?.length ? v.crops : undefined,
-    maxCapacity: v.maxCapacity ?? undefined,
-    capacityUnit: v.maxCapacity ? v.capacityUnit : undefined,
-    certificateTypes: v.certificateTypes?.length
-      ? v.certificateTypes
-      : undefined,
-    materialCondition: v.materialCondition || undefined,
-    packagingRequirement: v.packagingRequirement?.trim() || undefined,
-    technicalRequirement: v.technicalRequirement?.trim() || undefined,
-    message: v.message?.trim() || undefined,
-  });
 
   const submit = form.handleSubmit((v) => {
     searchSession.write(storeKey, v);
-    onSearch(toParams(v), v);
+    onSearch(toSearchParams(v), v);
   });
 
   return (

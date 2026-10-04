@@ -1,4 +1,4 @@
-import { useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
+import { useIsMobile, useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { useLocation, useParams } from "wouter";
 import { BackButton } from "@/components/common/BackButton";
 import {
@@ -7,6 +7,7 @@ import {
 } from "@/components/common/PageState";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
+import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import {
   fromFactoryProfileToFormValues,
   toFactoryProfileSubmitInput,
@@ -22,6 +23,9 @@ export default function FactoryEditPage() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const mobileUiMode = useMobileUiMode();
+  const mobileApp = isMobile && mobileUiMode === "app";
   const isMember = useIsFactoryMember();
 
   // Member gets own profile via /api/factory/profile; Admin gets via /api/admin/factory/profiles/:id
@@ -55,6 +59,21 @@ export default function FactoryEditPage() {
     }
   };
 
+  const form = profile && (
+    <FactoryStepperForm
+      title="Chỉnh sửa hồ sơ"
+      key={String(profile.id)}
+      defaultValues={fromFactoryProfileToFormValues(profile)}
+      submitLabel="Gửi duyệt hồ sơ"
+      isSubmitting={submitProfile.isPending}
+      onSubmit={handleSubmit}
+      onCancel={() => navigate(backTo)}
+    />
+  );
+
+  // Mobile app: the form brings its own banner/title — no PageWrapper header or padding
+  if (mobileApp && form) return form;
+
   return (
     <PageWrapper
       title="Chỉnh sửa hồ sơ nhà máy"
@@ -70,14 +89,7 @@ export default function FactoryEditPage() {
           onBack={() => navigate(ROUTES.profile)}
         />
       ) : (
-        <FactoryStepperForm
-          key={String(profile.id)}
-          defaultValues={fromFactoryProfileToFormValues(profile)}
-          submitLabel="Gửi duyệt hồ sơ"
-          isSubmitting={submitProfile.isPending}
-          onSubmit={handleSubmit}
-          onCancel={() => navigate(backTo)}
-        />
+        form
       )}
     </PageWrapper>
   );
