@@ -145,6 +145,8 @@ export const connectionApi = {
       marketEp.processingSchedules,
       {
         params: {
+          profileId: params.profileId || undefined,
+          keyword: params.keyword?.trim() || undefined,
           province: params.province || undefined,
           ward: params.ward || undefined,
           processingServiceIds: params.processingServiceIds?.length

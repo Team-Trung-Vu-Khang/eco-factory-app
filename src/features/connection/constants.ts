@@ -1,10 +1,5 @@
 export type ConnectionStatus =
-  | "PENDING"
-  | "ACCEPTED"
-  | "REJECTED"
-  | "CANCELLED"
-  | "SUCCESS"
-  | "FAILED";
+  "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | "SUCCESS" | "FAILED";
 
 export const CONNECTION_STATUS_LABELS: Record<string, string> = {
   PENDING: "Chờ kết nối",

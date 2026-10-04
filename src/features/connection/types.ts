@@ -93,6 +93,9 @@ export interface MarketplaceProfileDetail {
 }
 
 export interface FactorySearchParams {
+  /** Lọc tin đăng của một nhà máy (tab "Tin đăng" trên hồ sơ) */
+  profileId?: number;
+  keyword?: string;
   province?: string;
   ward?: string;
   processingServiceIds?: number[];

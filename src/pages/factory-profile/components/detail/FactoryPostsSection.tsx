@@ -15,9 +15,13 @@ import { type FactoryProfile } from "@/features/factory";
 import { CAPACITY_UNIT_LABELS } from "@/features/machine";
 import {
   useAdminSchedules,
-  useSchedules,
   type ScheduleRow,
 } from "@/features/processing-schedule";
+import {
+  useFactorySearch,
+  type MarketplaceScheduleItem,
+} from "@/features/connection";
+import { ConnectionStatusBadge } from "@/pages/connection/components/ConnectionStatusBadge";
 import { useIsFactoryAdmin } from "@/features/viewer";
 import { scheduleColumns } from "@/pages/processing-schedule/components/schedule-columns";
 
@@ -42,24 +46,41 @@ export function FactoryPostsSection({ factory }: { factory: FactoryProfile }) {
     { enabled: isAdmin && !!profileId },
   );
 
-  const memberQuery = useSchedules(
-    {
-      page: 0,
-      size: 100,
-      keyword: keyword.trim() || undefined,
-      profileId,
-      status: "OPEN",
-    },
-    { enabled: !isAdmin },
+  // Người tìm/gửi (không phải admin): đọc qua marketplace, không gửi X-Workspace-Id
+  const memberQuery = useFactorySearch(
+    !isAdmin && profileId
+      ? {
+          profileId,
+          keyword: keyword.trim() || undefined,
+          page: 0,
+          size: 100,
+        }
+      : undefined,
   );
 
-  const query = isAdmin ? adminQuery : memberQuery;
+  // Tin marketplace có cùng các trường mà bảng/dialog dùng (title, machine, lịch, công suất, note)
+  const rows = (
+    isAdmin ? adminQuery.data?.content : memberQuery.data?.content
+  ) as ScheduleRow[] | undefined;
+  const loading = isAdmin ? adminQuery.isFetching : memberQuery.isFetching;
 
   // Farmer / public view: request counts and internal status are not relevant
   const columns: Column<ScheduleRow>[] = [
+    // Chỉ tải tin OPEN nên cột trạng thái tin không có ý nghĩa ở đây
     ...scheduleColumns.filter(
-      (c) => c.key !== "connections" && c.key !== "displayStatus",
+      (c) => c.key !== "connections" && c.key !== "status",
     ),
+    ...(!isAdmin
+      ? [
+          {
+            key: "myConnection",
+            label: "Kết nối của bạn",
+            render: (_: unknown, s: ScheduleRow) => (
+              <MyConnectionStatus schedule={s} />
+            ),
+          },
+        ]
+      : []),
     {
       key: "actions",
       label: "",
@@ -81,8 +102,8 @@ export function FactoryPostsSection({ factory }: { factory: FactoryProfile }) {
     <>
       <DataTable
         columns={columns}
-        data={query.data?.content ?? []}
-        loading={query.isFetching}
+        data={rows ?? []}
+        loading={loading}
         searchable
         searchPlaceholder="Tìm theo tiêu đề, máy, ghi chú..."
         onSearch={setKeyword}
@@ -166,6 +187,11 @@ function PostDetailDialog({
           <Row label="Ngày đăng">
             {dayjs(post.createdAt).format("DD/MM/YYYY HH:mm")}
           </Row>
+          {hasMyConnectionField(post) && (
+            <Row label="Kết nối của bạn">
+              <MyConnectionStatus schedule={post} />
+            </Row>
+          )}
           <Row label="Liên hệ">
             {repText === "·" || !repText ? "—" : repText}
           </Row>
@@ -173,4 +199,21 @@ function PostDetailDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+type WithMyConnection = ScheduleRow & {
+  myConnectionRequest?: MarketplaceScheduleItem["myConnectionRequest"];
+};
+
+/** Tin lấy từ admin API không có myConnectionRequest → không hiển thị dòng này */
+const hasMyConnectionField = (post: ScheduleRow) =>
+  "myConnectionRequest" in post;
+
+/** Trạng thái yêu cầu kết nối của người đang xem với tin này (marketplace) */
+function MyConnectionStatus({ schedule }: { schedule: ScheduleRow }) {
+  const req = (schedule as WithMyConnection).myConnectionRequest;
+  if (!req || req.status === "CANCELLED") {
+    return <span className="text-sm text-slate-400">Chưa gửi yêu cầu</span>;
+  }
+  return <ConnectionStatusBadge status={req.status} />;
 }
