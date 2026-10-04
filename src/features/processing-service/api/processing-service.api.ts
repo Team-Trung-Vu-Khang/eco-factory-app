@@ -140,6 +140,7 @@ export const processingServiceApi = {
       name: values.name.trim(),
       code: values.code?.trim() || undefined,
       description: values.description?.trim() || undefined,
+      imageUrl: values.imageUrl?.trim() || null,
       status: values.status || "active",
     };
     const { data } = await apiClient.post<ProcessingServiceItem>(
@@ -160,6 +161,7 @@ export const processingServiceApi = {
       name: values.name.trim(),
       code: values.code?.trim() || undefined,
       description: values.description?.trim() || undefined,
+      imageUrl: values.imageUrl?.trim() || null,
       status: values.status || "active",
     };
     const { data } = await apiClient.put<ProcessingServiceItem>(

@@ -1,12 +1,28 @@
-import { FormSection, TextField } from "@/components/form";
+import {
+  FormSection,
+  ImageUploadField,
+  TextField,
+  useUploadStatus,
+} from "@/components/form";
 import { useCertificateFormContext } from "./useCertificateFormContext";
 
 export function InfoSection() {
   const { control } = useCertificateFormContext();
+  const { track } = useUploadStatus();
 
   return (
     <FormSection title="Thông tin chứng nhận">
       <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
+        <ImageUploadField
+          control={control}
+          name="imageUrl"
+          label="Ảnh chứng nhận"
+          maxFiles={1}
+          folder="certificates"
+          onUploadingChange={track}
+          description="Ảnh chụp giấy chứng nhận, hiển thị trên hồ sơ marketplace."
+          className="sm:col-span-2 lg:col-span-4"
+        />
         <TextField
           control={control}
           name="certificateType"

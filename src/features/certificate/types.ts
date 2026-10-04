@@ -12,6 +12,8 @@ export interface FactoryCertificate {
   expiryDate?: string;
   issuer?: string;
   scopeDescription?: string;
+  /** Ảnh (upload qua /api/storage/files). PUT ghi đè: bỏ/null = xóa ảnh */
+  imageUrl?: string | null;
   status: CertificateStatus;
   daysUntilExpiry?: number;
   displayOrder?: number;
@@ -53,4 +55,5 @@ export interface CertificateInput {
   expiryDate?: string;
   issuer?: string;
   scopeDescription?: string;
+  imageUrl?: string | null;
 }

@@ -1,3 +1,4 @@
+import { ThumbnailLabel } from "@/components/common/Thumbnail";
 import {
   Badge,
   Button,
@@ -30,9 +31,7 @@ const columns: Column<ProcessingServiceItem>[] = [
   {
     key: "name",
     label: "Dịch vụ",
-    render: (_, s) => (
-      <span className="font-medium text-slate-900">{s.name}</span>
-    ),
+    render: (_, s) => <ThumbnailLabel src={s.imageUrl} label={s.name} />,
   },
   {
     key: "description",
@@ -49,6 +48,7 @@ const toFormValues = (
   name: s.name,
   code: s.code ?? "",
   description: s.description ?? "",
+  imageUrl: s.imageUrl ?? "",
   status: s.status ?? "active",
 });
 

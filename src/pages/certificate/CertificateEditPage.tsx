@@ -1,9 +1,10 @@
 import { useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { useLocation, useParams } from "wouter";
+import { Redirect, useLocation, useParams } from "wouter";
 import { BackButton } from "@/components/common/BackButton";
 import { DetailPageSkeleton, NotFoundState } from "@/components/common/PageState";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
+import { useIsFactoryAdmin } from "@/features/viewer";
 import {
   toCertificateFormValues,
   useUpdateCertificate,
@@ -18,6 +19,7 @@ export default function CertificateEditPage() {
   const { toast } = useToast();
   const { data: certificate, isLoading, isError } = useCertificate(id);
   const updateCertificate = useUpdateCertificate();
+  const isAdmin = useIsFactoryAdmin();
 
   const handleSubmit = async (values: CertificateFormValues) => {
     try {
@@ -28,6 +30,9 @@ export default function CertificateEditPage() {
       toast({ title: "Không thể lưu", description: (error as Error).message, variant: "destructive" });
     }
   };
+
+  // Admin has no update API — view only
+  if (isAdmin) return <Redirect to={ROUTES.certificateDetail(id)} replace />;
 
   return (
     <PageWrapper

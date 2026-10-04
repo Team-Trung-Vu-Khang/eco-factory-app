@@ -73,6 +73,7 @@ export const certificateApi = {
       expiryDate: values.expiryDate || undefined,
       issuer: values.issuer?.trim() || undefined,
       scopeDescription: values.scopeDescription?.trim() || undefined,
+      imageUrl: values.imageUrl?.trim() || null,
     };
     const { data } = await apiClient.post<Certificate>(
       API_ENDPOINTS.factory.certificates.base,
@@ -92,6 +93,7 @@ export const certificateApi = {
       expiryDate: values.expiryDate || undefined,
       issuer: values.issuer?.trim() || undefined,
       scopeDescription: values.scopeDescription?.trim() || undefined,
+      imageUrl: values.imageUrl?.trim() || null,
     };
     const { data } = await apiClient.put<Certificate>(
       API_ENDPOINTS.factory.certificates.detail(id),

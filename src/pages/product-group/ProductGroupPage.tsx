@@ -1,3 +1,4 @@
+import { ThumbnailLabel } from "@/components/common/Thumbnail";
 import {
   Badge,
   Button,
@@ -30,9 +31,7 @@ const columns: Column<ProductGroup>[] = [
   {
     key: "name",
     label: "Tên nhóm",
-    render: (_, g) => (
-      <span className="font-medium text-slate-900">{g.name}</span>
-    ),
+    render: (_, g) => <ThumbnailLabel src={g.imageUrl} label={g.name} />,
   },
   {
     key: "crops",
@@ -68,6 +67,7 @@ const toFormValues = (g: ProductGroup): ProductGroupFormValues => ({
   code: g.code ?? "",
   crops: g.crops ?? [],
   description: g.description ?? "",
+  imageUrl: g.imageUrl ?? "",
   status: g.status ?? "active",
 });
 

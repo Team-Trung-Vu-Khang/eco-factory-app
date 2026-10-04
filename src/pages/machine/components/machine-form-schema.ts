@@ -16,6 +16,7 @@ export const MACHINE_CAPACITY_UNIT_OPTIONS = [
 export const machineDialogSchema = z.object({
   id: z.number().optional(),
   name: z.string().trim().min(1, REQUIRED).max(255, "Tối đa 255 ký tự."),
+  imageUrl: z.string().trim().max(1000, "Tối đa 1000 ký tự.").optional(),
   status: z.enum(["ACTIVE", "MAINTENANCE", "PAUSED"], { error: REQUIRED }),
   processingServiceIds: z
     .array(z.union([z.string(), z.number()]))
@@ -39,6 +40,7 @@ export type MachineDialogValues = z.infer<typeof machineDialogSchema>;
 
 export const EMPTY_MACHINE_DIALOG: MachineDialogValues = {
   name: "",
+  imageUrl: "",
   status: "ACTIVE",
   processingServiceIds: [],
   maxCapacity: undefined as unknown as number,

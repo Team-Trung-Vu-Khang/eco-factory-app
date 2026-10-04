@@ -1,3 +1,4 @@
+import { ThumbnailLabel } from "@/components/common/Thumbnail";
 import {
   Button,
   Dialog,
@@ -105,12 +106,14 @@ export default function ConnectionHistoryPage() {
       label: "Nhà máy & Tin đăng",
       render: (_, c) => (
         <div className="min-w-48">
-          <p className="font-medium text-slate-900">{c.profile?.name ?? "—"}</p>
-          <p className="text-xs text-slate-500">
-            {c.schedule?.title ||
-              c.schedule?.machine?.name ||
-              "Lịch nhận chế biến"}
-          </p>
+          <ThumbnailLabel src={c.schedule?.machine?.imageUrl} label={c.profile?.name ?? "—"}>
+            <p className="font-medium text-slate-900">{c.profile?.name ?? "—"}</p>
+            <p className="text-xs text-slate-500">
+              {c.schedule?.title ||
+                c.schedule?.machine?.name ||
+                "Lịch nhận chế biến"}
+            </p>
+          </ThumbnailLabel>
         </div>
       ),
     },

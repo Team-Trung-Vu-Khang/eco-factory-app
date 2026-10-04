@@ -32,6 +32,7 @@ import type { MachineDialogValues } from "./components/machine-form-schema";
 const toDialogValues = (m: FactoryMachineItem): MachineDialogValues => ({
   id: m.id,
   name: m.name,
+  imageUrl: m.imageUrl ?? "",
   status: m.status,
   processingServiceIds: (m.processingServices ?? []).map((s) => s.id),
   maxCapacity: m.maxCapacity,
@@ -156,6 +157,7 @@ export default function MachinePage() {
     try {
       const payload = {
         name: values.name.trim(),
+        imageUrl: values.imageUrl?.trim() || null,
         status: values.status,
         processingServiceIds: values.processingServiceIds.map((id) =>
           Number(id),

@@ -1,3 +1,4 @@
+import { ThumbnailLabel } from "@/components/common/Thumbnail";
 import { Button } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
 import { Building2, ExternalLink, Handshake, Loader2 } from "lucide-react";
@@ -103,7 +104,9 @@ export function FactoryResultTable({
                   {item.profile.ward || "—"}
                 </td>
                 <td className="px-3 py-3 text-slate-800">
-                  {item.machine.name}
+                  <ThumbnailLabel src={item.machine.imageUrl} label={item.machine.name} size="sm">
+                    {item.machine.name}
+                  </ThumbnailLabel>
                 </td>
                 <td className="whitespace-nowrap px-3 py-3 tabular-nums text-slate-700">
                   {date(item.startDate)} → {date(item.endDate)}

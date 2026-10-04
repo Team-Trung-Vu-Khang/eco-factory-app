@@ -1,3 +1,4 @@
+import { ThumbnailLabel } from "@/components/common/Thumbnail";
 import { type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
 import { CAPACITY_UNIT_LABELS } from "@/features/machine";
@@ -23,10 +24,12 @@ export const scheduleColumns: Column<ScheduleRow>[] = [
     label: "Máy / dây chuyền",
     render: (_, s) => (
       <div className="min-w-44">
-        <p className="font-medium text-slate-900">{s.machine?.name ?? "—"}</p>
-        {s.profile?.name && (
-          <p className="text-xs text-slate-500">{s.profile.name}</p>
-        )}
+        <ThumbnailLabel src={s.machine?.imageUrl} label={s.machine?.name ?? "—"}>
+          <p className="font-medium text-slate-900">{s.machine?.name ?? "—"}</p>
+          {s.profile?.name && (
+            <p className="text-xs text-slate-500">{s.profile.name}</p>
+          )}
+        </ThumbnailLabel>
       </div>
     ),
   },

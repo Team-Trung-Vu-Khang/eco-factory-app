@@ -100,6 +100,8 @@ export interface ProfileCertificateItem {
   expiryDate?: string;
   issuer?: string;
   scopeDescription?: string;
+  /** Chỉ đọc ở hồ sơ; đặt/đổi qua /api/factory/certificates */
+  imageUrl?: string | null;
   status?: "ACTIVE" | "EXPIRING_SOON" | "EXPIRED";
   daysUntilExpiry?: number;
   displayOrder?: number;
@@ -125,6 +127,8 @@ export interface FactoryProfile {
     id: number | string;
     code: string;
     name: string;
+    /** Luôn null — loại hình không có ảnh */
+    imageUrl?: string | null;
   };
   organizationTypeId?: number | string;
   taxCode?: string;
@@ -142,12 +146,14 @@ export interface FactoryProfile {
     id: number | string;
     code: string;
     name: string;
+    imageUrl?: string | null;
   }>;
   productGroupIds?: (number | string)[];
   processingServices: Array<{
     id: number | string;
     code: string;
     name: string;
+    imageUrl?: string | null;
   }>;
   processingServiceIds?: (number | string)[];
   description: string;

@@ -16,7 +16,8 @@ import {
   Switch,
   Textarea,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import type { ReactNode } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import type { Control, FieldPath, FieldValues } from "react-hook-form";
 import { ImageDropzone } from "./ImageDropzone";
 
@@ -74,6 +75,57 @@ export function TextField<T extends FieldValues>({
               }}
             />
           </FormControl>
+          {description && <FormDescription>{description}</FormDescription>}
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+/** Password input with show/hide toggle */
+export function PasswordField<T extends FieldValues>({
+  control,
+  name,
+  label,
+  required,
+  description,
+  disabled,
+  className,
+  placeholder,
+}: BaseFieldProps<T> & { placeholder?: string }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className={className}>
+          <FormLabel required={required}>{label}</FormLabel>
+          <div className="relative">
+            <FormControl>
+              <Input
+                {...field}
+                value={field.value ?? ""}
+                type={visible ? "text" : "password"}
+                placeholder={placeholder}
+                disabled={disabled}
+                autoComplete="new-password"
+                clearable={false}
+                className="pr-10"
+              />
+            </FormControl>
+            <button
+              type="button"
+              tabIndex={-1}
+              disabled={disabled}
+              onClick={() => setVisible((v) => !v)}
+              aria-label={visible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-500 hover:text-slate-700 disabled:opacity-50"
+            >
+              {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
         </FormItem>

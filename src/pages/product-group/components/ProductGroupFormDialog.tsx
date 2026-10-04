@@ -2,7 +2,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { MultiSelectField, TextareaField, TextField } from "@/components/form";
+import {
+  ImageUploadField,
+  MultiSelectField,
+  TextareaField,
+  TextField,
+  useUploadStatusState,
+} from "@/components/form";
 import { CROPS } from "@/features/crop";
 import {
   EMPTY_PRODUCT_GROUP,
@@ -33,6 +39,7 @@ export function ProductGroupFormDialog({
     mode: "onTouched",
   });
   const { control } = form;
+  const upload = useUploadStatusState();
   // API stores crop names — keep names already saved that aren't in the crop list
   const selectedCrops = useWatch({ control, name: "crops" });
   const cropOptions = useMemo(() => {
@@ -51,12 +58,21 @@ export function ProductGroupFormDialog({
       title={isEdit ? "Chỉnh sửa nhóm nông sản" : "Thêm nhóm nông sản"}
       description="Nhóm nông sản / sản phẩm nhà máy đang chế biến"
       submitLabel={isEdit ? "Lưu thay đổi" : "Thêm"}
-      loading={isSubmitting}
+      loading={isSubmitting || upload.isUploading}
       size="lg"
       onSubmit={form.handleSubmit(onSubmit)}
     >
       <Form {...form}>
         <div className="space-y-4">
+          <ImageUploadField
+            control={control}
+            name="imageUrl"
+            label="Ảnh nhóm nông sản"
+            maxFiles={1}
+            folder="product-groups"
+            onUploadingChange={upload.track}
+            description="Ảnh đại diện hiển thị cho nhóm nông sản / sản phẩm."
+          />
           <TextField
             control={control}
             name="name"

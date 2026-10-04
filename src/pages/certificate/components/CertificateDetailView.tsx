@@ -1,3 +1,4 @@
+import { ImagePreview } from "@/components/common/ImagePreview";
 import dayjs from "dayjs";
 import {
   Award,
@@ -8,6 +9,7 @@ import {
   Landmark,
   ScrollText,
   Tag,
+  Image as ImageIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { DetailCard, DetailField } from "@/components/common/DetailCard";
@@ -92,6 +94,19 @@ export function CertificateDetailView({
               <p className="whitespace-pre-line text-sm font-normal text-slate-700">
                 {c.scopeDescription || "Chưa có mô tả phạm vi"}
               </p>
+            </DetailField>
+            <DetailField icon={ImageIcon} label="Ảnh chứng nhận">
+              {c.imageUrl ? (
+                <ImagePreview src={c.imageUrl} alt={certTitle}>
+                  <img
+                    src={c.imageUrl}
+                    alt={certTitle}
+                    className="max-h-64 rounded-lg border border-slate-200 object-contain"
+                  />
+                </ImagePreview>
+              ) : (
+                <p className="text-sm font-normal text-slate-500">Chưa có ảnh</p>
+              )}
             </DetailField>
           </div>
         </DetailCard>

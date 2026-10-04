@@ -6,12 +6,14 @@ import { DetailPageSkeleton, NotFoundState } from "@/components/common/PageState
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
 import { useCertificate } from "@/features/certificate";
+import { useIsFactoryAdmin } from "@/features/viewer";
 import { CertificateDetailView } from "./components/CertificateDetailView";
 
 export default function CertificateDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { data: certificate, isLoading, isError } = useCertificate(id);
+  const isAdmin = useIsFactoryAdmin();
 
   return (
     <PageWrapper>
@@ -25,10 +27,12 @@ export default function CertificateDetailPage() {
           actions={
             <>
               <BackButton to={ROUTES.certificates} label="Quay lại" />
-              <Button onClick={() => navigate(ROUTES.certificateEdit(String(certificate.id)))}>
-              <Pencil className="mr-2 h-4 w-4" />
-                Chỉnh sửa
-              </Button>
+              {!isAdmin && (
+                <Button onClick={() => navigate(ROUTES.certificateEdit(String(certificate.id)))}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Chỉnh sửa
+                </Button>
+              )}
             </>
           }
         />

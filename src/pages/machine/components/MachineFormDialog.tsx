@@ -5,8 +5,10 @@ import { useForm } from "react-hook-form";
 import {
   AsyncMultiSelectField,
   CapacityField,
+  ImageUploadField,
   SelectField,
   TextField,
+  useUploadStatusState,
 } from "@/components/form";
 import { fetchProcessingServiceOptions } from "@/features/processing-service";
 import { fetchProductGroupOptions } from "@/features/product-group";
@@ -41,6 +43,7 @@ export function MachineFormDialog({
     mode: "onTouched",
   });
   const { control } = form;
+  const upload = useUploadStatusState();
 
   useEffect(() => {
     if (open) {
@@ -55,12 +58,22 @@ export function MachineFormDialog({
       title={isEdit ? "Chỉnh sửa máy / dây chuyền" : "Thêm máy / dây chuyền"}
       description="Dịch vụ, công suất và nhóm nông sản của máy"
       submitLabel={isEdit ? "Lưu thay đổi" : "Thêm"}
-      loading={isSubmitting}
+      loading={isSubmitting || upload.isUploading}
       size="lg"
       onSubmit={form.handleSubmit(onSubmit)}
     >
       <Form {...form}>
         <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
+          <ImageUploadField
+            control={control}
+            name="imageUrl"
+            label="Ảnh máy / dây chuyền"
+            maxFiles={1}
+            folder="machines"
+            onUploadingChange={upload.track}
+            className="sm:col-span-2"
+            description="Ảnh thực tế của máy, hiển thị trên lịch nhận chế biến."
+          />
           <TextField
             control={control}
             name="name"

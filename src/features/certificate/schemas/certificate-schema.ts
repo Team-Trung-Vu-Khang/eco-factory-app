@@ -29,6 +29,7 @@ export const certificateSchema = z
       .max(1000, "Tối đa 1000 ký tự.")
       .optional()
       .or(z.literal("")),
+    imageUrl: z.string().trim().max(1000, "Tối đa 1000 ký tự.").optional(),
   })
   .superRefine((c, ctx) => {
     if (c.issuedDate && c.expiryDate && c.expiryDate < c.issuedDate) {
@@ -49,4 +50,5 @@ export const EMPTY_CERTIFICATE: CertificateFormValues = {
   issuedDate: "",
   expiryDate: "",
   scopeDescription: "",
+  imageUrl: "",
 };

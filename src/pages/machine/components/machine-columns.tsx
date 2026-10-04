@@ -1,3 +1,4 @@
+import { ThumbnailLabel } from "@/components/common/Thumbnail";
 import { Badge, type Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
 import { Link } from "wouter";
@@ -69,7 +70,9 @@ export const machineColumns: Column<FactoryMachineItem>[] = [
     key: "name",
     label: "Tên máy / dây chuyền",
     render: (_, m) => (
-      <p className="min-w-44 font-medium text-slate-900">{m.name}</p>
+      <div className="min-w-44">
+        <ThumbnailLabel src={m.imageUrl} label={m.name} />
+      </div>
     ),
   },
   {

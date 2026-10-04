@@ -1,3 +1,4 @@
+import { Thumbnail } from "@/components/common/Thumbnail";
 import dayjs from "dayjs";
 import {
   Award,
@@ -54,9 +55,13 @@ export function CertificationListSection({
             className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
           >
             <header className="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-4 py-3 sm:px-5 sm:py-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-600 text-white">
-                <Award className="h-5 w-5" />
-              </div>
+              {c.imageUrl ? (
+                <Thumbnail src={c.imageUrl} alt={c.certificateType} size="lg" />
+              ) : (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-600 text-white">
+                  <Award className="h-5 w-5" />
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-700">
                   Chứng nhận

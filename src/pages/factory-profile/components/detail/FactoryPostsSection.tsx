@@ -1,3 +1,4 @@
+import { ThumbnailLabel } from "@/components/common/Thumbnail";
 import {
   Badge,
   Button,
@@ -169,7 +170,11 @@ function PostDetailDialog({
           <DialogDescription>{factory.name}</DialogDescription>
         </DialogHeader>
         <dl className="divide-y divide-slate-100">
-          <Row label="Máy / dây chuyền">{post.machine?.name || "—"}</Row>
+          <Row label="Máy / dây chuyền">
+            <ThumbnailLabel src={post.machine?.imageUrl} label={post.machine?.name || "—"} size="sm">
+              {post.machine?.name || "—"}
+            </ThumbnailLabel>
+          </Row>
           <Row label="Dịch vụ">{chips(services)}</Row>
           <Row label="Nhóm nông sản">{chips(productGroups)}</Row>
           <Row label="Lịch nhận">

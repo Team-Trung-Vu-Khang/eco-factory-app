@@ -1,3 +1,4 @@
+import { ThumbnailLabel } from "@/components/common/Thumbnail";
 import type { Column } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import dayjs from "dayjs";
 import type { Certificate } from "@/features/certificate";
@@ -22,10 +23,12 @@ export const certificateColumns: Column<Certificate>[] = [
         ] ?? c.certificateType;
       return (
         <div className="min-w-44">
-          <p className="font-medium text-slate-900">{typeLabel}</p>
-          {c.certificateNumber && (
-            <p className="text-xs text-slate-500">Số: {c.certificateNumber}</p>
-          )}
+          <ThumbnailLabel src={c.imageUrl} label={typeLabel}>
+            <p className="font-medium text-slate-900">{typeLabel}</p>
+            {c.certificateNumber && (
+              <p className="text-xs text-slate-500">Số: {c.certificateNumber}</p>
+            )}
+          </ThumbnailLabel>
         </div>
       );
     },

@@ -24,6 +24,7 @@ export interface MarketplaceMachineRef {
   id: number;
   code?: string;
   name: string;
+  imageUrl?: string | null;
   processingServices?: ProcessingServiceRef[];
   productGroups?: ProductGroupRef[];
 }
@@ -54,6 +55,7 @@ export interface MarketplaceCertificateItem {
   issuedDate?: string;
   expiryDate?: string;
   scopeDescription?: string | null;
+  imageUrl?: string | null;
   status: "ACTIVE" | "EXPIRING_SOON" | string;
 }
 
@@ -70,7 +72,8 @@ export interface MarketplaceProfileDetail {
   code: string;
   logoUrl?: string | null;
   name: string;
-  organizationType?: { id: number; code: string; name: string };
+  /** imageUrl luôn null với loại hình */
+  organizationType?: { id: number; code: string; name: string; imageUrl?: string | null };
   reviewStatus: "APPROVED" | string;
   taxCode?: string;
   foundedYear?: number;
@@ -124,7 +127,7 @@ export interface ConnectionRequestItem {
     maxCapacity: number;
     capacityUnit: MachineCapacityUnit;
     status: string;
-    machine?: { id: number; code?: string; name: string };
+    machine?: { id: number; code?: string; name: string; imageUrl?: string | null };
   };
   profile?: FactoryProfileRef;
   factoryWorkspaceId?: number;

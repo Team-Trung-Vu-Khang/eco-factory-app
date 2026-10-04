@@ -11,6 +11,7 @@ export const productGroupSchema = z.object({
     .array(z.string().trim().max(255, "Tên cây trồng tối đa 255 ký tự."))
     .max(1000, "Tối đa 1000 cây trồng."),
   description: z.string().trim().optional(),
+  imageUrl: z.string().trim().max(1000, "Tối đa 1000 ký tự.").optional(),
   status: z.enum(["active", "inactive", "archived"]),
 });
 
@@ -21,5 +22,6 @@ export const EMPTY_PRODUCT_GROUP: ProductGroupFormValues = {
   code: "",
   crops: [],
   description: "",
+  imageUrl: "",
   status: "active",
 };

@@ -8,8 +8,9 @@ export const CERTIFICATE_STEPS: SchemaStep<CertificateFormValues>[] = [
   {
     id: "info",
     title: "Thông tin",
-    description: "Loại, số, đơn vị cấp, hiệu lực",
+    description: "Ảnh, loại, số, đơn vị cấp, hiệu lực",
     fields: [
+      "imageUrl",
       "certificateType",
       "certificateNumber",
       "issuer",

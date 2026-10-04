@@ -2,7 +2,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormDialog } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { TextareaField, TextField } from "@/components/form";
+import {
+  ImageUploadField,
+  TextareaField,
+  TextField,
+  useUploadStatusState,
+} from "@/components/form";
 import {
   EMPTY_PROCESSING_SERVICE,
   processingServiceSchema,
@@ -32,6 +37,7 @@ export function ProcessingServiceFormDialog({
     mode: "onTouched",
   });
   const { control } = form;
+  const upload = useUploadStatusState();
 
   useEffect(() => {
     if (open) form.reset(initialValues ?? EMPTY_PROCESSING_SERVICE);
@@ -44,11 +50,20 @@ export function ProcessingServiceFormDialog({
       title={isEdit ? "Chỉnh sửa dịch vụ" : "Thêm dịch vụ chế biến"}
       description="Danh mục dịch vụ chung — nhà máy chọn khi khai báo hồ sơ"
       submitLabel={isEdit ? "Lưu thay đổi" : "Thêm"}
-      loading={isSubmitting}
+      loading={isSubmitting || upload.isUploading}
       onSubmit={form.handleSubmit(onSubmit)}
     >
       <Form {...form}>
         <div className="space-y-4">
+          <ImageUploadField
+            control={control}
+            name="imageUrl"
+            label="Ảnh dịch vụ"
+            maxFiles={1}
+            folder="processing-services"
+            onUploadingChange={upload.track}
+            description="Ảnh minh hoạ cho dịch vụ chế biến."
+          />
           <TextField
             control={control}
             name="name"

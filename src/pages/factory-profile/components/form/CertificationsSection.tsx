@@ -22,7 +22,10 @@ export function CertificationsSection() {
   const hasCertificates = useWatch({ control, name: "hasCertificates" });
 
   return (
-    <FormSection title="Chứng nhận sản xuất">
+    <FormSection
+      title="Chứng nhận sản xuất"
+      description="Ảnh chứng nhận được thêm/đổi tại mục Chứng nhận sau khi lưu hồ sơ."
+    >
       <div className="space-y-4">
         <SwitchField
           control={control}

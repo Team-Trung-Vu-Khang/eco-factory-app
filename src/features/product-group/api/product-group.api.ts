@@ -140,6 +140,7 @@ export const productGroupApi = {
       code: values.code?.trim() || undefined,
       crops: values.crops ?? [],
       description: values.description?.trim() || undefined,
+      imageUrl: values.imageUrl?.trim() || null,
       status: values.status || "active",
     };
     const { data } = await apiClient.post<ProductGroup>(ep.admin, payload);
@@ -158,6 +159,7 @@ export const productGroupApi = {
       code: values.code?.trim() || undefined,
       crops: values.crops ?? [],
       description: values.description?.trim() || undefined,
+      imageUrl: values.imageUrl?.trim() || null,
       status: values.status || "active",
     };
     const { data } = await apiClient.put<ProductGroup>(

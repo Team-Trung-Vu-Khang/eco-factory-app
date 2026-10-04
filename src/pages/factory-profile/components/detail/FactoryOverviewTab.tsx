@@ -1,3 +1,4 @@
+import { ImagePreview } from "@/components/common/ImagePreview";
 import {
   Award,
   Building2,
@@ -15,16 +16,21 @@ import { LocationPickerMap } from "@/components/map/LocationPickerMap";
 import { GENDER_LABELS, type FactoryProfile } from "@/features/factory";
 import { DetailCard, DetailField } from "@/components/common/DetailCard";
 
-function Chips({ items }: { items: string[] }) {
+function Chips({ items }: { items: { name: string; imageUrl?: string | null }[] }) {
   if (items.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-1.5">
       {items.map((t) => (
         <span
-          key={t}
-          className="rounded-md border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"
+          key={t.name}
+          className="inline-flex items-center gap-1.5 rounded-md border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"
         >
-          {t}
+          {t.imageUrl && (
+            <ImagePreview src={t.imageUrl} alt={t.name} className="rounded-sm">
+              <img src={t.imageUrl} alt="" loading="lazy" className="block h-4 w-4 rounded-sm object-cover" />
+            </ImagePreview>
+          )}
+          {t.name}
         </span>
       ))}
     </div>
@@ -48,8 +54,8 @@ export function FactoryOverviewTab({
   const fullAddress = [f.address, f.ward, f.province]
     .filter(Boolean)
     .join(", ");
-  const productGroupNames = (f.productGroups ?? []).map((p) => p.name);
-  const serviceNames = (f.processingServices ?? []).map((s) => s.name);
+  const productGroupNames = f.productGroups ?? [];
+  const serviceNames = f.processingServices ?? [];
   const certCount = f.certificates?.length ?? 0;
 
   return (

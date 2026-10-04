@@ -16,4 +16,5 @@ export const toCertificateFormValues = (
         issuedDate: c.issuedDate ?? "",
         expiryDate: c.expiryDate ?? "",
         scopeDescription: c.scopeDescription ?? "",
+        imageUrl: c.imageUrl ?? "",
       };

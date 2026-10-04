@@ -4,6 +4,8 @@ export interface ProductGroup {
   name: string;
   /** Linked crops (text tags); empty = all crops in the group */
   crops: string[];
+  /** Ảnh (upload qua /api/storage/files). PUT ghi đè: bỏ/null = xóa ảnh */
+  imageUrl?: string | null;
   description?: string | null;
   displayOrder?: number | null;
   status?: "active" | "inactive" | "archived";

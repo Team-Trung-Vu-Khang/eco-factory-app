@@ -5,12 +5,14 @@ export interface ProcessingServiceRef {
   id: number;
   code: string;
   name: string;
+  imageUrl?: string | null;
 }
 
 export interface ProductGroupRef {
   id: number;
   code: string;
   name: string;
+  imageUrl?: string | null;
 }
 
 export interface FactoryProfileRef {
@@ -33,6 +35,8 @@ export interface FactoryMachineItem {
   profileId: number;
   code: string;
   name: string;
+  /** Ảnh (upload qua /api/storage/files). PUT ghi đè: bỏ/null = xóa ảnh */
+  imageUrl?: string | null;
   status: MachineStatus;
   maxCapacity: number;
   capacityUnit: MachineCapacityUnit;
@@ -50,6 +54,7 @@ export interface FactoryMachineItem {
 
 export interface FactoryMachineInput {
   name: string;
+  imageUrl?: string | null;
   status: MachineStatus;
   processingServiceIds: number[];
   maxCapacity: number;

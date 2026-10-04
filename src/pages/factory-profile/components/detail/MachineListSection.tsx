@@ -1,3 +1,4 @@
+import { Thumbnail } from "@/components/common/Thumbnail";
 import {
   Button,
   DeleteDialog,
@@ -73,6 +74,7 @@ function Chips({ items, className }: { items: string[]; className: string }) {
 const toDialogValues = (m: FactoryMachineItem): MachineDialogValues => ({
   id: m.id,
   name: m.name,
+  imageUrl: m.imageUrl ?? "",
   status: m.status,
   processingServiceIds: (m.processingServices ?? []).map((s) => s.id),
   maxCapacity: m.maxCapacity,
@@ -155,6 +157,7 @@ export function MachineListSection({
     try {
       const payload: FactoryMachineInput = {
         name: values.name.trim(),
+        imageUrl: values.imageUrl?.trim() || null,
         status: values.status,
         processingServiceIds: values.processingServiceIds.map((id) =>
           Number(id),
@@ -284,9 +287,13 @@ export function MachineListSection({
                 className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
               >
                 <header className="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-4 py-3 sm:px-5 sm:py-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
-                    <Wrench className="h-5 w-5" />
-                  </div>
+                  {m.imageUrl ? (
+                    <Thumbnail src={m.imageUrl} alt={m.name} size="lg" />
+                  ) : (
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
+                      <Wrench className="h-5 w-5" />
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">

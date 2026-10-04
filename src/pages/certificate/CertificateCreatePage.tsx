@@ -1,8 +1,9 @@
 import { useToast } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { useLocation } from "wouter";
+import { Redirect, useLocation } from "wouter";
 import { BackButton } from "@/components/common/BackButton";
 import PageWrapper from "@/components/common/PageWrapper";
 import { ROUTES } from "@/config/routes";
+import { useIsFactoryAdmin } from "@/features/viewer";
 import { EMPTY_CERTIFICATE, useCreateCertificate, type CertificateFormValues } from "@/features/certificate";
 import { CertificateStepperForm } from "./components/form/CertificateStepperForm";
 
@@ -10,6 +11,7 @@ export default function CertificateCreatePage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const createCertificate = useCreateCertificate();
+  const isAdmin = useIsFactoryAdmin();
 
   const handleSubmit = async (values: CertificateFormValues) => {
     try {
@@ -20,6 +22,9 @@ export default function CertificateCreatePage() {
       toast({ title: "Không thể lưu", description: (error as Error).message, variant: "destructive" });
     }
   };
+
+  // Admin has no create API
+  if (isAdmin) return <Redirect to={ROUTES.certificates} replace />;
 
   return (
     <PageWrapper

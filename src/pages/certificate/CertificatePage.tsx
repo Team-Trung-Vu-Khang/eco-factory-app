@@ -24,11 +24,14 @@ export default function CertificatePage() {
     <PageWrapper
       title="Chứng nhận sản xuất"
       description="Chứng nhận ATTP, HACCP, ISO, GMP… của nhà máy và thời hạn hiệu lực"
+      // Admin API is read + delete only — create/update belong to the factory
       actions={
-        <Button onClick={page.goCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Thêm chứng nhận
-        </Button>
+        !isAdmin && (
+          <Button onClick={page.goCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm chứng nhận
+          </Button>
+        )
       }
     >
       <div className="space-y-6">
@@ -49,7 +52,7 @@ export default function CertificatePage() {
           onPageSize={page.handlePageSize}
           onIndexChange={(index) => page.setPage(Math.max(0, index - 1))}
           onView={page.goView}
-          onEdit={page.goEdit}
+          onEdit={isAdmin ? undefined : page.goEdit}
           onDelete={page.setDeleting}
         />
       </div>
