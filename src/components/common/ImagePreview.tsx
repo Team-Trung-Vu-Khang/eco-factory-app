@@ -36,7 +36,7 @@ export function ImagePreview({
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="gap-0 overflow-hidden border-0 p-0 sm:max-w-[min(92vw,1200px)] [&>button]:rounded-full [&>button]:bg-black/50 [&>button]:p-1.5 [&>button]:text-white [&>button]:opacity-100 [&>button:hover]:bg-black/70"
+          className="fsl-no-sheet gap-0 overflow-hidden border-0 p-0 sm:max-w-[min(92vw,1200px)] [&>button]:rounded-full [&>button]:bg-black/50 [&>button]:p-1.5 [&>button]:text-white [&>button]:opacity-100 [&>button:hover]:bg-black/70"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-center bg-slate-950">

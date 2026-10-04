@@ -5,7 +5,7 @@ import {
   TooltipProvider,
   useIsMobile,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Redirect, Route, Switch, useLocation } from "wouter";
 import { AppLoadingState } from "@/components/common/AppLoadingState";
 import { FactoryMemberHomeGate } from "@/components/common/FactoryMemberHomeGate";
@@ -39,6 +39,11 @@ function App() {
   const isMobile = useIsMobile();
   const mobileUiMode = useMobileUiMode();
   const mobileApp = isMobile && mobileUiMode === "app";
+
+  // Lets global CSS restyle every dialog as a bottom sheet on the mobile app (index.css)
+  useEffect(() => {
+    document.documentElement.toggleAttribute("data-mobile-app", mobileApp);
+  }, [mobileApp]);
 
   const content = (
     <Suspense fallback={<AppLoadingState />}>
