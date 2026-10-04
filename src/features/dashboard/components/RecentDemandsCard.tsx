@@ -68,7 +68,7 @@ export function RecentDemandsCard() {
           ))}
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={FACTORY_ROUTES.demands}>Xem tất cả</Link>
+          <Link href={FACTORY_ROUTES.processingScheduleHistory}>Xem tất cả</Link>
         </Button>
       </CardHeader>
       <CardContent className="p-0">
