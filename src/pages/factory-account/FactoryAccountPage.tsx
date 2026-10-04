@@ -1,5 +1,11 @@
 import {
   Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Switch,
   useToast,
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
@@ -197,6 +203,11 @@ export default function FactoryAccountPage() {
     }
   };
 
+  const [statusTarget, setStatusTarget] = useState<{
+    account: AdminFactoryAccountItem;
+    active: boolean;
+  } | null>(null);
+
   const toggleStatus = async (a: AdminFactoryAccountItem, active: boolean) => {
     if (isTargetAdminAccount(a) && isFactoryAdmin) {
       toast({
@@ -218,6 +229,7 @@ export default function FactoryAccountPage() {
         title: "Thành công",
         description: `${active ? "Đã kích hoạt" : "Đã tạm dừng"} tài khoản "${a.fullName}".`,
       });
+      setStatusTarget(null);
     } catch (error) {
       toast({
         title: "Không thể cập nhật trạng thái",
@@ -279,7 +291,9 @@ export default function FactoryAccountPage() {
             <Switch
               checked={isActive}
               disabled={disabled}
-              onCheckedChange={(checked) => toggleStatus(a, checked)}
+              onCheckedChange={(checked) =>
+                setStatusTarget({ account: a, active: checked })
+              }
               aria-label="Kích hoạt / tạm dừng"
             />
             <span
@@ -357,6 +371,50 @@ export default function FactoryAccountPage() {
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
       />
+      <Dialog
+        open={!!statusTarget}
+        onOpenChange={(o) =>
+          !o && !setStatus.isPending && setStatusTarget(null)
+        }
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {statusTarget?.active
+                ? "Kích hoạt tài khoản?"
+                : "Tạm dừng tài khoản?"}
+            </DialogTitle>
+            <DialogDescription>
+              {statusTarget?.active
+                ? `Tài khoản "${statusTarget?.account.fullName}" sẽ có thể đăng nhập và thao tác trở lại.`
+                : `Tài khoản "${statusTarget?.account.fullName}" sẽ không thể đăng nhập cho đến khi được kích hoạt lại.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={setStatus.isPending}
+              onClick={() => setStatusTarget(null)}
+            >
+              Hủy
+            </Button>
+            <Button
+              variant={statusTarget?.active ? "default" : "destructive"}
+              disabled={setStatus.isPending}
+              onClick={() =>
+                statusTarget &&
+                toggleStatus(statusTarget.account, statusTarget.active)
+              }
+            >
+              {setStatus.isPending
+                ? "Đang cập nhật..."
+                : statusTarget?.active
+                  ? "Kích hoạt"
+                  : "Tạm dừng"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageWrapper>
   );
 }
