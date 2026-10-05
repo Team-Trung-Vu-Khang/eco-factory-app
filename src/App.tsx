@@ -66,7 +66,9 @@ function App() {
         <FactoryMemberHomeGate>
           {/* Phones pick mobile / web UI from the floating menu */}
           {mobileApp ? (
-            <FactoryMobileLayout>{content}</FactoryMobileLayout>
+            <FactoryMobileLayout workspaceFeature="factory">
+              {content}
+            </FactoryMobileLayout>
           ) : (
             <FactoryAdminLayout>{content}</FactoryAdminLayout>
           )}
