@@ -1,0 +1,24 @@
+name: Deploy FE Mevi Factory
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kết nối SSH và chạy kịch bản Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 234
+          script_stop: true
+          script: |
+            cd /data/MeviFactory-FE
+            git checkout -- yarn.lock
+            bash /data/MeviFactory-FE/deploy.sh
