@@ -12,7 +12,7 @@ import { FactoryMemberHomeGate } from "@/components/common/FactoryMemberHomeGate
 import { LayoutRoleSwitch } from "@/components/common/LayoutRoleSwitch";
 import { AUTH_PATHS } from "@/config/auth";
 import { AuthWrapper, authApi } from "@/features/auth";
-import { useMobileUiMode } from "@/hooks/useMobileUiMode";
+import { isTouchDevice, useMobileUiMode } from "@/hooks/useMobileUiMode";
 import AppRouter from "./AppRouter";
 
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
@@ -38,7 +38,8 @@ function App() {
   const [location] = useLocation();
   const isMobile = useIsMobile();
   const mobileUiMode = useMobileUiMode();
-  const mobileApp = isMobile && mobileUiMode === "app";
+  // Real phones always get the mobile UI; narrow desktop windows follow the floating switch
+  const mobileApp = isMobile && (isTouchDevice() || mobileUiMode === "app");
 
   // Lets global CSS restyle every dialog as a bottom sheet on the mobile app (index.css)
   useEffect(() => {
@@ -64,7 +65,7 @@ function App() {
     <TooltipProvider>
       <AuthWrapper>
         <FactoryMemberHomeGate>
-          {/* Phones pick mobile / web UI from the floating menu */}
+          {/* Phones: mobile UI; desktop narrow window: picked from the floating menu */}
           {mobileApp ? (
             <FactoryMobileLayout workspaceFeature="factory">
               {content}

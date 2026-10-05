@@ -46,3 +46,14 @@ const subscribe = (onChange: () => void) => {
 export function useMobileUiMode() {
   return useSyncExternalStore(subscribe, readMode, () => DEFAULT_MODE);
 }
+
+/** Real phone / tablet (touch device), not a narrow desktop browser window */
+export const isTouchDevice = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const uaMobile = (navigator as Navigator & { userAgentData?: { mobile?: boolean } }).userAgentData?.mobile;
+  return (
+    uaMobile === true ||
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+    window.matchMedia?.("(pointer: coarse)").matches === true
+  );
+};

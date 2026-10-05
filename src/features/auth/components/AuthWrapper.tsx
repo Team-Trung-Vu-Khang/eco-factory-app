@@ -33,13 +33,24 @@ function handleCallback() {
 const isCallbackRoute = () =>
   window.location.pathname.startsWith(AUTH_PATHS.callback);
 
+/** Came from another app (e.g. MEVI center) → already has an SSO session, skip the login page */
+const isFromExternalApp = () => {
+  if (!document.referrer) return false;
+  try {
+    return !new URL(document.referrer).pathname.startsWith(AUTH_PATHS.home);
+  } catch {
+    return false;
+  }
+};
+
 function redirectToLogin() {
   const currentPath =
     window.location.pathname + window.location.search + window.location.hash;
   if (isSafeRedirect(currentPath)) {
     sessionStorage.setItem(AUTH_STORAGE_KEYS.redirectPath, currentPath);
   }
-  window.location.replace(AUTH_PATHS.loginPage);
+  if (isFromExternalApp()) authApi.startLogin(authApi.getDefaultProvider());
+  else window.location.replace(AUTH_PATHS.loginPage);
 }
 
 export function AuthWrapper({ children }: { children: ReactNode }) {

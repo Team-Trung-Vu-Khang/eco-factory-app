@@ -11,7 +11,7 @@ import {
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { LogOut, Monitor, Smartphone } from "lucide-react";
 import { authApi } from "@/features/auth";
-import { setMobileUiMode, useMobileUiMode, type MobileUiMode } from "@/hooks/useMobileUiMode";
+import { isTouchDevice, setMobileUiMode, useMobileUiMode, type MobileUiMode } from "@/hooks/useMobileUiMode";
 
 const MODES: Record<MobileUiMode, { label: string; icon: typeof Monitor }> = {
   app: { label: "Giao diện mobile", icon: Smartphone },
@@ -25,6 +25,9 @@ export function LayoutRoleSwitch() {
   // Desktop always uses the web UI
   const current = isMobile ? mode : "classic";
   const Current = MODES[current].icon;
+
+  // Real phones always use the mobile UI — no floating switch (desktop keeps it)
+  if (isTouchDevice()) return null;
 
   return (
     <DropdownMenu>
