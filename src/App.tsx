@@ -67,7 +67,7 @@ function App() {
         <FactoryMemberHomeGate>
           {/* Phones: mobile UI; desktop narrow window: picked from the floating menu */}
           {mobileApp ? (
-            <FactoryMobileLayout workspaceFeature="factory">
+            <FactoryMobileLayout workspaceFeature="factory" moduleSwitcher={{ currentModule: "factory" }}>
               {content}
             </FactoryMobileLayout>
           ) : (
