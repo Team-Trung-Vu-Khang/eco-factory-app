@@ -22,6 +22,4 @@ jobs:
             set -e
             cd /data/MeviFactory-FE
             git checkout -- yarn.lock
-            rm -rf node_modules
-            yarn install --frozen-lockfile
             bash -e /data/MeviFactory-FE/deploy.sh
