@@ -21,10 +21,20 @@ jobs:
           script: |
             set -e
             cd /data/MeviFactory-FE
+            
+            # 1. Reset file lock về bản gốc để không bị kẹt khi pull code
             git checkout -- yarn.lock
             git pull origin main
+            
+            # 2. Nạp token xác thực
             export $(grep NPM_AUTH_TOKEN .env)
+            
+            # 3. Dọn dẹp thư mục cũ
             rm -rf node_modules
             yarn cache clean
-            yarn install --frozen-lockfile          
+            
+            # 4. Cài đặt thư viện 
+            yarn install
+            
+            # 5. Build mã nguồn
             yarn build
