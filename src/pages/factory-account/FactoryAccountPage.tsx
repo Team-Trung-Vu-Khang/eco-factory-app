@@ -28,6 +28,7 @@ import {
   type FactoryAccountStatus,
 } from "@/features/factory-account";
 import { useIsFactoryAdmin } from "@/features/viewer";
+import { formatWorkspaceDisplayName } from "@/features/workspace";
 import { useMobileUiMode } from "@/hooks/useMobileUiMode";
 import { FactoryAccountFormDialog } from "./components/FactoryAccountFormDialog";
 import {
@@ -282,8 +283,17 @@ export default function FactoryAccountPage() {
       label: "Nhà máy",
       render: (_, a) => {
         const ws = a.workspaces?.[0];
-        const factoryName =
-          ws?.factoryProfile?.name || ws?.name || "Chưa gán nhà máy";
+        const facilityName =
+          ws?.metadataJson?.factoryDisplayName ||
+          ws?.factoryProfile?.name ||
+          ws?.name;
+        const factoryName = ws
+          ? formatWorkspaceDisplayName({
+              facilityName,
+              ownerName: a.fullName,
+              ownerPhoneNumber: a.phoneNumber,
+            })
+          : "Chưa gán nhà máy";
         return <span className="text-sm text-slate-700">{factoryName}</span>;
       },
     },
@@ -325,10 +335,16 @@ export default function FactoryAccountPage() {
     if (!editingAccount) return undefined;
     const ws = editingAccount.workspaces?.[0];
     if (!ws?.id) return undefined;
-    const label =
+    const facilityName =
+      ws.metadataJson?.factoryDisplayName ||
       ws.factoryProfile?.name ||
       ws.name ||
       (ws.code ? `${ws.code} - #${ws.id}` : `Nhà máy #${ws.id}`);
+    const label = formatWorkspaceDisplayName({
+      facilityName,
+      ownerName: editingAccount.fullName,
+      ownerPhoneNumber: editingAccount.phoneNumber,
+    });
     return {
       value: String(ws.id),
       label,

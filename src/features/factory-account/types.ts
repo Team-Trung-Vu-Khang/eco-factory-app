@@ -1,3 +1,5 @@
+import type { WorkspaceMetadata } from "@/features/workspace";
+
 export type FactoryAccountStatus = "active" | "inactive";
 
 export interface WorkspaceRoleItem {
@@ -6,6 +8,7 @@ export interface WorkspaceRoleItem {
   name?: string;
   status?: string;
   roleCodes?: string[];
+  metadataJson?: WorkspaceMetadata;
   factoryProfile?: {
     id: number;
     code: string;

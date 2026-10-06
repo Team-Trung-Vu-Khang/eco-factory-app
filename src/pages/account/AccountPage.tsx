@@ -13,6 +13,7 @@ import type { ReactNode } from "react";
 import { authApi, useCurrentUser } from "@/features/auth";
 import {
   SELECTED_WORKSPACE_STORAGE_KEY,
+  formatWorkspaceDisplayName,
   getSelectedWorkspaceIdFromStorage,
 } from "@/features/workspace";
 import { useWorkspaces } from "@/features/workspace/api/workspace.api";
@@ -117,7 +118,14 @@ function ClassicAccount() {
             <SelectContent>
               {workspaces.map((w) => (
                 <SelectItem key={w.id} value={String(w.id)}>
-                  {w.brandName || w.name}
+                  {formatWorkspaceDisplayName({
+                    facilityName:
+                      w.metadataJson?.factoryDisplayName ||
+                      w.brandName ||
+                      w.name,
+                    ownerName: w.owner?.fullName,
+                    ownerPhoneNumber: w.owner?.phoneNumber,
+                  })}
                 </SelectItem>
               ))}
             </SelectContent>

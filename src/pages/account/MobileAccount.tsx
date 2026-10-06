@@ -14,7 +14,10 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "wouter";
 import { ROUTES } from "@/config/routes";
 import { authApi, useCurrentUser } from "@/features/auth";
-import { getSelectedWorkspaceIdFromStorage } from "@/features/workspace";
+import {
+  formatWorkspaceDisplayName,
+  getSelectedWorkspaceIdFromStorage,
+} from "@/features/workspace";
 import { useWorkspaces } from "@/features/workspace/api/workspace.api";
 import { useFillViewportHeight } from "@/hooks/useFillViewportHeight";
 import { WizardHeader } from "@/pages/connection/mobile/wizard-ui";
@@ -98,7 +101,8 @@ const fold = (v: string) =>
     .toLowerCase();
 
 type WorkspaceItem = ReturnType<typeof useWorkspaces>["data"] extends
-  (infer U)[] | undefined
+  | (infer U)[]
+  | undefined
   ? U
   : never;
 
@@ -113,7 +117,12 @@ function WorkspacePicker({
   onSelect: (id: string) => void;
 }) {
   const [keyword, setKeyword] = useState("");
-  const label = (w: WorkspaceItem) => w.brandName || w.name || "";
+  const label = (w: WorkspaceItem) =>
+    formatWorkspaceDisplayName({
+      facilityName: w.metadataJson?.factoryDisplayName || w.brandName || w.name,
+      ownerName: w.owner?.fullName,
+      ownerPhoneNumber: w.owner?.phoneNumber,
+    });
   const list = useMemo(() => {
     const k = fold(keyword.trim());
     const filtered = k

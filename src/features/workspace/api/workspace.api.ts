@@ -4,13 +4,52 @@ import type { FactoryProfile } from "@/features/factory";
 import { apiClient } from "@/lib/axios";
 import { queryClient } from "@/lib/query-client";
 
+export interface WorkspaceMetadata {
+  source?: string;
+  factoryDisplayName?: string;
+  farmDisplayName?: string;
+  [key: string]: unknown;
+}
+
+export interface WorkspaceOwner {
+  id?: number;
+  fullName?: string;
+  phoneNumber?: string;
+}
+
 export interface WorkspaceSummary {
   id: number | string;
   code?: string;
   name: string;
   brandName?: string;
   status?: string;
+  owner?: WorkspaceOwner;
   featureProfile?: FactoryProfile;
+  metadataJson?: WorkspaceMetadata;
+}
+
+export function formatWorkspaceDisplayName({
+  facilityName,
+  ownerName,
+  ownerPhoneNumber,
+  fallback = "Nhà máy",
+}: {
+  facilityName?: string | null;
+  ownerName?: string | null;
+  ownerPhoneNumber?: string | null;
+  fallback?: string;
+}): string {
+  const accountDetails = [
+    ownerName?.trim(),
+    ownerPhoneNumber?.trim() ? `(${ownerPhoneNumber.trim()})` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (facilityName && accountDetails) {
+    return `${facilityName} - ${accountDetails}`;
+  }
+  return facilityName || accountDetails || fallback;
 }
 
 export interface WorkspaceOption {
@@ -73,14 +112,23 @@ export const workspaceApi = {
         },
       );
       const items = Array.isArray(data) ? data : (data.content ?? []);
-      return items.map((w) => ({
-        value: String(w.id),
-        label:
-          w.name ||
+      return items.map((w) => {
+        const facilityName =
+          w.metadataJson?.factoryDisplayName ||
           w.brandName ||
+          w.name ||
           w.featureProfile?.name ||
-          (w.code ? `${w.code} - #${w.id}` : `Nhà máy #${w.id}`),
-      }));
+          (w.code ? `${w.code} - #${w.id}` : `Nhà máy #${w.id}`);
+
+        return {
+          value: String(w.id),
+          label: formatWorkspaceDisplayName({
+            facilityName,
+            ownerName: w.owner?.fullName,
+            ownerPhoneNumber: w.owner?.phoneNumber,
+          }),
+        };
+      });
     } catch (err) {
       console.error("Failed to fetch workspace options", err);
       return [];
@@ -122,14 +170,23 @@ export function useWorkspaceOptions(params?: WorkspaceListParams) {
 
   const options = useMemo(
     () =>
-      workspaces.map((w) => ({
-        value: String(w.id),
-        label:
-          w.name ||
+      workspaces.map((w) => {
+        const facilityName =
+          w.metadataJson?.factoryDisplayName ||
           w.brandName ||
+          w.name ||
           w.featureProfile?.name ||
-          (w.code ? `${w.code} - #${w.id}` : `Nhà máy #${w.id}`),
-      })),
+          (w.code ? `${w.code} - #${w.id}` : `Nhà máy #${w.id}`);
+
+        return {
+          value: String(w.id),
+          label: formatWorkspaceDisplayName({
+            facilityName,
+            ownerName: w.owner?.fullName,
+            ownerPhoneNumber: w.owner?.phoneNumber,
+          }),
+        };
+      }),
     [workspaces],
   );
 

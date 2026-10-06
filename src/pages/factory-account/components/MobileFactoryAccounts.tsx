@@ -23,6 +23,7 @@ import {
   type FactoryAccountFormValues,
 } from "@/features/factory-account";
 import { useFillViewportHeight } from "@/hooks/useFillViewportHeight";
+import { formatWorkspaceDisplayName } from "@/features/workspace";
 import {
   WizardFooter,
   WizardHeader,
@@ -182,7 +183,17 @@ export function MobileFactoryAccountList({
         ) : (
           items.map((a, i) => {
             const ws = a.workspaces?.[0];
-            const factory = ws?.factoryProfile?.name || ws?.name;
+            const facilityName =
+              ws?.metadataJson?.factoryDisplayName ||
+              ws?.factoryProfile?.name ||
+              ws?.name;
+            const factory = ws
+              ? formatWorkspaceDisplayName({
+                  facilityName,
+                  ownerName: a.fullName,
+                  ownerPhoneNumber: a.phoneNumber,
+                })
+              : "Chưa gán nhà máy";
             const active = a.status === "active";
             const locked = isLocked(a);
             const phone = formatPhone(a.phoneNumber) || a.username;

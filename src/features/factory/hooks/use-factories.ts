@@ -1,4 +1,7 @@
-import { getSelectedWorkspaceIdFromStorage } from "@/features/workspace";
+import {
+  getSelectedWorkspaceIdFromStorage,
+  workspaceKeys,
+} from "@/features/workspace";
 import {
   keepPreviousData,
   useMutation,
@@ -29,7 +32,10 @@ export function useCreateFactory() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (values: FactoryFormValues) => factoryApi.create(values),
-    onSuccess: () => qc.invalidateQueries({ queryKey: factoryKeys.lists() }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: factoryKeys.lists() });
+      qc.invalidateQueries({ queryKey: workspaceKeys.all });
+    },
   });
 }
 
@@ -47,6 +53,7 @@ export function useUpdateFactory() {
     }) => factoryApi.update(id, values, submitForReview),
     onSuccess: (factory) => {
       qc.invalidateQueries({ queryKey: factoryKeys.lists() });
+      qc.invalidateQueries({ queryKey: workspaceKeys.all });
       qc.setQueryData(factoryKeys.detail(factory.id), factory);
     },
   });

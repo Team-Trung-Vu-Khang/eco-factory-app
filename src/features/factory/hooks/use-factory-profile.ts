@@ -5,6 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { workspaceKeys } from "@/features/workspace";
 import {
   factoryProfileApi,
   factoryProfileKeys,
@@ -69,6 +70,7 @@ export function useSubmitFactoryProfile() {
       factoryProfileApi.submitProfile(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: factoryProfileKeys.all });
+      qc.invalidateQueries({ queryKey: workspaceKeys.all });
     },
   });
 }
@@ -79,6 +81,7 @@ export function useAdminApproveProfile() {
     mutationFn: (id: string | number) => factoryProfileApi.adminApprove(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: factoryProfileKeys.all });
+      qc.invalidateQueries({ queryKey: workspaceKeys.all });
     },
   });
 }
