@@ -19,4 +19,6 @@ jobs:
           port: 234
           script_stop: true
           script: |
-            bash -e /data/MeviFactory-FE/deploy.sh
+            cd /data/MeviFactory-FE
+            git checkout -- yarn.lock
+            bash /data/MeviFactory-FE/deploy.sh
