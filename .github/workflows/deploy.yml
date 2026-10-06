@@ -19,6 +19,9 @@ jobs:
           port: 234
           script_stop: true
           script: |
+            set -e
             cd /data/MeviFactory-FE
             git checkout -- yarn.lock
-            bash /data/MeviFactory-FE/deploy.sh
+            rm -rf node_modules
+            yarn install --frozen-lockfile
+            bash -e /data/MeviFactory-FE/deploy.sh
