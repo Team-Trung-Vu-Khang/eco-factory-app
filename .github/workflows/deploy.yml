@@ -29,11 +29,11 @@ jobs:
             # 2. Nạp token xác thực
             export $(grep NPM_AUTH_TOKEN .env)
             
-            # 3. Dọn dẹp thư mục cũ
-            rm -rf node_modules
+            # 3. Dọn dẹp node_modules và lock
+            rm -rf node_modules yarn.lock
             yarn cache clean
             
-            # 4. Cài đặt thư viện 
+            # 4. Cài đặt lại (Yarn sẽ tự sinh lockfile mới chuẩn xác cho Linux)
             yarn install
             
             # 5. Build mã nguồn
