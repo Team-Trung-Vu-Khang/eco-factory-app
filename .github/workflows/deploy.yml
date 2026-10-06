@@ -23,7 +23,7 @@ jobs:
             cd /data/MeviFactory-FE
             git checkout -- yarn.lock
             git pull origin main
+            export $(grep NPM_AUTH_TOKEN .env)
             rm -rf node_modules
             yarn install --frozen-lockfile
             bash -e /data/MeviFactory-FE/deploy.sh
-
