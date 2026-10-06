@@ -19,22 +19,4 @@ jobs:
           port: 234
           script_stop: true
           script: |
-            set -e
-            cd /data/MeviFactory-FE
-            
-            # 1. Reset file lock về bản gốc để không bị kẹt khi pull code
-            git checkout -- yarn.lock
-            git pull origin main
-            
-            # 2. Nạp token xác thực
-            export $(grep NPM_AUTH_TOKEN .env)
-            
-            # 3. Dọn dẹp node_modules và lock
-            rm -rf node_modules yarn.lock
-            yarn cache clean
-            
-            # 4. Cài đặt lại (Yarn sẽ tự sinh lockfile mới chuẩn xác cho Linux)
-            yarn install
-            
-            # 5. Build mã nguồn
-            yarn build
+            bash -e /data/MeviFactory-FE/deploy.sh
