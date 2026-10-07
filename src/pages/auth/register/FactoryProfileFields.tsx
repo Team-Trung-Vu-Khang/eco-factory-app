@@ -33,7 +33,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-/** Optional factory profile in the register form — only `name` is required */
+/** Required factory profile in the register form — only `name` is required */
 export function FactoryProfileFields() {
   const { control, setValue } = useFormContext<RegisterValues>();
   const [province, hasCertificates] = useWatch({

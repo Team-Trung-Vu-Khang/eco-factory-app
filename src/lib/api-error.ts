@@ -21,6 +21,8 @@ const messageByKey: Record<string, string> = {
     "Dữ liệu nhập chưa hợp lệ. Vui lòng kiểm tra lại.",
   "api.message.common.unauthorized": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
   "api.message.common.forbidden": "Bạn không có quyền thực hiện thao tác này.",
+  "api.message.factory.profile.notApproved":
+    "Hồ sơ nhà máy chưa được duyệt. Vui lòng vào Hồ sơ cơ sở để xem trạng thái hoặc gửi duyệt lại.",
   "api.message.common.notFound": "Không tìm thấy dữ liệu yêu cầu.",
   "api.message.common.conflict": "Dữ liệu bị trùng hoặc đang xung đột.",
   "api.message.common.conflict.blockedByReference":

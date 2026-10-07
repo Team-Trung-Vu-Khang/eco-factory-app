@@ -6,7 +6,12 @@ import {
 } from "@Team-Trung-Vu-Khang/eco-shared-ui";
 import { DataTable, type Column } from "@/components/common/DataTable";
 import { useEffect, useRef, useState } from "react";
-import { useSearch } from "wouter";
+import { Link, useSearch } from "wouter";
+import { Clock, XCircle } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ROUTES } from "@/config/routes";
+import { factoryProfileKeys, useMyFactoryProfile } from "@/features/factory";
+import { getApiErrorDetails } from "@/lib/api-error";
 import PageWrapper from "@/components/common/PageWrapper";
 import {
   useAdminDeleteSchedule,
@@ -45,6 +50,11 @@ export default function ProcessingSchedulePage() {
   // Admin: every factory (filterable) · factory: its own posts only
   const factoryFilter = useFactoryFilter();
   const isAdmin = factoryFilter.isAdmin;
+  const qc = useQueryClient();
+  // Posting / editing requires an APPROVED profile (BE returns 403 otherwise)
+  const profileQuery = useMyFactoryProfile();
+  const profile = isAdmin ? undefined : profileQuery.data;
+  const canPost = isAdmin || profile?.reviewStatus === "APPROVED";
   const isMobile = useIsMobile();
   const mobileUiMode = useMobileUiMode();
   // Mobile app (factory member): card list + full-screen form
@@ -101,14 +111,16 @@ export default function ProcessingSchedulePage() {
         <div className="flex items-center justify-end gap-1.5">
           {!isAdmin ? (
             <>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-primary hover:text-primary"
-                onClick={() => handleEditClick(s)}
-              >
-                Sửa
-              </Button>
+              {canPost && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-primary hover:text-primary"
+                  onClick={() => handleEditClick(s)}
+                >
+                  Sửa
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -162,6 +174,12 @@ export default function ProcessingSchedulePage() {
       });
       return true;
     } catch (error) {
+      // Profile went back to pending/rejected meanwhile → refresh to lock the form
+      if (
+        getApiErrorDetails(error).messageKey ===
+        "api.message.factory.profile.notApproved"
+      )
+        qc.invalidateQueries({ queryKey: factoryProfileKeys.all });
       toast({
         title: editingSchedule
           ? "Không thể cập nhật tin đăng"
@@ -238,10 +256,18 @@ export default function ProcessingSchedulePage() {
     </>
   );
 
+  const notApprovedNotice =
+    !isAdmin && profileQuery.isSuccess && !canPost ? (
+      <ProfileNotApprovedNotice
+        status={profile?.reviewStatus}
+        reviewNote={profile?.reviewNote}
+      />
+    ) : null;
+
   if (mobileApp)
     return (
       <>
-        {mobileFormOpen ? (
+        {mobileFormOpen && canPost ? (
           <MobileScheduleFormScreen
             key={editingSchedule?.id ?? "new"}
             machineId={editingSchedule ? undefined : machineId}
@@ -254,11 +280,13 @@ export default function ProcessingSchedulePage() {
             }}
           />
         ) : (
+          <>
+          {notApprovedNotice && <div className="px-4 pt-4">{notApprovedNotice}</div>}
           <MobileScheduleList
             admin={isAdmin}
             // Admin: view + delete only (same as desktop); factory: post, edit, close
             onCreate={
-              isAdmin
+              !canPost
                 ? undefined
                 : () => {
                     setEditingSchedule(null);
@@ -266,7 +294,7 @@ export default function ProcessingSchedulePage() {
                   }
             }
             onEdit={
-              isAdmin
+              !canPost
                 ? undefined
                 : (s) => {
                     setEditingSchedule(s);
@@ -276,6 +304,7 @@ export default function ProcessingSchedulePage() {
             onClose={isAdmin ? undefined : setClosing}
             onDelete={isAdmin ? setDeleting : undefined}
           />
+          </>
         )}
         {dialogs}
       </>
@@ -287,7 +316,8 @@ export default function ProcessingSchedulePage() {
       description="Đăng lịch nhận chế biến theo từng đợt cho máy / dây chuyền"
     >
       <div className="space-y-6">
-        {!isAdmin && (
+        {notApprovedNotice}
+        {!isAdmin && canPost && (
           <div ref={formRef}>
             <ScheduleForm
               machineId={machineId}
@@ -336,5 +366,44 @@ export default function ProcessingSchedulePage() {
 
       {dialogs}
     </PageWrapper>
+  );
+}
+
+/** Why posting is locked: profile pending review or rejected */
+function ProfileNotApprovedNotice({
+  status,
+  reviewNote,
+}: {
+  status?: string;
+  reviewNote?: string | null;
+}) {
+  const rejected = status === "REJECTED";
+  const Icon = rejected ? XCircle : Clock;
+  return (
+    <div
+      className={`flex items-start gap-3 rounded-xl border p-4 text-sm ${
+        rejected
+          ? "border-rose-200 bg-rose-50 text-rose-800"
+          : "border-amber-200 bg-amber-50 text-amber-800"
+      }`}
+    >
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+      <div className="space-y-0.5">
+        <p className="font-medium">
+          Hồ sơ nhà máy chưa được duyệt — chưa thể đăng hoặc sửa tin.
+        </p>
+        <p>
+          {rejected
+            ? "Hồ sơ bị từ chối, vui lòng chỉnh sửa và gửi duyệt lại."
+            : status === "PENDING_REVIEW"
+              ? "Hồ sơ đang chờ quản trị viên duyệt."
+              : "Vui lòng hoàn thiện và gửi duyệt hồ sơ cơ sở."}
+        </p>
+        {rejected && reviewNote && <p>Lý do: {reviewNote}</p>}
+        <Link href={ROUTES.profile} className="font-medium underline">
+          Xem hồ sơ cơ sở
+        </Link>
+      </div>
+    </div>
   );
 }

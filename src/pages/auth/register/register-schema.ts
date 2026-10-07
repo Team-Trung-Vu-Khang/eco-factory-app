@@ -115,7 +115,7 @@ export const EMPTY_REGISTER: RegisterValues = {
   audienceType: "business",
   password: "",
   confirmPassword: "",
-  withProfile: false,
+  withProfile: true,
   profile: {
     name: "",
     organizationTypeId: "",
