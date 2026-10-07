@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import dayjs from "dayjs";
 import {
   CalendarRange,
@@ -47,6 +48,8 @@ interface Props {
   /** Admin: every factory's posts; delete instead of edit/close */
   admin?: boolean;
   onDelete?: (s: ScheduleRow) => void;
+  /** Shown under the header, e.g. why posting is locked */
+  notice?: ReactNode;
 }
 
 /** Mobile-app schedule posts (factory member) as cards — open posts or full history */
@@ -57,6 +60,7 @@ export function MobileScheduleList({
   onClose,
   admin,
   onDelete,
+  notice,
 }: Props) {
   const history = variant === "history";
   const [status, setStatus] = useState("");
@@ -199,6 +203,7 @@ export function MobileScheduleList({
           </div>
         )}
       </header>
+      {notice && <div className="mt-3">{notice}</div>}
 
       <div className="mt-3 space-y-3">
         {query.isLoading ? (

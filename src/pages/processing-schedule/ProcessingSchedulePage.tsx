@@ -280,9 +280,8 @@ export default function ProcessingSchedulePage() {
             }}
           />
         ) : (
-          <>
-          {notApprovedNotice && <div className="px-4 pt-4">{notApprovedNotice}</div>}
           <MobileScheduleList
+            notice={notApprovedNotice}
             admin={isAdmin}
             // Admin: view + delete only (same as desktop); factory: post, edit, close
             onCreate={
@@ -304,7 +303,6 @@ export default function ProcessingSchedulePage() {
             onClose={isAdmin ? undefined : setClosing}
             onDelete={isAdmin ? setDeleting : undefined}
           />
-          </>
         )}
         {dialogs}
       </>
